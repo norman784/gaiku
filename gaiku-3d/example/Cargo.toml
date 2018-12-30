@@ -1,0 +1,17 @@
+[package]
+name = "gaiku-3d-example"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+gaiku-3d = { path = "../", version = "0.1.0" }
+rendy = { git = "https://github.com/omni-viral/rendy.git", branch = "master", features = ["dx12", "full"] }
+gfx-hal = "0.1.0"
+env_logger = "0.5"
+failure = "0.1"
+lazy_static = "1.0"
+log = "0.4"
+winit = "0.18"
+palette = "0.4"
+rand = "0.6"
