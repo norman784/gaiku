@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 gaiku-common = { path = "../gaiku-common", version = "0.1.0" }
+gox = { git = "https://github.com/norman784/gox.git", branch = "master" }
