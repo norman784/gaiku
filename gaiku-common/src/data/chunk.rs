@@ -6,7 +6,7 @@ pub struct Chunk {
     width: usize,
     height: usize,
     depth: usize,
-    values: Vec<Vec<Vec<f32>>>,
+    values: Vec<f32>,
 }
 
 impl Chunk {
@@ -16,7 +16,7 @@ impl Chunk {
             width,
             height,
             depth,
-            values: vec![vec![vec![0.0; depth]; height]; width]
+            values: vec![0.0; depth * height * width],
         }
     }
 
@@ -40,19 +40,24 @@ impl Chunk {
         self.depth
     }
 
-    pub fn add(&mut self, (x, y, z): (usize, usize, usize), value: f32) {
-        self.values[x][y][z] = value;
+    pub fn add(&mut self, x: usize, y: usize, z: usize, value: f32) {
+        let index = self.index(x, y, z);
+        self.values[index] = value;
     }
 
-    pub fn get(&self, (x, y, z): (usize, usize, usize)) -> f32 {
-        self.values[x][y][z]
+    pub fn get(&self, x: usize, y: usize, z: usize) -> f32 {
+        self.values[self.index(x, y, z)]
     }
 
-    pub fn is_empty(&self, (x, y, z): (usize, usize, usize)) -> bool {
+    pub fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
         if x >= self.width || y >= self.height || z >= self.depth {
             true
         } else {
-            self.values[x][y][z] == 0.0
+            self.values[self.index(x, y, z)] == 0.0
         }
+    }
+
+    fn index(&self, x: usize, y: usize, z: usize) -> usize {
+        x + y * self.width + z * self.width * self.height
     }
 }
