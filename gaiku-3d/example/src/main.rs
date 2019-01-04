@@ -1,40 +1,36 @@
 extern crate gaiku_3d;
-extern crate rendy;
-extern crate gfx_hal;
 
 use gaiku_3d::{
     common::{
         Baker,
         Fileformat,
-        Mesh,
     },
     bakers::VoxelBaker,
     formats::GoxReader,
 };
 
-use std::{
-    env,
-};
+mod exporter;
 
-mod renderer;
+use crate::exporter::export;
 
-use crate::renderer::draw;
+fn read(name: &str) -> std::io::Result<()> {
+    let file = format!("{}/assets/{}.gox", env!("CARGO_MANIFEST_DIR"), name);
+    let chunks= GoxReader::read(&file);
+    let mut meshes = vec![];
+
+    for chunk in chunks {
+        let mesh  = VoxelBaker::bake(&chunk);
+        meshes.push((mesh, chunk.get_position()));
+    }
+
+    export(meshes, name);
+
+    Ok(())
+}
 
 fn main() -> std::io::Result<()> {
-    let mut path = env::current_dir()?;
-    path.push("assets");
-    path.push("terrain.gox");
-
-    if let Some(file) = path.to_str() {
-        let chunks= GoxReader::read(file);
-        let mut meshes: Vec<Mesh> = vec![];
-
-        for chunk in chunks {
-            meshes.push(VoxelBaker::bake(&chunk));
-        }
-
-        draw(meshes);
-    }
+    let _ = read("terrain");
+    let _ = read("planet");
 
     Ok(())
 }
