@@ -47,7 +47,7 @@ impl Fileformat for GoxReader {
                                     for y in 0..chunk.height() {
                                         for z in 0..chunk.depth() {
                                             if !block.is_empty(x, y, z) {
-                                                chunk.add((x, y, z), 1.0)
+                                                chunk.add(x, y, z, 1.0)
                                             }
                                         }
                                     }

@@ -23,7 +23,7 @@ impl VoxelBaker {
 }
 
 impl Baker for VoxelBaker {
-    fn bake(chunk: &Chunk) -> Mesh {
+    fn bake(chunk: &Chunk) -> Option<Mesh> {
         let mut indices= vec![];
         let mut vertices = vec![];
         let mut colors =  vec![];
@@ -38,7 +38,7 @@ impl Baker for VoxelBaker {
                 for z in 0..chunk.depth() {
                     let fz = z as f32;
 
-                    if chunk.is_empty((x, y, z)) {
+                    if chunk.is_air(x, y, z) {
                         continue;
                     }
 
@@ -53,7 +53,7 @@ impl Baker for VoxelBaker {
                     let bottom_left_front = Self::index(&mut vertices,[fx - 0.5, fy - 0.5, fz + 0.5].into());
 
                     // Top
-                    if y == ylimit || chunk.is_empty((x, y+1, z)) {
+                    if y == ylimit || chunk.is_air(x, y+1, z) {
                         indices.push(top_left_back);
                         indices.push(top_right_back);
                         indices.push(top_left_front);
@@ -66,7 +66,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Bottom
-                    if y == 0 || (y > 0 && chunk.is_empty((x, y-1, z))) {
+                    if y == 0 || (y > 0 && chunk.is_air(x, y-1, z)) {
                         indices.push(bottom_left_back);
                         indices.push(bottom_right_back);
                         indices.push(bottom_left_front);
@@ -79,7 +79,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Left
-                    if x == 0 || (x > 0 && chunk.is_empty((x-1, y, z))) {
+                    if x == 0 || (x > 0 && chunk.is_air(x-1, y, z)) {
                         indices.push(top_left_back);
                         indices.push(top_left_front);
                         indices.push(bottom_left_back);
@@ -92,7 +92,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Right
-                    if x == xlimit || chunk.is_empty((x+1, y, z)) {
+                    if x == xlimit || chunk.is_air(x+1, y, z) {
                         indices.push(top_right_front);
                         indices.push(top_right_back);
                         indices.push(bottom_right_front);
@@ -105,7 +105,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Front
-                    if z == zlimit || chunk.is_empty((x, y, z+1)) {
+                    if z == zlimit || chunk.is_air(x, y, z+1) {
                         indices.push(top_left_front);
                         indices.push(top_right_front);
                         indices.push(bottom_left_front);
@@ -118,7 +118,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Back
-                    if z == 0 || chunk.is_empty((x, y, z-1)) {
+                    if z == 0 || chunk.is_air(x, y, z-1) {
                         indices.push(top_right_back);
                         indices.push(top_left_back);
                         indices.push(bottom_right_back);
@@ -133,13 +133,19 @@ impl Baker for VoxelBaker {
             }
         }
 
-        Mesh {
-            indices,
-            vertices,
-            normals: vec![],
-            colors,
-            uv: vec![],
-            tangents: vec![],
+        if indices.len() > 0 {
+            Some(
+                Mesh {
+                    indices,
+                    vertices,
+                    normals: vec![],
+                    colors,
+                    uv: vec![],
+                    tangents: vec![],
+                }
+            )
+        } else {
+            None
         }
     }
 }

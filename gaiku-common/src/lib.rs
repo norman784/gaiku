@@ -15,7 +15,7 @@ pub use self::{
 };
 
 pub trait Baker {
-    fn bake(chunks: &Chunk) -> Mesh;
+    fn bake(chunks: &Chunk) -> Option<Mesh>;
 }
 
 pub trait Fileformat {
