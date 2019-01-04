@@ -6,7 +6,7 @@ use super::{
 
 #[derive(Debug)]
 pub struct Mesh {
-    pub indices: Vec<i32>,
+    pub indices: Vec<usize>,
     pub vertices: Vec<Vector3>,
     pub normals: Vec<Vector3>,
     pub colors: Vec<Vector4>,
