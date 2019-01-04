@@ -4,7 +4,8 @@ use gaiku_common::{
 };
 
 use gox::{
-    ChunkData,
+    Block,
+    Data,
     Gox,
     Only,
 };
@@ -14,28 +15,47 @@ use std::fs::File;
 pub struct GoxReader;
 
 impl Fileformat for GoxReader {
-    fn load(stream: &File) -> Vec<Chunk> {
-        let gox = Gox::new(stream, vec![Only::Layer]);
+    fn load(stream: &mut File) -> Vec<Chunk> {
+        let gox = Gox::new(stream, vec![Only::Layers, Only::Blocks]);
         let mut result = vec![];
-        let chunk_size = 16;
+        let mut block_data: Vec<&Block> = vec![];
 
-//        println!("{:#?}", gox);
+        for data in gox.data.iter() {
+            match &data {
+                Data::Blocks(data) => {
+                    block_data.push(data);
+                }
+                _ => {}
+            }
+        }
 
-        for data in gox.data {
-            match data.data {
-                ChunkData::Layer(layer) => {
-                    if layer.blocks.len() > 0 {
-                        let mut chunk = Chunk::new(chunk_size, false);
+        for data in gox.data.iter() {
+            match &data {
+                Data::Layers(layers, _bounds) => {
+                    for layer in layers.iter() {
+                        if layer.blocks.len() > 0 {
+                            for data in layer.blocks.iter() {
+                                let block = block_data[data.block_index];
+                                let mut chunk = Chunk::new(
+                                    [data.x, data.y, data.z],
+                                    16,
+                                    16,
+                                    16
+                                );
 
-                        for block in layer.blocks {
-                            let x = (block.x + chunk_size as i32) as usize;
-                            let y = (block.y + chunk_size as i32) as usize;
-                            let z = (block.z + chunk_size as i32) as usize;
+                                for x in 0..chunk.width() {
+                                    for y in 0..chunk.height() {
+                                        for z in 0..chunk.depth() {
+                                            if !block.is_empty(x, y, z) {
+                                                chunk.add((x, y, z), 1.0)
+                                            }
+                                        }
+                                    }
+                                }
 
-                            chunk.add((x, y, z), 1.0);
+                                result.push(chunk);
+                            }
                         }
-
-                        result.push(chunk);
                     }
                 }
                 _ => {}
