@@ -1,52 +1,58 @@
+use crate::Vector3i;
+
 #[derive(Debug)]
 pub struct Chunk {
-    size: usize,
-    is_2d: bool,
-    values: Vec<f32>,
+    position: Vector3i,
+    width: usize,
+    height: usize,
+    depth: usize,
+    values: Vec<Vec<Vec<f32>>>,
 }
 
 impl Chunk {
-    pub fn new(size: usize, is_2d: bool) -> Self {
-        let length  = {
-            if is_2d {
-                size * size
-            } else {
-                size * size * size
-            }
-        };
-
+    pub fn new(position: [i32; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
-            size,
-            is_2d,
-            values: vec![0.0; length]
+            position: position.into(),
+            width,
+            height,
+            depth,
+            values: vec![vec![vec![0.0; depth]; height]; width]
         }
     }
 
-    pub fn size(&self) -> usize {
-        self.size
+    pub fn get_position(&self) -> Vector3i {
+        self.position
+    }
+
+    pub fn set_position(&mut self, value: Vector3i) {
+        self.position = value;
+    }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
+    pub fn depth(&self) -> usize {
+        self.depth
     }
 
     pub fn add(&mut self, (x, y, z): (usize, usize, usize), value: f32) {
-        self.values.insert(self.index((x, y, z)),  value);
+        self.values[x][y][z] = value;
     }
 
-    pub fn get(&self, (x, y, z): (i32, i32, i32)) -> f32 {
-        if x < 0 || y < 0 || z < 0 {
-            0.0
+    pub fn get(&self, (x, y, z): (usize, usize, usize)) -> f32 {
+        self.values[x][y][z]
+    }
+
+    pub fn is_empty(&self, (x, y, z): (usize, usize, usize)) -> bool {
+        if x >= self.width || y >= self.height || z >= self.depth {
+            true
         } else {
-            self.values[self.index((x as usize, y as usize, z as usize))]
-        }
-    }
-
-    pub fn is_empty(&self, (x, y, z): (i32, i32, i32)) -> bool {
-        self.get((x, y, z)) == 0.0
-    }
-
-    fn index(&self, (x, y, z): (usize, usize, usize)) -> usize {
-        if self.is_2d {
-            x + self.size * y
-        } else {
-            x + self.size * y + self.size * z
+            self.values[x][y][z] == 0.0
         }
     }
 }
