@@ -8,7 +8,10 @@ mod data;
 pub use self::{
     data::Chunk,
     data::Mesh,
+    data::Vector2,
     data::Vector3,
+    data::Vector3i,
+    data::Vector4,
 };
 
 pub trait Baker {
@@ -16,10 +19,10 @@ pub trait Baker {
 }
 
 pub trait Fileformat {
-    fn load(stream: &File) -> Vec<Chunk>;
+    fn load(stream: &mut File) -> Vec<Chunk>;
 
     fn read(file: &str) -> Vec<Chunk> {
-        let stream = &(File::open(file).unwrap());
-        Self::load(&stream)
+        let mut stream = File::open(file).unwrap();
+        Self::load(&mut stream)
     }
 }
