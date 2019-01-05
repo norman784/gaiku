@@ -17,7 +17,7 @@ use crate::exporter::export;
 
 fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
-    let file = format!("{}/assets/{}.gox", env!("CARGO_MANIFEST_DIR"), name);
+    let file = format!("{}/examples/assets/{}.gox", env!("CARGO_MANIFEST_DIR"), name);
     let chunks = GoxReader::read(&file);
     let mut meshes = vec![];
 
@@ -36,7 +36,14 @@ fn read(name: &str) -> std::io::Result<()> {
 
     export(meshes, name);
 
-    println!("<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs", name, chunks.len(), reader_elapsed, baker_elapsed, now.elapsed().as_secs());
+    println!(
+        "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
+        name,
+        chunks.len(),
+        reader_elapsed,
+        baker_elapsed,
+        now.elapsed().as_secs()
+    );
 
     Ok(())
 }

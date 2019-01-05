@@ -1,9 +1,0 @@
-[package]
-name = "gaiku-3d-example"
-version = "0.1.0"
-authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-gaiku-3d = { path = "../", version = "0.1.0" }
-obj-exporter = "0.2.0"

@@ -64,5 +64,5 @@ pub fn export(data: Vec<(Mesh, Vector3i)>, name: &str) {
         objects: objects
     };
 
-    obj_exporter::export_to_file(&set, format!("output/{}.obj", name)).unwrap();
+    obj_exporter::export_to_file(&set, format!("examples/output/{}.obj", name)).unwrap();
 }
