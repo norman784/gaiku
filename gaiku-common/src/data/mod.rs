@@ -13,7 +13,7 @@ impl From<[f32; 2]> for Vector2 {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct Vector3 {
     pub x: f32,
     pub y: f32,

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use gaiku_common::{
     Baker,
     Chunk,
@@ -7,17 +9,16 @@ use gaiku_common::{
 
 pub struct VoxelBaker;
 
+// TODO: Changing from array to hashmap improved the speed a lot, but still is ugly to convert from vector3 to string for the hash key,  need to improve this
 impl VoxelBaker {
-    fn index(vertices: &mut Vec<Vector3>, vertex: Vector3) -> usize {
-        match vertices.iter().position(
-            |item| item.x == vertex.x && item.y == vertex.y && item.z == vertex.z
-        ) {
-            Some(index) => index,
-            None => {
-                let index = vertices.len();
-                vertices.push(vertex);
-                index
-            }
+    fn index(vertices: &mut HashMap<String, (Vector3, usize)>, vertex: Vector3) -> usize {
+        let key = format!("{},{},{}", vertex.x, vertex.y, vertex.z);
+        if vertices.contains_key(&key) {
+            vertices.get(&key).unwrap().1
+        } else {
+            let index = vertices.len();
+            vertices.insert(key,  (vertex, index));
+            index
         }
     }
 }
@@ -25,7 +26,7 @@ impl VoxelBaker {
 impl Baker for VoxelBaker {
     fn bake(chunk: &Chunk) -> Option<Mesh> {
         let mut indices= vec![];
-        let mut vertices = vec![];
+        let mut vertices_cache = HashMap::new();
         let mut colors =  vec![];
         let xlimit = chunk.width() - 1;
         let ylimit = chunk.height() - 1;
@@ -42,15 +43,15 @@ impl Baker for VoxelBaker {
                         continue;
                     }
 
-                    let top_left_back = Self::index(&mut vertices,[fx - 0.5, fy + 0.5, fz - 0.5].into());
-                    let top_right_back = Self::index(&mut vertices,[fx + 0.5, fy + 0.5, fz - 0.5].into());
-                    let top_right_front= Self::index(&mut vertices,[fx + 0.5, fy + 0.5, fz + 0.5].into());
-                    let top_left_front = Self::index(&mut vertices,[fx - 0.5, fy + 0.5, fz + 0.5].into());
+                    let top_left_back = Self::index(&mut vertices_cache,[fx - 0.5, fy + 0.5, fz - 0.5].into());
+                    let top_right_back = Self::index(&mut vertices_cache,[fx + 0.5, fy + 0.5, fz - 0.5].into());
+                    let top_right_front= Self::index(&mut vertices_cache,[fx + 0.5, fy + 0.5, fz + 0.5].into());
+                    let top_left_front = Self::index(&mut vertices_cache,[fx - 0.5, fy + 0.5, fz + 0.5].into());
 
-                    let bottom_left_back = Self::index(&mut vertices,[fx - 0.5, fy - 0.5, fz - 0.5].into());
-                    let bottom_right_back = Self::index(&mut vertices,[fx + 0.5, fy - 0.5, fz - 0.5].into());
-                    let bottom_right_front= Self::index(&mut vertices,[fx + 0.5, fy - 0.5, fz + 0.5].into());
-                    let bottom_left_front = Self::index(&mut vertices,[fx - 0.5, fy - 0.5, fz + 0.5].into());
+                    let bottom_left_back = Self::index(&mut vertices_cache,[fx - 0.5, fy - 0.5, fz - 0.5].into());
+                    let bottom_right_back = Self::index(&mut vertices_cache,[fx + 0.5, fy - 0.5, fz - 0.5].into());
+                    let bottom_right_front= Self::index(&mut vertices_cache,[fx + 0.5, fy - 0.5, fz + 0.5].into());
+                    let bottom_left_front = Self::index(&mut vertices_cache,[fx - 0.5, fy - 0.5, fz + 0.5].into());
 
                     // Top
                     if y == ylimit || chunk.is_air(x, y+1, z) {
@@ -131,6 +132,11 @@ impl Baker for VoxelBaker {
                     }
                 }
             }
+        }
+
+        let mut vertices = vec![Vector3::default(); vertices_cache.len()];
+        for (_, (vertex, index)) in vertices_cache {
+            vertices[index] = vertex.clone();
         }
 
         if indices.len() > 0 {
