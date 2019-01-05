@@ -1,9 +1,6 @@
-[package]
-name = "gaiku"
-version = "0.1.0"
-authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
-edition = "2018"
+[workspace]
 
-[dependencies]
-gaiku-2d = { path = "gaiku-2d", version = "0.1.0" }
-gaiku-3d = { path = "gaiku-3d", version = "0.1.0" }
+members = [
+  "gaiku-3d",
+  "gaiku-common",
+]
