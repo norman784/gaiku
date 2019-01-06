@@ -1,8 +1,10 @@
-use crate::Vector3i;
+use crate::Vec3;
+
+// TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
 #[derive(Debug)]
 pub struct Chunk {
-    position: Vector3i,
+    position: Vec3<i32>,
     width: usize,
     height: usize,
     depth: usize,
@@ -20,11 +22,11 @@ impl Chunk {
         }
     }
 
-    pub fn get_position(&self) -> Vector3i {
+    pub fn get_position(&self) -> Vec3<i32> {
         self.position
     }
 
-    pub fn set_position(&mut self, value: Vector3i) {
+    pub fn set_position(&mut self, value: Vec3<i32>) {
         self.position = value;
     }
 

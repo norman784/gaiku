@@ -11,10 +11,10 @@ use obj_exporter::{
 
 use gaiku_3d::common::{
     Mesh,
-    Vector3i,
+    Vec3,
 };
 
-pub fn to_obj(mesh: &Mesh, position: &Vector3i, name: &str) -> Object {
+pub fn to_obj(mesh: &Mesh, position: &Vec3<i32>, name: &str) -> Object {
     let mut vertices = vec![];
     let mut indices = vec![];
 
@@ -52,7 +52,7 @@ pub fn to_obj(mesh: &Mesh, position: &Vector3i, name: &str) -> Object {
     }
 }
 
-pub fn export(data: Vec<(Mesh, Vector3i)>, name: &str) {
+pub fn export(data: Vec<(Mesh, Vec3<i32>)>, name: &str) {
     let mut objects = vec![];
 
     for (index, (mesh,  position)) in data.iter().enumerate() {
@@ -61,7 +61,7 @@ pub fn export(data: Vec<(Mesh, Vector3i)>, name: &str) {
 
     let set = ObjSet {
         material_library: None,
-        objects: objects
+        objects
     };
 
     obj_exporter::export_to_file(&set, format!("examples/output/{}.obj", name)).unwrap();

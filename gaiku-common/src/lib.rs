@@ -8,10 +8,9 @@ mod data;
 pub use self::{
     data::Chunk,
     data::Mesh,
-    data::Vector2,
-    data::Vector3,
-    data::Vector3i,
-    data::Vector4,
+    data::Vec2,
+    data::Vec3,
+    data::Vec4,
 };
 
 pub trait Baker {
