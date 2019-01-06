@@ -11,9 +11,9 @@ use gaiku_3d::{
     formats::GoxReader,
 };
 
-mod exporter;
+mod common;
 
-use crate::exporter::export;
+use crate::common::export;
 
 fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
