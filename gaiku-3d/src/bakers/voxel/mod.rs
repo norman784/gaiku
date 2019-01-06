@@ -9,15 +9,13 @@ use gaiku_common::{
 
 pub struct VoxelBaker;
 
-// TODO: Changing from array to hashmap improved the speed a lot, but still is ugly to convert from vector3 to string for the hash key,  need to improve this
 impl VoxelBaker {
-    fn index(vertices: &mut HashMap<String, (Vec3<f32>, usize)>, vertex: Vec3<f32>) -> usize {
-        let key = vertex.to_str();
-        if vertices.contains_key(&key) {
-            vertices.get(&key).unwrap().1
+    fn index(vertices: &mut HashMap<Vec3<f32>, usize>, vertex: Vec3<f32>) -> usize {
+        if vertices.contains_key(&vertex) {
+            *vertices.get(&vertex).unwrap()
         } else {
             let index = vertices.len();
-            vertices.insert(key,  (vertex, index));
+            vertices.insert(vertex,  index);
             index
         }
     }
@@ -135,7 +133,7 @@ impl Baker for VoxelBaker {
         }
 
         let mut vertices = vec![Vec3::default(); vertices_cache.len()];
-        for (_, (vertex, index)) in vertices_cache {
+        for (vertex, index) in vertices_cache {
             vertices[index] = vertex.clone();
         }
 

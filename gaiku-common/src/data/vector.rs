@@ -1,4 +1,17 @@
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    hash::{
+        Hash,
+        Hasher,
+    },
+};
+
+use decorum::{
+    hash_float_array,
+    Primitive,
+};
+
+use num_traits::Float;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec2<T> {
@@ -24,6 +37,24 @@ pub struct Vec3<T> {
     pub y: T,
     pub z: T,
 }
+
+impl<T: Float + Primitive> Hash for Vec3<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        hash_float_array(&[self.x, self.y, self.z], state);
+    }
+}
+
+impl<T: Float + Primitive> PartialEq for Vec3<T> {
+    fn eq(&self, other: &Vec3<T>) -> bool {
+        self.x == other.x && self.y == other.y && self.z == other.z
+    }
+
+    fn ne(&self, other: &Vec3<T>) -> bool {
+        self.x != other.x || self.y != other.y || self.z != other.z
+    }
+}
+
+impl<T: Float + Primitive> Eq for Vec3<T> {}
 
 impl<T: Debug> Vec3<T> {
     pub fn to_str(&self) -> String {
