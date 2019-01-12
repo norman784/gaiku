@@ -1,6 +1,6 @@
 # Gaiku 2d
 
-Implementation of the 2d game engine.
+Implementation of the 2d terrain engine.
 
 ## Features
 
