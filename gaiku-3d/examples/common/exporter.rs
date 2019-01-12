@@ -56,7 +56,8 @@ pub fn export(data: Vec<(Mesh, Vec3<i32>)>, name: &str) {
     let mut objects = vec![];
 
     for (index, (mesh,  position)) in data.iter().enumerate() {
-        objects.push(to_obj(mesh, position,&format!("mesh_{}", index)));
+        let obj = to_obj(mesh, position,&format!("mesh_{}", index));
+        objects.push(obj);
     }
 
     let set = ObjSet {
