@@ -14,8 +14,9 @@ The main crate is developed game engine agnostic, so we can help to reach more d
 General features:
 
 - Mesh generation
-  - Voxel
   - Height map
+  - Marching Cubes
+  - Voxel
 - Mesh collider
 - Texturing
 - Foliage support
