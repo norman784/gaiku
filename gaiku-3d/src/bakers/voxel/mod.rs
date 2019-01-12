@@ -9,26 +9,15 @@ use gaiku_common::{
 
 pub struct VoxelBaker;
 
-impl VoxelBaker {
-    fn index(vertices: &mut HashMap<Vec3<f32>, usize>, vertex: Vec3<f32>) -> usize {
-        if vertices.contains_key(&vertex) {
-            *vertices.get(&vertex).unwrap()
-        } else {
-            let index = vertices.len();
-            vertices.insert(vertex,  index);
-            index
-        }
-    }
-}
-
+// TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
     fn bake(chunk: &Chunk) -> Option<Mesh> {
         let mut indices= vec![];
         let mut vertices_cache = HashMap::new();
         let mut colors =  vec![];
-        let xlimit = chunk.width() - 1;
-        let ylimit = chunk.height() - 1;
-        let zlimit = chunk.depth() - 1;
+        let x_limit = chunk.width() - 1;
+        let y_limit = chunk.height() - 1;
+        let z_limit = chunk.depth() - 1;
 
         for x in 0..chunk.width() {
             let fx = x as f32;
@@ -37,22 +26,35 @@ impl Baker for VoxelBaker {
                 for z in 0..chunk.depth() {
                     let fz = z as f32;
 
-                    if chunk.is_air(x, y, z) {
-                        continue;
-                    }
+                    if chunk.is_air(x, y, z) { continue; }
 
-                    let top_left_back = Self::index(&mut vertices_cache,[fx - 0.5, fy + 0.5, fz - 0.5].into());
-                    let top_right_back = Self::index(&mut vertices_cache,[fx + 0.5, fy + 0.5, fz - 0.5].into());
-                    let top_right_front= Self::index(&mut vertices_cache,[fx + 0.5, fy + 0.5, fz + 0.5].into());
-                    let top_left_front = Self::index(&mut vertices_cache,[fx - 0.5, fy + 0.5, fz + 0.5].into());
-
-                    let bottom_left_back = Self::index(&mut vertices_cache,[fx - 0.5, fy - 0.5, fz - 0.5].into());
-                    let bottom_right_back = Self::index(&mut vertices_cache,[fx + 0.5, fy - 0.5, fz - 0.5].into());
-                    let bottom_right_front= Self::index(&mut vertices_cache,[fx + 0.5, fy - 0.5, fz + 0.5].into());
-                    let bottom_left_front = Self::index(&mut vertices_cache,[fx - 0.5, fy - 0.5, fz + 0.5].into());
+                    let top_left_back = Self::index(
+                        &mut vertices_cache,[fx - 0.5, fy + 0.5, fz - 0.5].into()
+                    );
+                    let top_right_back = Self::index(
+                        &mut vertices_cache,[fx + 0.5, fy + 0.5, fz - 0.5].into()
+                    );
+                    let top_right_front= Self::index(
+                        &mut vertices_cache,[fx + 0.5, fy + 0.5, fz + 0.5].into()
+                    );
+                    let top_left_front = Self::index(
+                        &mut vertices_cache,[fx - 0.5, fy + 0.5, fz + 0.5].into()
+                    );
+                    let bottom_left_back = Self::index(
+                        &mut vertices_cache,[fx - 0.5, fy - 0.5, fz - 0.5].into()
+                    );
+                    let bottom_right_back = Self::index(
+                        &mut vertices_cache,[fx + 0.5, fy - 0.5, fz - 0.5].into()
+                    );
+                    let bottom_right_front= Self::index(
+                        &mut vertices_cache,[fx + 0.5, fy - 0.5, fz + 0.5].into()
+                    );
+                    let bottom_left_front = Self::index(
+                        &mut vertices_cache,[fx - 0.5, fy - 0.5, fz + 0.5].into()
+                    );
 
                     // Top
-                    if y == ylimit || chunk.is_air(x, y+1, z) {
+                    if y == y_limit || chunk.is_air(x, y+1, z) {
                         indices.push(top_left_back);
                         indices.push(top_right_back);
                         indices.push(top_left_front);
@@ -91,7 +93,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Right
-                    if x == xlimit || chunk.is_air(x+1, y, z) {
+                    if x == x_limit || chunk.is_air(x+1, y, z) {
                         indices.push(top_right_front);
                         indices.push(top_right_back);
                         indices.push(bottom_right_front);
@@ -104,7 +106,7 @@ impl Baker for VoxelBaker {
                     }
 
                     // Front
-                    if z == zlimit || chunk.is_air(x, y, z+1) {
+                    if z == z_limit || chunk.is_air(x, y, z+1) {
                         indices.push(top_left_front);
                         indices.push(top_right_front);
                         indices.push(bottom_left_front);
