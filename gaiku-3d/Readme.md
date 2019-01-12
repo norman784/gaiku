@@ -16,7 +16,10 @@ Implementation of the 3d game engine.
 ## TODO
 
 - [ ] Integrate Octree
+- [ ] Make Bakers and FileFormats configurable
 - [ ] Integrate Rayon
+- [ ] Add Texture support
+- [ ] Add LOD support
 - [ ] Write benchmarks
 - [ ] Write tests
 - [ ] Optimize the entire process, right now it suboptimal because the loops,
