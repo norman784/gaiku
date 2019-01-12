@@ -7,7 +7,7 @@ use gaiku_3d::{
         Baker,
         FileFormat,
     },
-    bakers::VoxelBaker,
+    bakers::MarchingCubesBaker,
     formats::GoxReader,
 };
 
@@ -25,7 +25,7 @@ fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
 
     for chunk in chunks.iter() {
-        let mesh  = VoxelBaker::bake(chunk);
+        let mesh  = MarchingCubesBaker::bake(chunk);
         if let Some(mesh) = mesh {
             meshes.push((mesh, chunk.get_position()));
         }
@@ -34,7 +34,7 @@ fn read(name: &str) -> std::io::Result<()> {
     let baker_elapsed = now.elapsed().as_secs();
     let now = Instant::now();
 
-    export(meshes, &format!("{}_vx", name));
+    export(meshes, &format!("{}_mc", name));
 
     println!(
         "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
