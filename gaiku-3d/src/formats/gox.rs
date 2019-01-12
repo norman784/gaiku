@@ -1,6 +1,6 @@
 use gaiku_common::{
     Chunk,
-    Fileformat,
+    FileFormat,
 };
 
 use gox::{
@@ -14,7 +14,8 @@ use std::fs::File;
 
 pub struct GoxReader;
 
-impl Fileformat for GoxReader {
+// TODO: The generated data appears rotated, need to rotate from back to bottom
+impl FileFormat for GoxReader {
     fn load(stream: &mut File) -> Vec<Chunk> {
         let gox = Gox::new(stream, vec![Only::Layers, Only::Blocks]);
         let mut result = vec![];
@@ -47,7 +48,7 @@ impl Fileformat for GoxReader {
                                     for y in 0..chunk.height() {
                                         for z in 0..chunk.depth() {
                                             if !block.is_empty(x, y, z) {
-                                                chunk.add(x, y, z, 1.0)
+                                                chunk.set(x, y, z, 1.0)
                                             }
                                         }
                                     }

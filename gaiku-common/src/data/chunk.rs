@@ -22,12 +22,22 @@ impl Chunk {
         }
     }
 
-    pub fn get_position(&self) -> Vec3<i32> {
-        self.position
+    pub fn clone(&self) -> Self {
+        Chunk {
+            position: self.position.clone(),
+            width: self.width,
+            height: self.height,
+            depth: self.depth,
+            values: self.values.clone(),
+        }
     }
 
-    pub fn set_position(&mut self, value: Vec3<i32>) {
-        self.position = value;
+    pub fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
+        if x >= self.width || y >= self.height || z >= self.depth {
+            true
+        } else {
+            self.values[self.index(x, y, z)] == 0.0
+        }
     }
 
     pub fn width(&self) -> usize {
@@ -42,21 +52,29 @@ impl Chunk {
         self.depth
     }
 
-    pub fn add(&mut self, x: usize, y: usize, z: usize, value: f32) {
-        let index = self.index(x, y, z);
-        self.values[index] = value;
-    }
-
     pub fn get(&self, x: usize, y: usize, z: usize) -> f32 {
         self.values[self.index(x, y, z)]
     }
 
-    pub fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
-        if x >= self.width || y >= self.height || z >= self.depth {
-            true
-        } else {
-            self.values[self.index(x, y, z)] == 0.0
-        }
+    pub fn get_position(&self) -> Vec3<i32> {
+        self.position
+    }
+
+    pub fn get_values(&self) -> Vec<f32> {
+        self.values.clone()
+    }
+
+    pub fn set(&mut self, x: usize, y: usize, z: usize, value: f32) {
+        let index = self.index(x, y, z);
+        self.values[index] = value;
+    }
+
+    pub fn set_position(&mut self, value: Vec3<i32>) {
+        self.position = value;
+    }
+
+    pub fn set_values(&mut self, values: Vec<f32>) {
+        self.values = values;
     }
 
     fn index(&self, x: usize, y: usize, z: usize) -> usize {
