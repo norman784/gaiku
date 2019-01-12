@@ -11,11 +11,15 @@ Implementation of the 3d game engine.
 
 - Voxel
 - Marching cubes
-- Heighmap
+- Heightmap
 
 ## TODO
 
-Optimize the entire process, right now it suboptimal because the loops,
+- [ ] Integrate Octree
+- [ ] Integrate Rayon
+- [ ] Write benchmarks
+- [ ] Write tests
+- [ ] Optimize the entire process, right now it suboptimal because the loops,
 need to figure it out a better way to do this.
 
 
