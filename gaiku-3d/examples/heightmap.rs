@@ -3,11 +3,8 @@ extern crate gaiku_3d;
 use std::time::Instant;
 
 use gaiku_3d::{
-    common::{
-        Baker,
-        FileFormat,
-    },
     bakers::HeightMapBaker,
+    common::{Baker, FileFormat},
     formats::PNGReader,
 };
 
@@ -17,7 +14,11 @@ use crate::common::export;
 
 fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
-    let file = format!("{}/examples/assets/{}.png", env!("CARGO_MANIFEST_DIR"), name);
+    let file = format!(
+        "{}/examples/assets/{}.png",
+        env!("CARGO_MANIFEST_DIR"),
+        name
+    );
     let chunks = PNGReader::read(&file);
     let mut meshes = vec![];
 
@@ -25,7 +26,7 @@ fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
 
     for chunk in chunks.iter() {
-        let mesh  = HeightMapBaker::bake(chunk);
+        let mesh = HeightMapBaker::bake(chunk);
         if let Some(mesh) = mesh {
             meshes.push((mesh, chunk.get_position()));
         }

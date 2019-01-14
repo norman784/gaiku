@@ -1,5 +1,3 @@
 mod exporter;
 
-pub use {
-    self::exporter::export,
-};
+pub use self::exporter::export;

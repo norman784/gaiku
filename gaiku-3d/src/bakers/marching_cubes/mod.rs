@@ -1,18 +1,10 @@
 use std::collections::HashMap;
 
-use gaiku_common::{
-    Baker,
-    Chunk,
-    Mesh,
-    Vec3,
-};
+use gaiku_common::{Baker, Chunk, Mesh, Vec3};
 
 mod tables;
 
-use self::tables::{
-    EDGE_TABLE,
-    TRIANGLE_TABLE,
-};
+use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
 struct GridCell {
     pub value: [f32; 8],
@@ -26,14 +18,30 @@ impl MarchingCubesBaker {
         let mut cube_index = 0;
         let mut vertex_list = [Vec3::default(); 12];
 
-        if grid.value[0] < isolevel { cube_index |= 1; }
-        if grid.value[1] < isolevel { cube_index |= 2; }
-        if grid.value[2] < isolevel { cube_index |= 4; }
-        if grid.value[3] < isolevel { cube_index |= 8; }
-        if grid.value[4] < isolevel { cube_index |= 16; }
-        if grid.value[5] < isolevel { cube_index |= 32; }
-        if grid.value[6] < isolevel { cube_index |= 64; }
-        if grid.value[7] < isolevel { cube_index |= 128; }
+        if grid.value[0] < isolevel {
+            cube_index |= 1;
+        }
+        if grid.value[1] < isolevel {
+            cube_index |= 2;
+        }
+        if grid.value[2] < isolevel {
+            cube_index |= 4;
+        }
+        if grid.value[3] < isolevel {
+            cube_index |= 8;
+        }
+        if grid.value[4] < isolevel {
+            cube_index |= 16;
+        }
+        if grid.value[5] < isolevel {
+            cube_index |= 32;
+        }
+        if grid.value[6] < isolevel {
+            cube_index |= 64;
+        }
+        if grid.value[7] < isolevel {
+            cube_index |= 128;
+        }
 
         if EDGE_TABLE[cube_index] == 0 {
             return;
@@ -95,7 +103,7 @@ impl MarchingCubesBaker {
             }
 
             triangles.push([
-                vertex_list[TRIANGLE_TABLE[cube_index][i    ] as usize],
+                vertex_list[TRIANGLE_TABLE[cube_index][i] as usize],
                 vertex_list[TRIANGLE_TABLE[cube_index][i + 1] as usize],
                 vertex_list[TRIANGLE_TABLE[cube_index][i + 2] as usize],
             ]);
@@ -124,20 +132,52 @@ impl Baker for MarchingCubesBaker {
                             chunk.get(x + 1, y + 0, z + 0),
                             chunk.get(x + 1, y + 1, z + 0),
                             chunk.get(x + 0, y + 1, z + 0),
-                            chunk.get(x + 0, y + 0, z +  1),
-                            chunk.get(x + 1, y + 0, z +  1),
-                            chunk.get(x + 1, y +  1, z + 1),
-                            chunk.get(x + 0, y +  1, z + 1),
+                            chunk.get(x + 0, y + 0, z + 1),
+                            chunk.get(x + 1, y + 0, z + 1),
+                            chunk.get(x + 1, y + 1, z + 1),
+                            chunk.get(x + 0, y + 1, z + 1),
                         ],
                         point: [
-                            Vec3{ x: fx + 0.0, y: fy + 0.0, z: fz + 0.0 },
-                            Vec3{ x: fx + 1.0, y: fy + 0.0, z: fz + 0.0 },
-                            Vec3{ x: fx + 1.0, y: fy + 1.0, z: fz + 0.0 },
-                            Vec3{ x: fx + 0.0, y: fy + 1.0, z: fz + 0.0 },
-                            Vec3{ x: fx + 0.0, y: fy + 0.0, z: fz + 1.0 },
-                            Vec3{ x: fx + 1.0, y: fy + 0.0, z: fz + 1.0 },
-                            Vec3{ x: fx + 1.0, y: fy + 1.0, z: fz + 1.0 },
-                            Vec3{ x: fx + 0.0, y: fy + 1.0, z: fz + 1.0 },
+                            Vec3 {
+                                x: fx + 0.0,
+                                y: fy + 0.0,
+                                z: fz + 0.0,
+                            },
+                            Vec3 {
+                                x: fx + 1.0,
+                                y: fy + 0.0,
+                                z: fz + 0.0,
+                            },
+                            Vec3 {
+                                x: fx + 1.0,
+                                y: fy + 1.0,
+                                z: fz + 0.0,
+                            },
+                            Vec3 {
+                                x: fx + 0.0,
+                                y: fy + 1.0,
+                                z: fz + 0.0,
+                            },
+                            Vec3 {
+                                x: fx + 0.0,
+                                y: fy + 0.0,
+                                z: fz + 1.0,
+                            },
+                            Vec3 {
+                                x: fx + 1.0,
+                                y: fy + 0.0,
+                                z: fz + 1.0,
+                            },
+                            Vec3 {
+                                x: fx + 1.0,
+                                y: fy + 1.0,
+                                z: fz + 1.0,
+                            },
+                            Vec3 {
+                                x: fx + 0.0,
+                                y: fy + 1.0,
+                                z: fz + 1.0,
+                            },
                         ],
                     };
 
@@ -146,9 +186,7 @@ impl Baker for MarchingCubesBaker {
 
                     for vertex in triangles {
                         for i in 0..3 {
-                            indices.push(
-                                Self::index(&mut vertices_cache, vertex[i])
-                            );
+                            indices.push(Self::index(&mut vertices_cache, vertex[i]));
                         }
                     }
                 }
@@ -161,16 +199,14 @@ impl Baker for MarchingCubesBaker {
         }
 
         if indices.len() > 0 {
-            Some(
-                Mesh {
-                    indices,
-                    vertices,
-                    normals: vec![],
-                    colors: vec![],
-                    uv: vec![],
-                    tangents: vec![],
-                }
-            )
+            Some(Mesh {
+                indices,
+                vertices,
+                normals: vec![],
+                colors: vec![],
+                uv: vec![],
+                tangents: vec![],
+            })
         } else {
             None
         }
@@ -188,9 +224,21 @@ fn linear_interpolation(grid: &GridCell, i1: usize, i2: usize, value: f32) -> Ve
     }
 
     if (grid.value[i1] - grid.value[i2]).abs() > 0.00001 {
-        let val1 = Vec3{ x:  grid.value[i1], y: grid.value[i1], z: grid.value[i1] };
-        let val2 = Vec3{ x:  grid.value[i2], y: grid.value[i2], z: grid.value[i2] };
-        let value = Vec3{ x: value, y: value, z: value };
+        let val1 = Vec3 {
+            x: grid.value[i1],
+            y: grid.value[i1],
+            z: grid.value[i1],
+        };
+        let val2 = Vec3 {
+            x: grid.value[i2],
+            y: grid.value[i2],
+            z: grid.value[i2],
+        };
+        let value = Vec3 {
+            x: value,
+            y: value,
+            z: value,
+        };
 
         grid.point[i1] + (grid.point[i2] - grid.point[i1]) / (val2 - val1) * (value - val1)
     } else {

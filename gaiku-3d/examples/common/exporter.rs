@@ -1,18 +1,8 @@
 extern crate obj_exporter;
 
-use obj_exporter::{
-    Geometry,
-    ObjSet,
-    Object,
-    Primitive,
-    Shape,
-    Vertex,
-};
+use obj_exporter::{Geometry, ObjSet, Object, Primitive, Shape, Vertex};
 
-use gaiku_3d::common::{
-    Mesh,
-    Vec3,
-};
+use gaiku_3d::common::{Mesh, Vec3};
 
 pub fn to_obj(mesh: &Mesh, position: &Vec3<i32>, name: &str) -> Object {
     let mut vertices = vec![];
@@ -31,38 +21,41 @@ pub fn to_obj(mesh: &Mesh, position: &Vec3<i32>, name: &str) -> Object {
 
     Object {
         name: name.to_owned(),
-        vertices: vertices.into_iter()
+        vertices: vertices
+            .into_iter()
             .map(|(x, y, z)| Vertex { x, y, z })
             .collect(),
         tex_vertices: vec![],
         normals: vec![],
-        geometry: vec![
-            Geometry {
-                material_name: None,
-                shapes: indices
-                    .into_iter()
-                    .map(|(x, y, z)| Shape {
-                        primitive: Primitive::Triangle((x, None, None), (y, None, None), (z, None, None)),
-                        groups: vec![],
-                        smoothing_groups: vec![],
-                    })
-                    .collect(),
-            },
-        ],
+        geometry: vec![Geometry {
+            material_name: None,
+            shapes: indices
+                .into_iter()
+                .map(|(x, y, z)| Shape {
+                    primitive: Primitive::Triangle(
+                        (x, None, None),
+                        (y, None, None),
+                        (z, None, None),
+                    ),
+                    groups: vec![],
+                    smoothing_groups: vec![],
+                })
+                .collect(),
+        }],
     }
 }
 
 pub fn export(data: Vec<(Mesh, Vec3<i32>)>, name: &str) {
     let mut objects = vec![];
 
-    for (index, (mesh,  position)) in data.iter().enumerate() {
-        let obj = to_obj(mesh, position,&format!("mesh_{}", index));
+    for (index, (mesh, position)) in data.iter().enumerate() {
+        let obj = to_obj(mesh, position, &format!("mesh_{}", index));
         objects.push(obj);
     }
 
     let set = ObjSet {
         material_library: None,
-        objects
+        objects,
     };
 
     obj_exporter::export_to_file(&set, format!("examples/output/{}.obj", name)).unwrap();

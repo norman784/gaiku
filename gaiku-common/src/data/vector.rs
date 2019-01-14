@@ -1,26 +1,11 @@
 use std::{
-    cmp::{
-        Ord,
-        Ordering,
-        PartialOrd,
-    },
+    cmp::{Ord, Ordering, PartialOrd},
     fmt::Debug,
-    hash::{
-        Hash,
-        Hasher,
-    },
-    ops::{
-        Add,
-        Div,
-        Mul,
-        Sub,
-    },
+    hash::{Hash, Hasher},
+    ops::{Add, Div, Mul, Sub},
 };
 
-use decorum::{
-    hash_float_array,
-    Primitive,
-};
+use decorum::{hash_float_array, Primitive};
 
 use num_traits::Float;
 
@@ -38,7 +23,10 @@ impl<T: Debug> Vec2<T> {
 
 impl<T: Copy + Clone> From<[T; 2]> for Vec2<T> {
     fn from(value: [T; 2]) -> Self {
-        Vec2 { x:  value[0], y: value[1] }
+        Vec2 {
+            x: value[0],
+            y: value[1],
+        }
     }
 }
 
@@ -75,11 +63,15 @@ impl<T: Debug> Vec3<T> {
 
 impl<T: Copy + Clone> From<[T; 3]> for Vec3<T> {
     fn from(value: [T; 3]) -> Self {
-        Vec3 { x:  value[0], y: value[1], z: value[2] }
+        Vec3 {
+            x: value[0],
+            y: value[1],
+            z: value[2],
+        }
     }
 }
 
-impl<T: Float + Primitive + Add<Output=T> + Copy + Clone> Add for Vec3<T> {
+impl<T: Float + Primitive + Add<Output = T> + Copy + Clone> Add for Vec3<T> {
     type Output = Vec3<T>;
 
     fn add(self, rhs: Vec3<T>) -> Vec3<T> {
@@ -91,7 +83,7 @@ impl<T: Float + Primitive + Add<Output=T> + Copy + Clone> Add for Vec3<T> {
     }
 }
 
-impl<T: Float + Primitive + Sub<Output=T> + Copy + Clone> Sub for Vec3<T> {
+impl<T: Float + Primitive + Sub<Output = T> + Copy + Clone> Sub for Vec3<T> {
     type Output = Vec3<T>;
 
     fn sub(self, rhs: Vec3<T>) -> Vec3<T> {
@@ -103,7 +95,7 @@ impl<T: Float + Primitive + Sub<Output=T> + Copy + Clone> Sub for Vec3<T> {
     }
 }
 
-impl<T: Float + Primitive + Div<Output=T> + Copy + Clone> Div for Vec3<T> {
+impl<T: Float + Primitive + Div<Output = T> + Copy + Clone> Div for Vec3<T> {
     type Output = Vec3<T>;
 
     fn div(self, rhs: Vec3<T>) -> Vec3<T> {
@@ -115,7 +107,7 @@ impl<T: Float + Primitive + Div<Output=T> + Copy + Clone> Div for Vec3<T> {
     }
 }
 
-impl<T: Float + Primitive + Div<Output=T> + Copy + Clone> Mul for Vec3<T> {
+impl<T: Float + Primitive + Div<Output = T> + Copy + Clone> Mul for Vec3<T> {
     type Output = Vec3<T>;
 
     fn mul(self, rhs: Vec3<T>) -> Vec3<T> {
@@ -130,21 +122,21 @@ impl<T: Float + Primitive + Div<Output=T> + Copy + Clone> Mul for Vec3<T> {
 impl<T: Float + Primitive> Ord for Vec3<T> {
     fn cmp(&self, other: &Vec3<T>) -> Ordering {
         if self.x < other.x {
-            return Ordering::Less
+            return Ordering::Less;
         } else if self.x > other.x {
-            return Ordering::Greater
+            return Ordering::Greater;
         }
 
         if self.y < other.y {
-            return Ordering::Less
+            return Ordering::Less;
         } else if self.y > other.y {
-            return Ordering::Greater
+            return Ordering::Greater;
         }
 
         if self.z < other.z {
-            return Ordering::Less
+            return Ordering::Less;
         } else if self.z > other.z {
-            return Ordering::Greater
+            return Ordering::Greater;
         }
 
         Ordering::Equal
@@ -201,6 +193,11 @@ impl<T: Debug> Vec4<T> {
 
 impl<T: Copy + Clone> From<[T; 4]> for Vec4<T> {
     fn from(value: [T; 4]) -> Self {
-        Vec4 { x:  value[0], y: value[1], z: value[2], w: value[3] }
+        Vec4 {
+            x: value[0],
+            y: value[1],
+            z: value[2],
+            w: value[3],
+        }
     }
 }

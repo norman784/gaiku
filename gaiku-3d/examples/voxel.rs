@@ -3,11 +3,8 @@ extern crate gaiku_3d;
 use std::time::Instant;
 
 use gaiku_3d::{
-    common::{
-        Baker,
-        FileFormat,
-    },
     bakers::VoxelBaker,
+    common::{Baker, FileFormat},
     formats::GoxReader,
 };
 
@@ -17,7 +14,11 @@ use crate::common::export;
 
 fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
-    let file = format!("{}/examples/assets/{}.gox", env!("CARGO_MANIFEST_DIR"), name);
+    let file = format!(
+        "{}/examples/assets/{}.gox",
+        env!("CARGO_MANIFEST_DIR"),
+        name
+    );
     let chunks = GoxReader::read(&file);
     let mut meshes = vec![];
 
@@ -25,7 +26,7 @@ fn read(name: &str) -> std::io::Result<()> {
     let now = Instant::now();
 
     for chunk in chunks.iter() {
-        let mesh  = VoxelBaker::bake(chunk);
+        let mesh = VoxelBaker::bake(chunk);
         if let Some(mesh) = mesh {
             meshes.push((mesh, chunk.get_position()));
         }

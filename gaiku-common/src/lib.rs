@@ -2,20 +2,11 @@
 // TODO: Check how amethyst does this
 extern crate decorum;
 
-use std::{
-    collections::HashMap,
-    fs::File,
-};
+use std::{collections::HashMap, fs::File};
 
 mod data;
 
-pub use self::{
-    data::Chunk,
-    data::Mesh,
-    data::Vec2,
-    data::Vec3,
-    data::Vec4,
-};
+pub use self::{data::Chunk, data::Mesh, data::Vec2, data::Vec3, data::Vec4};
 
 pub trait Baker {
     fn bake(chunk: &Chunk) -> Option<Mesh>;

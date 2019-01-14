@@ -1,14 +1,8 @@
 extern crate png;
 
-use gaiku_common::{
-    Chunk,
-    FileFormat,
-};
+use gaiku_common::{Chunk, FileFormat};
 
-use png::{
-    Decoder,
-    ColorType,
-};
+use png::{ColorType, Decoder};
 
 use std::fs::File;
 
@@ -43,7 +37,7 @@ impl FileFormat for PNGReader {
                             vec.extend([g, g, g].iter().cloned())
                         }
                         vec
-                    },
+                    }
                     ColorType::GrayscaleAlpha => {
                         let mut vec = Vec::with_capacity(buf.len() * 3);
                         for ga in buf.chunks(2) {
@@ -52,12 +46,12 @@ impl FileFormat for PNGReader {
                             vec.extend([g, g, g, a].iter().cloned())
                         }
                         vec
-                    },
-                    _ => unreachable!("uncovered color type")
+                    }
+                    _ => unreachable!("uncovered color type"),
                 };
 
                 let mut i = 0;
-                let mut colors= vec![[0; 4];  (info.width * info.height) as usize];
+                let mut colors = vec![[0; 4]; (info.width * info.height) as usize];
                 for color in data.chunks(4) {
                     if color.len() == 3 {
                         colors[i] = [color[0] << 0, color[1] << 0, color[2] << 0, 255];
@@ -68,12 +62,7 @@ impl FileFormat for PNGReader {
                     i += 1;
                 }
 
-                let mut chunk = Chunk::new(
-                    [0, 0, 0],
-                    info.width as usize,
-                    info.height as usize,
-                    1
-                );
+                let mut chunk = Chunk::new([0, 0, 0], info.width as usize, info.height as usize, 1);
 
                 for x in 0..info.width as usize {
                     for y in 0..info.height as usize {
@@ -84,7 +73,7 @@ impl FileFormat for PNGReader {
                 }
 
                 result.push(chunk);
-            },
+            }
             Err(error) => println!("PNG error: {}", error),
         }
 
