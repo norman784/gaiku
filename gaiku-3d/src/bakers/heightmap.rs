@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use common::{Baker, Chunk, Mesh, Vec3};
+use crate::common::{Baker, Chunk, Mesh, Vec3};
 
 pub struct HeightMapBaker;
 
