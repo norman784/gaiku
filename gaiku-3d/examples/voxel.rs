@@ -1,5 +1,3 @@
-extern crate gaiku_3d;
-
 use std::time::Instant;
 
 use gaiku_3d::{

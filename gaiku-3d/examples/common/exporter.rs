@@ -1,5 +1,3 @@
-extern crate obj_exporter;
-
 use obj_exporter::{Geometry, ObjSet, Object, Primitive, Shape, Vertex};
 
 use gaiku_3d::common::{Mesh, Vec3};

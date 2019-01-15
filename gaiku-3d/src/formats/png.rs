@@ -1,5 +1,3 @@
-extern crate png;
-
 use gaiku_common::{Chunk, FileFormat};
 
 use png::{ColorType, Decoder};

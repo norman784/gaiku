@@ -1,5 +1,4 @@
-pub extern crate gaiku_common as common;
-extern crate gox;
+pub use gaiku_common as common;
 
 pub mod bakers;
 pub mod formats;

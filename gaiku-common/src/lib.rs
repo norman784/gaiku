@@ -1,7 +1,5 @@
 // TODO: Add common implementations to read file content and pass to the binary parser implementation
 // TODO: Check how amethyst does this
-extern crate decorum;
-
 use std::{collections::HashMap, fs::File};
 
 mod data;
