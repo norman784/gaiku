@@ -6,8 +6,6 @@ use gaiku_common::{
     Mesh,
     nalgebra::{
         Point3,
-        Quaternion,
-        UnitQuaternion,
     },
 };
 
@@ -17,16 +15,25 @@ use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
 struct GridCell {
     pub value: [f32; 8],
-    pub point: [Quaternion<f32>; 8],
+    pub point: [Point3<f32>; 8],
 }
 
 impl GridCell {
     fn lerp(&self, index1: usize, index2: usize, isolevel: f32) -> Point3<f32> {
-        let q1 = UnitQuaternion::new_normalize(self.point[index1].clone());
-        let q2 = UnitQuaternion::new_normalize(self.point[index2].clone());
-        let result = q1.lerp(&q2, isolevel);
+        let mut index1 = index1;
+        let mut index2 = index2;
 
-        Point3::new(result.coords[0], result.coords[1], result.coords[2])
+        if self.point[index2] < self.point[index1] {
+            let temp = index1;
+            index1 = index2;
+            index2 = temp;
+        }
+
+        if (self.value[index1] - self.value[index2]).abs() > 0.00001 {
+            self.point[index1] + (self.point[index2] - self.point[index1]) / (self.value[index2] - self.value[index1]) * (isolevel - self.value[index1])
+        } else {
+            self.point[index1]
+        }
     }
 }
 
@@ -114,6 +121,8 @@ impl MarchingCubesBaker {
             vertex_list[11] = grid.lerp(3, 7, isolevel);
         }
 
+        println!("vertex: {:#?}", vertex_list);
+
         let mut i = 0;
 
         loop {
@@ -157,14 +166,14 @@ impl Baker for MarchingCubesBaker {
                             chunk.get(x + 0, y + 1, z + 1),
                         ],
                         point: [
-                            Quaternion::new(fx + 0.0,  fy + 0.0, fz + 0.0, 0.0),
-                            Quaternion::new(fx + 1.0, fy + 0.0, fz + 0.0, 0.0),
-                            Quaternion::new(fx + 1.0, fy + 1.0, fz + 0.0, 0.0),
-                            Quaternion::new(fx + 0.0, fy + 1.0, fz + 0.0, 0.0),
-                            Quaternion::new(fx + 0.0, fy + 0.0, fz + 1.0, 0.0),
-                            Quaternion::new(fx + 1.0, fy + 0.0, fz + 1.0, 0.0),
-                            Quaternion::new(fx + 1.0, fy + 1.0, fz + 1.0, 0.0),
-                            Quaternion::new(fx + 0.0, fy + 1.0, fz + 1.0, 0.0)
+                            Point3::new(fx + 0.0, fy + 0.0, fz + 0.0),
+                            Point3::new(fx + 1.0, fy + 0.0, fz + 0.0),
+                            Point3::new(fx + 1.0, fy + 1.0, fz + 0.0),
+                            Point3::new(fx + 0.0, fy + 1.0, fz + 0.0),
+                            Point3::new(fx + 0.0, fy + 0.0, fz + 1.0),
+                            Point3::new(fx + 1.0, fy + 0.0, fz + 1.0),
+                            Point3::new(fx + 1.0, fy + 1.0, fz + 1.0),
+                            Point3::new(fx + 0.0, fy + 1.0, fz + 1.0)
                         ],
                     };
 
