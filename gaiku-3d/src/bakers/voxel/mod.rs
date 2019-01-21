@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gaiku_common::{Baker, Chunk, Mesh, nalgebra::Point3};
+use gaiku_common::{nalgebra::Point3, Baker, Chunk, Mesh};
 
 pub struct VoxelBaker;
 

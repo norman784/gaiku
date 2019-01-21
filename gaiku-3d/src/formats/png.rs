@@ -60,7 +60,12 @@ impl FileFormat for PNGReader {
                     i += 1;
                 }
 
-                let mut chunk = Chunk::new([0.0, 0.0, 0.0], info.width as usize, info.height as usize, 1);
+                let mut chunk = Chunk::new(
+                    [0.0, 0.0, 0.0],
+                    info.width as usize,
+                    info.height as usize,
+                    1,
+                );
 
                 for x in 0..info.width as usize {
                     for y in 0..info.height as usize {

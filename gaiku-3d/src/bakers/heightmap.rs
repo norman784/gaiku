@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::common::{Baker, Chunk, Mesh, nalgebra::Point3};
+use crate::common::{nalgebra::Point3, Baker, Chunk, Mesh};
 
 pub struct HeightMapBaker;
 

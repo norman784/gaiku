@@ -1,13 +1,6 @@
 use std::collections::HashMap;
 
-use gaiku_common::{
-    Baker,
-    Chunk,
-    Mesh,
-    nalgebra::{
-        Point3,
-    },
-};
+use gaiku_common::{nalgebra::Point3, Baker, Chunk, Mesh};
 
 mod tables;
 
@@ -30,7 +23,10 @@ impl GridCell {
         }
 
         if (self.value[index1] - self.value[index2]).abs() > 0.00001 {
-            self.point[index1] + (self.point[index2] - self.point[index1]) / (self.value[index2] - self.value[index1]) * (isolevel - self.value[index1])
+            self.point[index1]
+                + (self.point[index2] - self.point[index1])
+                    / (self.value[index2] - self.value[index1])
+                    * (isolevel - self.value[index1])
         } else {
             self.point[index1]
         }
@@ -173,7 +169,7 @@ impl Baker for MarchingCubesBaker {
                             Point3::new(fx + 0.0, fy + 0.0, fz + 1.0),
                             Point3::new(fx + 1.0, fy + 0.0, fz + 1.0),
                             Point3::new(fx + 1.0, fy + 1.0, fz + 1.0),
-                            Point3::new(fx + 0.0, fy + 1.0, fz + 1.0)
+                            Point3::new(fx + 0.0, fy + 1.0, fz + 1.0),
                         ],
                     };
 

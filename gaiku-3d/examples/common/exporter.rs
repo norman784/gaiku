@@ -1,6 +1,6 @@
 use obj_exporter::{Geometry, ObjSet, Object, Primitive, Shape, Vertex};
 
-use gaiku_3d::common::{Mesh,  nalgebra::Point3};
+use gaiku_3d::common::{nalgebra::Point3, Mesh};
 
 pub fn to_obj(mesh: &Mesh, position: &Point3<f32>, name: &str) -> Object {
     let mut vertices = vec![];

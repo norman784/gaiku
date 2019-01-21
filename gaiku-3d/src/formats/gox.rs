@@ -33,7 +33,7 @@ impl FileFormat for GoxReader {
                                     [data.x as f32, data.y as f32, data.z as f32],
                                     16,
                                     16,
-                                    16
+                                    16,
                                 );
 
                                 for x in 0..chunk.width() {
