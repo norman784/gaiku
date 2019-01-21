@@ -1,6 +1,15 @@
 use std::collections::HashMap;
 
-use gaiku_common::{Baker, Chunk, Mesh, Vec3};
+use gaiku_common::{
+    Baker,
+    Chunk,
+    Mesh,
+    nalgebra::{
+        Point3,
+        Quaternion,
+        UnitQuaternion,
+    },
+};
 
 mod tables;
 
@@ -8,15 +17,25 @@ use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
 struct GridCell {
     pub value: [f32; 8],
-    pub point: [Vec3<f32>; 8],
+    pub point: [Quaternion<f32>; 8],
+}
+
+impl GridCell {
+    fn lerp(&self, index1: usize, index2: usize, isolevel: f32) -> Point3<f32> {
+        let q1 = UnitQuaternion::new_normalize(self.point[index1].clone());
+        let q2 = UnitQuaternion::new_normalize(self.point[index2].clone());
+        let result = q1.lerp(&q2, isolevel);
+
+        Point3::new(result.coords[0], result.coords[1], result.coords[2])
+    }
 }
 
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
-    fn polygonize(grid: &GridCell, isolevel: f32, triangles: &mut Vec<[Vec3<f32>; 3]>) {
+    fn polygonize(grid: &GridCell, isolevel: f32, triangles: &mut Vec<[Point3<f32>; 3]>) {
         let mut cube_index = 0;
-        let mut vertex_list = [Vec3::default(); 12];
+        let mut vertex_list = [Point3::<f32>::new(0.0, 0.0, 0.0); 12];
 
         if grid.value[0] < isolevel {
             cube_index |= 1;
@@ -48,51 +67,51 @@ impl MarchingCubesBaker {
         }
 
         if (EDGE_TABLE[cube_index] & 1) != 0 {
-            vertex_list[0] = linear_interpolation(&grid, 0, 1, isolevel);
+            vertex_list[0] = grid.lerp(0, 1, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 2) != 0 {
-            vertex_list[1] = linear_interpolation(&grid, 1, 2, isolevel);
+            vertex_list[1] = grid.lerp(1, 2, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 4) != 0 {
-            vertex_list[2] = linear_interpolation(&grid, 2, 3, isolevel);
+            vertex_list[2] = grid.lerp(2, 3, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 8) != 0 {
-            vertex_list[3] = linear_interpolation(&grid, 3, 0, isolevel);
+            vertex_list[3] = grid.lerp(3, 0, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 16) != 0 {
-            vertex_list[4] = linear_interpolation(&grid, 4, 5, isolevel);
+            vertex_list[4] = grid.lerp(4, 5, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 32) != 0 {
-            vertex_list[5] = linear_interpolation(&grid, 5, 6, isolevel);
+            vertex_list[5] = grid.lerp(5, 6, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 64) != 0 {
-            vertex_list[6] = linear_interpolation(&grid, 6, 7, isolevel);
+            vertex_list[6] = grid.lerp(6, 7, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 128) != 0 {
-            vertex_list[7] = linear_interpolation(&grid, 7, 4, isolevel);
+            vertex_list[7] = grid.lerp(7, 4, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 256) != 0 {
-            vertex_list[8] = linear_interpolation(&grid, 0, 4, isolevel);
+            vertex_list[8] = grid.lerp(0, 4, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 512) != 0 {
-            vertex_list[9] = linear_interpolation(&grid, 1, 5, isolevel);
+            vertex_list[9] = grid.lerp(1, 5, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 1024) != 0 {
-            vertex_list[10] = linear_interpolation(&grid, 2, 6, isolevel);
+            vertex_list[10] = grid.lerp(2, 6, isolevel);
         }
 
         if (EDGE_TABLE[cube_index] & 2048) != 0 {
-            vertex_list[11] = linear_interpolation(&grid, 3, 7, isolevel);
+            vertex_list[11] = grid.lerp(3, 7, isolevel);
         }
 
         let mut i = 0;
@@ -138,46 +157,14 @@ impl Baker for MarchingCubesBaker {
                             chunk.get(x + 0, y + 1, z + 1),
                         ],
                         point: [
-                            Vec3 {
-                                x: fx + 0.0,
-                                y: fy + 0.0,
-                                z: fz + 0.0,
-                            },
-                            Vec3 {
-                                x: fx + 1.0,
-                                y: fy + 0.0,
-                                z: fz + 0.0,
-                            },
-                            Vec3 {
-                                x: fx + 1.0,
-                                y: fy + 1.0,
-                                z: fz + 0.0,
-                            },
-                            Vec3 {
-                                x: fx + 0.0,
-                                y: fy + 1.0,
-                                z: fz + 0.0,
-                            },
-                            Vec3 {
-                                x: fx + 0.0,
-                                y: fy + 0.0,
-                                z: fz + 1.0,
-                            },
-                            Vec3 {
-                                x: fx + 1.0,
-                                y: fy + 0.0,
-                                z: fz + 1.0,
-                            },
-                            Vec3 {
-                                x: fx + 1.0,
-                                y: fy + 1.0,
-                                z: fz + 1.0,
-                            },
-                            Vec3 {
-                                x: fx + 0.0,
-                                y: fy + 1.0,
-                                z: fz + 1.0,
-                            },
+                            Quaternion::new(fx + 0.0,  fy + 0.0, fz + 0.0, 0.0),
+                            Quaternion::new(fx + 1.0, fy + 0.0, fz + 0.0, 0.0),
+                            Quaternion::new(fx + 1.0, fy + 1.0, fz + 0.0, 0.0),
+                            Quaternion::new(fx + 0.0, fy + 1.0, fz + 0.0, 0.0),
+                            Quaternion::new(fx + 0.0, fy + 0.0, fz + 1.0, 0.0),
+                            Quaternion::new(fx + 1.0, fy + 0.0, fz + 1.0, 0.0),
+                            Quaternion::new(fx + 1.0, fy + 1.0, fz + 1.0, 0.0),
+                            Quaternion::new(fx + 0.0, fy + 1.0, fz + 1.0, 0.0)
                         ],
                     };
 
@@ -193,8 +180,8 @@ impl Baker for MarchingCubesBaker {
             }
         }
 
-        let mut vertices = vec![Vec3::default(); vertices_cache.len()];
-        for (vertex, index) in vertices_cache {
+        let mut vertices = vec![Point3::<f32>::new(0.0, 0.0, 0.0); vertices_cache.len()];
+        for (_, (vertex, index)) in vertices_cache {
             vertices[index] = vertex.clone();
         }
 
@@ -210,38 +197,5 @@ impl Baker for MarchingCubesBaker {
         } else {
             None
         }
-    }
-}
-
-fn linear_interpolation(grid: &GridCell, i1: usize, i2: usize, value: f32) -> Vec3<f32> {
-    let mut i1 = i1;
-    let mut i2 = i2;
-
-    if grid.point[i2] < grid.point[i1] {
-        let temp = i1;
-        i2 = i1;
-        i1 = temp;
-    }
-
-    if (grid.value[i1] - grid.value[i2]).abs() > 0.00001 {
-        let val1 = Vec3 {
-            x: grid.value[i1],
-            y: grid.value[i1],
-            z: grid.value[i1],
-        };
-        let val2 = Vec3 {
-            x: grid.value[i2],
-            y: grid.value[i2],
-            z: grid.value[i2],
-        };
-        let value = Vec3 {
-            x: value,
-            y: value,
-            z: value,
-        };
-
-        grid.point[i1] + (grid.point[i2] - grid.point[i1]) / (val2 - val1) * (value - val1)
-    } else {
-        grid.point[i1]
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::common::{Baker, Chunk, Mesh, Vec3};
+use crate::common::{Baker, Chunk, Mesh, nalgebra::Point3};
 
 pub struct HeightMapBaker;
 
@@ -38,8 +38,8 @@ impl Baker for HeightMapBaker {
             }
         }
 
-        let mut vertices = vec![Vec3::default(); vertices_cache.len()];
-        for (vertex, index) in vertices_cache {
+        let mut vertices = vec![Point3::<f32>::new(0.0, 0.0, 0.0); vertices_cache.len()];
+        for (_, (vertex, index)) in vertices_cache {
             vertices[index] = vertex.clone();
         }
 

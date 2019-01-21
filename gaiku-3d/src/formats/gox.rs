@@ -29,7 +29,12 @@ impl FileFormat for GoxReader {
                         if layer.blocks.len() > 0 {
                             for data in layer.blocks.iter() {
                                 let block = block_data[data.block_index];
-                                let mut chunk = Chunk::new([data.x, data.y, data.z], 16, 16, 16);
+                                let mut chunk = Chunk::new(
+                                    [data.x as f32, data.y as f32, data.z as f32],
+                                    16,
+                                    16,
+                                    16
+                                );
 
                                 for x in 0..chunk.width() {
                                     for y in 0..chunk.height() {

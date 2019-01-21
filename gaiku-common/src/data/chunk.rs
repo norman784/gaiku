@@ -1,10 +1,11 @@
-use crate::Vec3;
+use acacia::Position;
+use nalgebra::Point3;
 
 // TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
 #[derive(Debug)]
 pub struct Chunk {
-    position: Vec3<i32>,
+    position: Point3<f32>,
     width: usize,
     height: usize,
     depth: usize,
@@ -12,9 +13,9 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn new(position: [i32; 3], width: usize, height: usize, depth: usize) -> Self {
+    pub fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
-            position: position.into(),
+            position: Point3::new(position[0], position[1], position[2]),
             width,
             height,
             depth,
@@ -56,7 +57,7 @@ impl Chunk {
         self.values[self.index(x, y, z)]
     }
 
-    pub fn get_position(&self) -> Vec3<i32> {
+    pub fn get_position(&self) -> Point3<f32> {
         self.position
     }
 
@@ -69,7 +70,7 @@ impl Chunk {
         self.values[index] = value;
     }
 
-    pub fn set_position(&mut self, value: Vec3<i32>) {
+    pub fn set_position(&mut self, value: Point3<f32>) {
         self.position = value;
     }
 
@@ -79,5 +80,13 @@ impl Chunk {
 
     fn index(&self, x: usize, y: usize, z: usize) -> usize {
         x + y * self.width + z * self.width * self.height
+    }
+}
+
+impl Position for Chunk {
+    type Point = Point3<f32>;
+
+    fn position(&self) -> Self::Point {
+        self.position
     }
 }

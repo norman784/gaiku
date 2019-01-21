@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 decorum = "0.1.2"
 num-traits = "0.2.6"
+acacia = "0.1.2"
+nalgebra = "0.16.13"
