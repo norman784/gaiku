@@ -1,19 +1,23 @@
-use acacia::Position;
 use nalgebra::Point3;
 
 // TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Builder, Getters, Setters)]
 pub struct Chunk {
-    position: Point3<f32>,
+    #[get = "pub"] #[set = "pub"]
+    position: Point3<f64>,
+    #[get = "pub"] #[set = "pub"]
     width: usize,
+    #[get = "pub"] #[set = "pub"]
     height: usize,
+    #[get = "pub"] #[set = "pub"]
     depth: usize,
+    #[get = "pub"] #[set = "pub"]
     values: Vec<f32>,
 }
 
 impl Chunk {
-    pub fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
+    pub fn new(position: [f64; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
             position: Point3::new(position[0], position[1], position[2]),
             width,
@@ -41,28 +45,8 @@ impl Chunk {
         }
     }
 
-    pub fn width(&self) -> usize {
-        self.width
-    }
-
-    pub fn height(&self) -> usize {
-        self.height
-    }
-
-    pub fn depth(&self) -> usize {
-        self.depth
-    }
-
     pub fn get(&self, x: usize, y: usize, z: usize) -> f32 {
         self.values[self.index(x, y, z)]
-    }
-
-    pub fn get_position(&self) -> Point3<f32> {
-        self.position
-    }
-
-    pub fn get_values(&self) -> Vec<f32> {
-        self.values.clone()
     }
 
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: f32) {
@@ -70,23 +54,12 @@ impl Chunk {
         self.values[index] = value;
     }
 
-    pub fn set_position(&mut self, value: Point3<f32>) {
-        self.position = value;
-    }
-
-    pub fn set_values(&mut self, values: Vec<f32>) {
-        self.values = values;
-    }
-
     fn index(&self, x: usize, y: usize, z: usize) -> usize {
         x + y * self.width + z * self.width * self.height
     }
-}
 
-impl Position for Chunk {
-    type Point = Point3<f32>;
-
-    fn position(&self) -> Self::Point {
-        self.position
+    // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
+    pub fn update_neighbor_data(&self, neighbor: &Chunk) {
+        unimplemented!();
     }
 }

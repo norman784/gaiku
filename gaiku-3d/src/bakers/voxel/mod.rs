@@ -14,11 +14,11 @@ impl Baker for VoxelBaker {
         let y_limit = chunk.height() - 1;
         let z_limit = chunk.depth() - 1;
 
-        for x in 0..chunk.width() {
+        for x in 0..*chunk.width() {
             let fx = x as f32;
-            for y in 0..chunk.height() {
+            for y in 0..*chunk.height() {
                 let fy = y as f32;
-                for z in 0..chunk.depth() {
+                for z in 0..*chunk.depth() {
                     let fz = z as f32;
 
                     if chunk.is_air(x, y, z) {

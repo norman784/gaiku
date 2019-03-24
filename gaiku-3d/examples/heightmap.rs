@@ -26,7 +26,7 @@ fn read(name: &str) -> std::io::Result<()> {
     for chunk in chunks.iter() {
         let mesh = HeightMapBaker::bake(chunk);
         if let Some(mesh) = mesh {
-            meshes.push((mesh, chunk.get_position()));
+            meshes.push((mesh, chunk.position()));
         }
     }
 
