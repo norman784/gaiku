@@ -117,8 +117,6 @@ impl MarchingCubesBaker {
             vertex_list[11] = grid.lerp(3, 7, isolevel);
         }
 
-        println!("vertex: {:#?}", vertex_list);
-
         let mut i = 0;
 
         loop {
