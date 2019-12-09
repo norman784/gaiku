@@ -6,6 +6,10 @@ edition = "2018"
 description = "Common library used by gaiku"
 license = "MIT/Apache-2.0"
 
+documentation = "https://docs.rs/gaiku-common"
+homepage = "https://github.com/norman784/gaiku"
+repository = "https://github.com/norman784/gaiku"
+
 [dependencies]
 decorum = "0.1.3"
 derive_builder = "0.7.1"
