@@ -3,6 +3,8 @@ name = "gaiku-common"
 version = "0.1.0"
 authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
 edition = "2018"
+description = "Common library used by gaiku"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 decorum = "0.1.3"
