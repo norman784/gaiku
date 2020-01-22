@@ -15,15 +15,16 @@ impl GridCell {
     fn lerp(&self, index1: usize, index2: usize, isolevel: f32) -> Vector3<f32> {
         let mut index1 = index1;
         let mut index2 = index2;
-        let point1: Vec3 = self.point[index1].into();
-        let point2: Vec3 = self.point[index2].into();
-        let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
-        if point1 < point2 {
+        if self.point[index1] < self.point[index2] {
             let temp = index1;
             index1 = index2;
             index2 = temp;
         }
+
+        let point1: Vec3 = self.point[index1].into();
+        let point2: Vec3 = self.point[index2].into();
+        let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
         if (point1 - point2).abs() > [0.00001, 0.00001, 0.00001].into() {
             (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
