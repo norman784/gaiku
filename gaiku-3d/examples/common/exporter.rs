@@ -1,8 +1,8 @@
 use obj_exporter::{Geometry, ObjSet, Object, Primitive, Shape, Vertex};
 
-use gaiku_3d::common::{nalgebra::Point3, Mesh};
+use gaiku_3d::common::{mint::Vector3, Mesh};
 
-pub fn to_obj(mesh: &Mesh, position: &Point3<f64>, name: &str) -> Object {
+pub fn to_obj(mesh: &Mesh, position: &Vector3<f64>, name: &str) -> Object {
     let mut vertices = vec![];
     let mut indices = vec![];
 
@@ -43,7 +43,7 @@ pub fn to_obj(mesh: &Mesh, position: &Point3<f64>, name: &str) -> Object {
     }
 }
 
-pub fn export(data: Vec<(Mesh, &Point3<f64>)>, name: &str) {
+pub fn export(data: Vec<(Mesh, &Vector3<f64>)>, name: &str) {
     let mut objects = vec![];
 
     for (index, (mesh, position)) in data.iter().enumerate() {
@@ -56,5 +56,13 @@ pub fn export(data: Vec<(Mesh, &Point3<f64>)>, name: &str) {
         objects,
     };
 
-    obj_exporter::export_to_file(&set, format!("examples/output/{}.obj", name)).unwrap();
+    obj_exporter::export_to_file(
+        &set,
+        format!(
+            "{}/examples/output/{}.obj",
+            env!["CARGO_MANIFEST_DIR"],
+            name
+        ),
+    )
+    .unwrap();
 }

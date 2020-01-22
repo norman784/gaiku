@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gaiku_common::{nalgebra::Point3, Baker, Chunk, Mesh};
+use gaiku_common::{glam::Vec3, mint::Vector3, Baker, Chunk, Mesh};
 
 mod tables;
 
@@ -8,25 +8,25 @@ use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
 struct GridCell {
     pub value: [f32; 8],
-    pub point: [Point3<f32>; 8],
+    pub point: [Vector3<f32>; 8],
 }
 
 impl GridCell {
-    fn lerp(&self, index1: usize, index2: usize, isolevel: f32) -> Point3<f32> {
+    fn lerp(&self, index1: usize, index2: usize, isolevel: f32) -> Vector3<f32> {
         let mut index1 = index1;
         let mut index2 = index2;
+        let point1: Vec3 = self.point[index1].into();
+        let point2: Vec3 = self.point[index2].into();
+        let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
-        if self.point[index2] < self.point[index1] {
+        if point1 < point2 {
             let temp = index1;
             index1 = index2;
             index2 = temp;
         }
 
-        if (self.value[index1] - self.value[index2]).abs() > 0.00001 {
-            self.point[index1]
-                + (self.point[index2] - self.point[index1])
-                    / (self.value[index2] - self.value[index1])
-                    * (isolevel - self.value[index1])
+        if (point1 - point2).abs() > [0.00001, 0.00001, 0.00001].into() {
+            (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
         } else {
             self.point[index1]
         }
@@ -36,9 +36,9 @@ impl GridCell {
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
-    fn polygonize(grid: &GridCell, isolevel: f32, triangles: &mut Vec<[Point3<f32>; 3]>) {
+    fn polygonize(grid: &GridCell, isolevel: f32, triangles: &mut Vec<[Vector3<f32>; 3]>) {
         let mut cube_index = 0;
-        let mut vertex_list = [Point3::<f32>::new(0.0, 0.0, 0.0); 12];
+        let mut vertex_list = [[0.0, 0.0, 0.0].into(); 12];
 
         if grid.value[0] < isolevel {
             cube_index |= 1;
@@ -160,14 +160,14 @@ impl Baker for MarchingCubesBaker {
                             chunk.get(x + 0, y + 1, z + 1),
                         ],
                         point: [
-                            Point3::new(fx + 0.0, fy + 0.0, fz + 0.0),
-                            Point3::new(fx + 1.0, fy + 0.0, fz + 0.0),
-                            Point3::new(fx + 1.0, fy + 1.0, fz + 0.0),
-                            Point3::new(fx + 0.0, fy + 1.0, fz + 0.0),
-                            Point3::new(fx + 0.0, fy + 0.0, fz + 1.0),
-                            Point3::new(fx + 1.0, fy + 0.0, fz + 1.0),
-                            Point3::new(fx + 1.0, fy + 1.0, fz + 1.0),
-                            Point3::new(fx + 0.0, fy + 1.0, fz + 1.0),
+                            [fx + 0.0, fy + 0.0, fz + 0.0].into(),
+                            [fx + 1.0, fy + 0.0, fz + 0.0].into(),
+                            [fx + 1.0, fy + 1.0, fz + 0.0].into(),
+                            [fx + 0.0, fy + 1.0, fz + 0.0].into(),
+                            [fx + 0.0, fy + 0.0, fz + 1.0].into(),
+                            [fx + 1.0, fy + 0.0, fz + 1.0].into(),
+                            [fx + 1.0, fy + 1.0, fz + 1.0].into(),
+                            [fx + 0.0, fy + 1.0, fz + 1.0].into(),
                         ],
                     };
 
@@ -183,7 +183,7 @@ impl Baker for MarchingCubesBaker {
             }
         }
 
-        let mut vertices = vec![Point3::<f32>::new(0.0, 0.0, 0.0); vertices_cache.len()];
+        let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
         for (_, (vertex, index)) in vertices_cache {
             vertices[index] = vertex.clone();
         }

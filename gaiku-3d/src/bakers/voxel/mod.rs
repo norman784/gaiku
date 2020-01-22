@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gaiku_common::{nalgebra::Point3, Baker, Chunk, Mesh};
+use gaiku_common::{mint::Vector3, Baker, Chunk, Mesh};
 
 pub struct VoxelBaker;
 
@@ -123,7 +123,7 @@ impl Baker for VoxelBaker {
             }
         }
 
-        let mut vertices: Vec<Point3<f32>> = vec![Point3::new(0.0, 0.0, 0.0); vertices_cache.len()];
+        let mut vertices: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
         for (_, (vertex, index)) in vertices_cache {
             vertices[index] = vertex.clone();
         }

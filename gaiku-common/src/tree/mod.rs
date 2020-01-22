@@ -1,22 +1,22 @@
-use nalgebra::Point3;
+use mint::Vector3;
 use crate::data::Chunk;
 
 pub type Octree = Tree;
 
 #[derive(Clone, Debug, new)]
 pub struct Boundary {
-  center: Point3<f64>,
-  size: Point3<f64>,
+  center: Vector3<f64>,
+  size: Vector3<f64>,
 }
 
 impl Boundary {
-  fn contains(&self, point: &Point3<f64>) -> bool {
-    self.start_x() > point.coords[0] &&
-        self.start_y() > point.coords[1] &&
-        self.start_z() > point.coords[2] &&
-        self.end_x() < point.coords[0] &&
-        self.end_y() < point.coords[1] &&
-        self.end_z() < point.coords[2]
+  fn contains(&self, point: &Vector3<f64>) -> bool {
+    self.start_x() > point.x &&
+        self.start_y() > point.y &&
+        self.start_z() > point.z &&
+        self.end_x() < point.x &&
+        self.end_y() < point.y &&
+        self.end_z() < point.z
   }
 
   fn intersects(&self, range: &Boundary) -> bool {
@@ -31,27 +31,27 @@ impl Boundary {
   }
 
   fn start_x(&self) -> f64 {
-    self.center.coords[0] - self.size.coords[0]
+    self.center.x - self.size.x
   }
 
   fn start_y(&self) -> f64 {
-    self.center.coords[1] - self.size.coords[1]
+    self.center.y - self.size.y
   }
 
   fn start_z(&self) -> f64 {
-    self.center.coords[2] - self.size.coords[2]
+    self.center.z - self.size.z
   }
 
   fn end_x(&self) -> f64 {
-    self.center.coords[0] + self.size.coords[0]
+    self.center.x + self.size.x
   }
 
   fn end_y(&self) -> f64 {
-    self.center.coords[1] + self.size.coords[1]
+    self.center.y + self.size.y
   }
 
   fn end_z(&self) -> f64 {
-    self.center.coords[2] + self.size.coords[2]
+    self.center.z + self.size.z
   }
 }
 
@@ -145,7 +145,7 @@ impl Node {
     result
   }
 
-  fn get_leaf(&self, point: &Point3<f64>) -> Option<Chunk> {
+  fn get_leaf(&self, point: &Vector3<f64>) -> Option<Chunk> {
     if !self.boundary.contains(point) {
       return None;
     }
@@ -215,7 +215,7 @@ pub struct Tree {
 }
 
 impl Tree {
-  pub fn new(size: Point3<f64>, bucket: usize) -> Self {
+  pub fn new(size: Vector3<f64>, bucket: usize) -> Self {
     let boundary = Boundary::new([0.0, 0.0, 0.0].into(), size);
     
     Tree { 
@@ -239,7 +239,7 @@ impl Tree {
     result
   }
 
-  pub fn get_leaf(&self, point: &Point3<f64>) -> Option<Chunk> {
+  pub fn get_leaf(&self, point: &Vector3<f64>) -> Option<Chunk> {
     for node in self.nodes.iter() {
       if let Some(chunk) = node.get_leaf(point) {
         return Some(chunk);
@@ -261,19 +261,19 @@ impl Tree {
 }
 
 fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
-  let w = boundary.size.coords[0] / 2.0;
-  let h = boundary.size.coords[1] / 2.0;
-  let d = boundary.size.coords[2] / 2.0;
-  let node_size: Point3<f64> = [w, h, d].into();
-  let hw = node_size.coords[0] / 2.0;
-  let hh = node_size.coords[1] / 2.0;
-  let hd = node_size.coords[2] / 2.0;
+  let w = boundary.size.x / 2.0;
+  let h = boundary.size.y / 2.0;
+  let d = boundary.size.z / 2.0;
+  let node_size: Vector3<f64> = [w, h, d].into();
+  let hw = node_size.x / 2.0;
+  let hh = node_size.y / 2.0;
+  let hd = node_size.z / 2.0;
 
-  let x = w - boundary.center.coords[0];
-  let y = h - boundary.center.coords[1];
-  let z = d - boundary.center.coords[2];
+  let x = w - boundary.center.x;
+  let y = h - boundary.center.y;
+  let z = d - boundary.center.z;
 
-  let coords: [Point3<f64>; 8] = [
+  let coords: [Vector3<f64>; 8] = [
     [x - hw, y + hh, z + hd].into(),
     [x + hw, y + hh, z + hd].into(),
     [x - hw, y + hh, z - hd].into(),
@@ -294,11 +294,11 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
 }
 
 fn update_neighbors(node: &Node, leaf: &Chunk) {
-  let x = leaf.position().coords[0];
-  let y = leaf.position().coords[1];
-  let z = leaf.position().coords[2];
+  let x = leaf.position().x;
+  let y = leaf.position().y;
+  let z = leaf.position().z;
 
-  let coords: [Point3<f64>; 6] = [
+  let coords: [Vector3<f64>; 6] = [
     [x - 1.0, y, z].into(),
     [x + 1.0, y, z].into(),
     [x, y - 1.0, z].into(),

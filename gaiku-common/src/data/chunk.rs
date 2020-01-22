@@ -1,11 +1,11 @@
-use nalgebra::Point3;
+use mint::Vector3;
 
 // TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
 #[derive(Debug, Clone, Builder, Getters, Setters)]
 pub struct Chunk {
     #[get = "pub"] #[set = "pub"]
-    position: Point3<f64>,
+    position: Vector3<f64>,
     #[get = "pub"] #[set = "pub"]
     width: usize,
     #[get = "pub"] #[set = "pub"]
@@ -19,7 +19,7 @@ pub struct Chunk {
 impl Chunk {
     pub fn new(position: [f64; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
-            position: Point3::new(position[0], position[1], position[2]),
+            position: position.into(),
             width,
             height,
             depth,
