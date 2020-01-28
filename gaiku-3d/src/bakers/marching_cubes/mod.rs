@@ -186,7 +186,7 @@ impl Baker for MarchingCubesBaker {
 
         let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
         for (_, (vertex, index)) in vertices_cache {
-            vertices[index] = vertex.clone();
+            vertices[index as usize] = vertex.clone();
         }
 
         if indices.len() > 0 {

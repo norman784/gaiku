@@ -2,17 +2,19 @@ use mint::Vector3;
 
 // TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
-#[derive(Debug, Clone, Builder, Getters, Setters)]
+#[derive(Debug, Clone, TypedBuilder, Getters, Setters)]
 pub struct Chunk {
-    #[get = "pub"] #[set = "pub"]
+    #[get = "pub"]
+    #[set = "pub"]
     position: Vector3<f64>,
-    #[get = "pub"] #[set = "pub"]
+    #[get = "pub"]
     width: usize,
-    #[get = "pub"] #[set = "pub"]
+    #[get = "pub"]
     height: usize,
-    #[get = "pub"] #[set = "pub"]
+    #[get = "pub"]
     depth: usize,
-    #[get = "pub"] #[set = "pub"]
+    #[get = "pub"]
+    #[set = "pub"]
     values: Vec<f32>,
 }
 

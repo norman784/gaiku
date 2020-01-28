@@ -1,7 +1,7 @@
 // TODO: Add common implementations to read file content and pass to the binary parser implementation
 // TODO: Check how amethyst does this
 #[macro_use]
-extern crate derive_builder;
+extern crate typed_builder;
 #[macro_use]
 extern crate derive_new;
 #[macro_use]
@@ -22,10 +22,10 @@ pub trait Baker {
     fn bake(chunk: &Chunk) -> Option<Mesh>;
 
     // TODO: Creating a string key from the coordinates is not the best solution, enhance this
-    fn index(vertices: &mut HashMap<String, (Vector3<f32>, usize)>, vertex: Vector3<f32>) -> usize {
+    fn index(vertices: &mut HashMap<String, (Vector3<f32>, u16)>, vertex: Vector3<f32>) -> u16 {
         let index = vertices.len();
         let key = format!("{:?}", vertex);
-        vertices.entry(key).or_insert((vertex, index)).1
+        vertices.entry(key).or_insert((vertex, index as u16)).1
     }
 }
 
