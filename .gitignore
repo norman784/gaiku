@@ -550,3 +550,4 @@ healthchecksdb
 
 target
 *.iml
+*.swp

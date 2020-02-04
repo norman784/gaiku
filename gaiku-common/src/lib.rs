@@ -44,7 +44,7 @@ pub struct Gaiku {
 }
 
 impl Gaiku {
-    pub fn new(data: Vec<Chunk>, size: Vector3<f64>) -> Self {
+    pub fn new(data: Vec<Chunk>, size: Vector3<f32>) -> Self {
         let mut terrain = Octree::new(size, 8);
 
         for chunk in data {
@@ -58,7 +58,7 @@ impl Gaiku {
         self.terrain.query(boundary)
     }
 
-    pub fn get_chunk(&self, point: &Vector3<f64>) -> Option<Chunk> {
+    pub fn get_chunk(&self, point: &Vector3<f32>) -> Option<Chunk> {
         self.terrain.get_leaf(point)
     }
 
