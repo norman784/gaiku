@@ -1,4 +1,4 @@
-use mint::Vector3;
+use mint::{Vector3, Vector4};
 
 // TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
@@ -6,7 +6,10 @@ use mint::Vector3;
 pub struct Chunk {
     #[get = "pub"]
     #[set = "pub"]
-    position: Vector3<f64>,
+    colors: Vec<Vector4<f32>>,
+    #[get = "pub"]
+    #[set = "pub"]
+    position: Vector3<f32>,
     #[get = "pub"]
     width: usize,
     #[get = "pub"]
@@ -19,8 +22,9 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    pub fn new(position: [f64; 3], width: usize, height: usize, depth: usize) -> Self {
+    pub fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
+            colors: vec![[0.0, 0.0, 0.0, 0.0].into(); depth * height * width],
             position: position.into(),
             width,
             height,
@@ -31,6 +35,7 @@ impl Chunk {
 
     pub fn clone(&self) -> Self {
         Chunk {
+            colors: vec![],
             position: self.position.clone(),
             width: self.width,
             height: self.height,
@@ -51,17 +56,42 @@ impl Chunk {
         self.values[self.index(x, y, z)]
     }
 
+    pub fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<f32>> {
+        let index = self.index(x, y, z);
+        if let Some(color) = self.colors.get(index) {
+            Some(color.clone())
+        } else {
+            None
+        }
+    }
+
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: f32) {
         let index = self.index(x, y, z);
         self.values[index] = value;
     }
 
+    pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<f32>) {
+        let index = self.index(x, y, z);
+        self.colors[index] = color;
+    }
+
     fn index(&self, x: usize, y: usize, z: usize) -> usize {
-        x + y * self.width + z * self.width * self.height
+        get_index_from(x, y, z, self.width, self.height, self.depth)
     }
 
     // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
-    pub fn update_neighbor_data(&self, neighbor: &Chunk) {
+    pub fn update_neighbor_data(&self, _neighbor: &Chunk) {
         unimplemented!();
     }
+}
+
+pub fn get_index_from(
+    x: usize,
+    y: usize,
+    z: usize,
+    width: usize,
+    height: usize,
+    _depth: usize,
+) -> usize {
+    x + y * width + z * width * height
 }

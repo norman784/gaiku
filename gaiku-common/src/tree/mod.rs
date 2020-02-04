@@ -5,12 +5,12 @@ pub type Octree = Tree;
 
 #[derive(Clone, Debug, new)]
 pub struct Boundary {
-  center: Vector3<f64>,
-  size: Vector3<f64>,
+  center: Vector3<f32>,
+  size: Vector3<f32>,
 }
 
 impl Boundary {
-  fn contains(&self, point: &Vector3<f64>) -> bool {
+  fn contains(&self, point: &Vector3<f32>) -> bool {
     self.start_x() > point.x &&
         self.start_y() > point.y &&
         self.start_z() > point.z &&
@@ -30,27 +30,27 @@ impl Boundary {
     )
   }
 
-  fn start_x(&self) -> f64 {
+  fn start_x(&self) -> f32 {
     self.center.x - self.size.x
   }
 
-  fn start_y(&self) -> f64 {
+  fn start_y(&self) -> f32 {
     self.center.y - self.size.y
   }
 
-  fn start_z(&self) -> f64 {
+  fn start_z(&self) -> f32 {
     self.center.z - self.size.z
   }
 
-  fn end_x(&self) -> f64 {
+  fn end_x(&self) -> f32 {
     self.center.x + self.size.x
   }
 
-  fn end_y(&self) -> f64 {
+  fn end_y(&self) -> f32 {
     self.center.y + self.size.y
   }
 
-  fn end_z(&self) -> f64 {
+  fn end_z(&self) -> f32 {
     self.center.z + self.size.z
   }
 }
@@ -145,7 +145,7 @@ impl Node {
     result
   }
 
-  fn get_leaf(&self, point: &Vector3<f64>) -> Option<Chunk> {
+  fn get_leaf(&self, point: &Vector3<f32>) -> Option<Chunk> {
     if !self.boundary.contains(point) {
       return None;
     }
@@ -215,7 +215,7 @@ pub struct Tree {
 }
 
 impl Tree {
-  pub fn new(size: Vector3<f64>, bucket: usize) -> Self {
+  pub fn new(size: Vector3<f32>, bucket: usize) -> Self {
     let boundary = Boundary::new([0.0, 0.0, 0.0].into(), size);
     
     Tree { 
@@ -239,7 +239,7 @@ impl Tree {
     result
   }
 
-  pub fn get_leaf(&self, point: &Vector3<f64>) -> Option<Chunk> {
+  pub fn get_leaf(&self, point: &Vector3<f32>) -> Option<Chunk> {
     for node in self.nodes.iter() {
       if let Some(chunk) = node.get_leaf(point) {
         return Some(chunk);
@@ -264,7 +264,7 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
-  let node_size: Vector3<f64> = [w, h, d].into();
+  let node_size: Vector3<f32> = [w, h, d].into();
   let hw = node_size.x / 2.0;
   let hh = node_size.y / 2.0;
   let hd = node_size.z / 2.0;
@@ -273,7 +273,7 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   let y = h - boundary.center.y;
   let z = d - boundary.center.z;
 
-  let coords: [Vector3<f64>; 8] = [
+  let coords: [Vector3<f32>; 8] = [
     [x - hw, y + hh, z + hd].into(),
     [x + hw, y + hh, z + hd].into(),
     [x - hw, y + hh, z - hd].into(),
@@ -298,7 +298,7 @@ fn update_neighbors(node: &Node, leaf: &Chunk) {
   let y = leaf.position().y;
   let z = leaf.position().z;
 
-  let coords: [Vector3<f64>; 6] = [
+  let coords: [Vector3<f32>; 6] = [
     [x - 1.0, y, z].into(),
     [x + 1.0, y, z].into(),
     [x, y - 1.0, z].into(),
