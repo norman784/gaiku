@@ -549,4 +549,5 @@ healthchecksdb
 # End of https://www.gitignore.io/api/rust,linux,macos,windows,intellij,sublimetext,visualstudio,visualstudiocode
 
 target
+*.swp
 *.iml
