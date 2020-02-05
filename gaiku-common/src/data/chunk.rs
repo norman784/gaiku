@@ -24,7 +24,7 @@ pub struct Chunk {
 impl Chunk {
     pub fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
-            colors: vec![],
+            colors: vec![[0.0, 0.0, 0.0, 0.0].into(); depth * height * width],
             position: position.into(),
             width,
             height,
@@ -70,6 +70,11 @@ impl Chunk {
         self.values[index] = value;
     }
 
+    pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<f32>) {
+        let index = self.index(x, y, z);
+        self.colors[index] = color;
+    }
+
     fn index(&self, x: usize, y: usize, z: usize) -> usize {
         get_index_from(x, y, z, self.width, self.height, self.depth)
     }
@@ -80,6 +85,13 @@ impl Chunk {
     }
 }
 
-pub fn get_index_from(x: usize, y: usize, z: usize, width: usize, height: usize, _depth: usize) -> usize {
+pub fn get_index_from(
+    x: usize,
+    y: usize,
+    z: usize,
+    width: usize,
+    height: usize,
+    _depth: usize,
+) -> usize {
     x + y * width + z * width * height
 }
