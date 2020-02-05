@@ -51,78 +51,31 @@ impl Baker for VoxelBaker {
 
                     // Top
                     if y == y_limit || chunk.is_air(x, y + 1, z) {
-                        // indices.push(top_left_back);
-                        // indices.push(top_right_back);
-                        // indices.push(top_left_front);
-
-                        // indices.push(top_right_back);
-                        // indices.push(top_right_front);
-                        // indices.push(top_left_front);
                         create_face(&mut indices, &mut colors, top_left_back, top_right_back, top_right_front, top_left_front, color);
                     }
 
                     // Bottom
                     if y == 0 || (y > 0 && chunk.is_air(x, y - 1, z)) {
-                        // indices.push(bottom_left_back);
-                        // indices.push(bottom_right_back);
-                        // indices.push(bottom_left_front);
-
-                        // indices.push(bottom_right_back);
-                        // indices.push(bottom_right_front);
-                        // indices.push(bottom_left_front);
-
-                        create_face(&mut indices, &mut colors, bottom_left_back, bottom_right_back, bottom_right_front, bottom_left_front, color);
+                        create_face(&mut indices, &mut colors, bottom_right_back, bottom_left_back, bottom_left_front, bottom_right_front, color);
                     }
 
                     // Left
                     if x == 0 || (x > 0 && chunk.is_air(x - 1, y, z)) {
-                        // indices.push(top_left_back);
-                        // indices.push(top_left_front);
-                        // indices.push(bottom_left_back);
-
-                        // indices.push(top_left_front);
-                        // indices.push(bottom_left_front);
-                        // indices.push(bottom_left_back);
-
                         create_face(&mut indices, &mut colors, top_left_back, top_left_front, bottom_left_front, bottom_left_back, color);
                     }
 
                     // Right
                     if x == x_limit || chunk.is_air(x + 1, y, z) {
-                        // indices.push(top_right_front);
-                        // indices.push(top_right_back);
-                        // indices.push(bottom_right_front);
-
-                        // indices.push(top_right_back);
-                        // indices.push(bottom_right_back);
-                        // indices.push(bottom_right_front);
-
                         create_face(&mut indices, &mut colors, top_right_front, top_right_back, bottom_right_back, bottom_right_front, color);
                     }
 
                     // Front
                     if z == z_limit || chunk.is_air(x, y, z + 1) {
-                        // indices.push(top_left_front);
-                        // indices.push(top_right_front);
-                        // indices.push(bottom_left_front);
-
-                        // indices.push(top_right_front);
-                        // indices.push(bottom_right_front);
-                        // indices.push(bottom_left_front);
-
                         create_face(&mut indices, &mut colors, top_left_front, top_right_front, bottom_right_front, bottom_left_front, color);
                     }
 
                     // Back
                     if z == 0 || chunk.is_air(x, y, z - 1) {
-                        // indices.push(top_right_back);
-                        // indices.push(top_left_back);
-                        // indices.push(bottom_right_back);
-
-                        // indices.push(top_left_back);
-                        // indices.push(bottom_left_back);
-                        // indices.push(bottom_right_back);
-
                         create_face(&mut indices, &mut colors, top_right_back, top_left_back, bottom_left_back, bottom_right_back, color);
                     }
                 }
@@ -150,15 +103,7 @@ impl Baker for VoxelBaker {
 }
 
 fn create_face(indices: &mut Vec<u16>, colors: &mut Vec<Vector4<f32>>, p1: u16, p2: u16, p3: u16, p4: u16, color: Vector4<f32>) {
-    // indices.push(p1);
-    // indices.push(p2);
-    // indices.push(p3);
-
-    // indices.push(p2);
-    // indices.push(p3);
-    // indices.push(p4);
-
-    [p1, p2, p4, p2, p3, p4].iter().for_each(|i| {
+    [p1, p4, p2, p2, p4, p3].iter().for_each(|i| {
         indices.push(*i);
         colors.insert((*i) as usize, color)
     });
