@@ -40,12 +40,12 @@ impl FileFormat for GoxReader {
                                     for y in 0..*chunk.height() {
                                         for z in 0..*chunk.depth() {
                                             if !colors.is_empty(x, y, z) {
-                                                chunk.set(x, y, z, 1.0);
+                                                chunk.set(x, y, z, 255);
                                                 chunk.set_color(
                                                     x,
                                                     y,
                                                     z,
-                                                    colors.get_pixel_f32(x, y, z).into(),
+                                                    colors.get_pixel(x, y, z).into(),
                                                 );
                                             }
                                         }

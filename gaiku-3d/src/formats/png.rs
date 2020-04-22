@@ -70,7 +70,7 @@ impl FileFormat for PNGReader {
                 for x in 0..info.width as usize {
                     for y in 0..info.height as usize {
                         let color = colors[x + y * info.width as usize];
-                        let value = (color[0] | color[1]) as f32 / 255.0;
+                        let value = color[0] | color[1];
                         chunk.set(x, y, 0, value);
                     }
                 }

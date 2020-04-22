@@ -7,7 +7,7 @@ pub struct Mesh {
     #[builder(default)]
     pub normals: Vec<Vector3<f32>>,
     #[builder(default)]
-    pub colors: Vec<Vector4<f32>>,
+    pub colors: Vec<Vector4<u8>>,
     #[builder(default)]
     pub uv: Vec<Vector2<f32>>,
     #[builder(default)]

@@ -9,7 +9,7 @@ impl Baker for HeightMapBaker {
         let mut indices = vec![];
         let mut vertices_cache = HashMap::new();
         let colors = vec![];
-        let height = 30.0;
+        let height = 30;
 
         for x in 0..chunk.width() - 1 {
             let fx = x as f32;
@@ -18,10 +18,10 @@ impl Baker for HeightMapBaker {
                     continue;
                 }
                 let fz = y as f32;
-                let lb = chunk.get(x, y, 0) * height;
-                let lf = chunk.get(x, y + 1, 0) * height;
-                let rb = chunk.get(x + 1, y, 0) * height;
-                let rf = chunk.get(x + 1, y + 1, 0) * height;
+                let lb = (chunk.get(x, y, 0) * height) as f32 / 255.0;
+                let lf = (chunk.get(x, y + 1, 0) * height) as f32 / 255.0;
+                let rb = (chunk.get(x + 1, y, 0) * height) as f32 / 255.0;
+                let rf = (chunk.get(x + 1, y + 1, 0) * height) as f32 / 255.0;
 
                 let left_back = Self::index(&mut vertices_cache, [fx - 0.5, lb, fz - 0.5].into());
                 let right_back = Self::index(&mut vertices_cache, [fx + 0.5, rb, fz - 0.5].into());

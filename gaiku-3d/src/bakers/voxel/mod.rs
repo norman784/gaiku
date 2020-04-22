@@ -15,10 +15,10 @@ impl Baker for VoxelBaker {
         // FIXME calculate correctly how many indices we need
         let mut colors = vec![
             Vector4 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                w: 0.0
+                x: 0,
+                y: 0,
+                z: 0,
+                w: 0
             };
             chunk.width() * chunk.height() * chunk.depth()
         ];
@@ -41,10 +41,10 @@ impl Baker for VoxelBaker {
                         color
                     } else {
                         Vector4 {
-                            x: 1.0,
-                            y: 1.0,
-                            z: 1.0,
-                            w: 1.0,
+                            x: 1,
+                            y: 1,
+                            z: 1,
+                            w: 1,
                         }
                     };
 
@@ -176,12 +176,12 @@ impl Baker for VoxelBaker {
 
 fn create_face(
     indices: &mut Vec<u16>,
-    colors: &mut Vec<Vector4<f32>>,
+    colors: &mut Vec<Vector4<u8>>,
     p1: u16,
     p2: u16,
     p3: u16,
     p4: u16,
-    color: Vector4<f32>,
+    color: Vector4<u8>,
 ) {
     [p1, p4, p2, p2, p4, p3].iter().for_each(|i| {
         indices.push(*i);

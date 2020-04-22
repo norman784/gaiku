@@ -7,12 +7,12 @@ mod tables;
 use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
 struct GridCell {
-    pub value: [f32; 8],
+    pub value: [u8; 8],
     pub point: [Vector3<f32>; 8],
 }
 
 impl GridCell {
-    fn lerp(&self, index1: usize, index2: usize, isolevel: f32) -> Vector3<f32> {
+    fn lerp(&self, index1: usize, index2: usize, isolevel: u8) -> Vector3<f32> {
         let mut index1 = index1;
         let mut index2 = index2;
 
@@ -21,6 +21,8 @@ impl GridCell {
             index1 = index2;
             index2 = temp;
         }
+
+        let isolevel = isolevel as f32 / 255.0;
 
         let point1: Vec3 = self.point[index1].into();
         let point2: Vec3 = self.point[index2].into();
@@ -37,7 +39,7 @@ impl GridCell {
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
-    fn polygonize(grid: &GridCell, isolevel: f32, triangles: &mut Vec<[Vector3<f32>; 3]>) {
+    fn polygonize(grid: &GridCell, isolevel: u8, triangles: &mut Vec<[Vector3<f32>; 3]>) {
         let mut cube_index = 0;
         let mut vertex_list = [[0.0, 0.0, 0.0].into(); 12];
 
@@ -173,7 +175,7 @@ impl Baker for MarchingCubesBaker {
                     };
 
                     let mut triangles = vec![];
-                    Self::polygonize(&grid, 0.001, &mut triangles);
+                    Self::polygonize(&grid, 0, &mut triangles);
 
                     for vertex in triangles {
                         for i in 0..3 {

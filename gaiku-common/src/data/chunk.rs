@@ -6,7 +6,7 @@ use mint::{Vector3, Vector4};
 pub struct Chunk {
     #[get = "pub"]
     #[set = "pub"]
-    colors: Vec<Vector4<f32>>,
+    colors: Vec<Vector4<u8>>,
     #[get = "pub"]
     #[set = "pub"]
     position: Vector3<f32>,
@@ -18,45 +18,45 @@ pub struct Chunk {
     depth: usize,
     #[get = "pub"]
     #[set = "pub"]
-    values: Vec<f32>,
+    values: Vec<u8>,
 }
 
 impl Chunk {
     pub fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
-            colors: vec![[0.0, 0.0, 0.0, 0.0].into(); depth * height * width],
+            colors: vec![[0, 0, 0, 0].into(); depth * height * width],
             position: position.into(),
             width,
             height,
             depth,
-            values: vec![0.0; depth * height * width],
+            values: vec![0; depth * height * width],
         }
     }
 
-    pub fn clone(&self) -> Self {
-        Chunk {
-            colors: vec![],
-            position: self.position.clone(),
-            width: self.width,
-            height: self.height,
-            depth: self.depth,
-            values: self.values.clone(),
-        }
-    }
+    // pub fn clone(&self) -> Self {
+    //     Chunk {
+    //         colors: vec![],
+    //         position: self.position.clone(),
+    //         width: self.width,
+    //         height: self.height,
+    //         depth: self.depth,
+    //         values: self.values.clone(),
+    //     }
+    // }
 
     pub fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
         if x >= self.width || y >= self.height || z >= self.depth {
             true
         } else {
-            self.values[self.index(x, y, z)] == 0.0
+            self.values[self.index(x, y, z)] == 0
         }
     }
 
-    pub fn get(&self, x: usize, y: usize, z: usize) -> f32 {
+    pub fn get(&self, x: usize, y: usize, z: usize) -> u8 {
         self.values[self.index(x, y, z)]
     }
 
-    pub fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<f32>> {
+    pub fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>> {
         let index = self.index(x, y, z);
         if let Some(color) = self.colors.get(index) {
             Some(color.clone())
@@ -65,12 +65,12 @@ impl Chunk {
         }
     }
 
-    pub fn set(&mut self, x: usize, y: usize, z: usize, value: f32) {
+    pub fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
         let index = self.index(x, y, z);
         self.values[index] = value;
     }
 
-    pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<f32>) {
+    pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
         let index = self.index(x, y, z);
         self.colors[index] = color;
     }
