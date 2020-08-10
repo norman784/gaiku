@@ -175,7 +175,7 @@ impl Baker for MarchingCubesBaker {
                     };
 
                     let mut triangles = vec![];
-                    Self::polygonize(&grid, 0, &mut triangles);
+                    Self::polygonize(&grid, 1, &mut triangles);
 
                     for vertex in triangles {
                         for i in 0..3 {
