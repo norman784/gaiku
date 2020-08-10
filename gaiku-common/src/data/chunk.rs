@@ -65,6 +65,10 @@ impl Chunk {
         }
     }
 
+    fn index(&self, x: usize, y: usize, z: usize) -> usize {
+        get_index_from(x, y, z, self.width, self.height, self.depth)
+    }
+
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
         let index = self.index(x, y, z);
         self.values[index] = value;
@@ -73,10 +77,6 @@ impl Chunk {
     pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
         let index = self.index(x, y, z);
         self.colors[index] = color;
-    }
-
-    fn index(&self, x: usize, y: usize, z: usize) -> usize {
-        get_index_from(x, y, z, self.width, self.height, self.depth)
     }
 
     // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
