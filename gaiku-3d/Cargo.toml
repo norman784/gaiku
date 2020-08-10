@@ -17,8 +17,7 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 gaiku-common = { path = "../gaiku-common", version = "0.1.0" }
-#gox = "0.2.0"
-gox = { path = "../../gox" }
+gox = "0.2.0"
 png = "0.14.0"
 
 [dev-dependencies]
