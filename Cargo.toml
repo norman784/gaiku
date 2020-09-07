@@ -1,6 +1,48 @@
-[workspace]
+[package]
+name = "gaiku"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+description = "3d agnostic framework (game engine) terrain engine."
+exclude = ["gaiku/examples/*"]
+keywords = ["3d", "terrain", "engine", "gaiku"]
+categories = ["game-engines"]
 
+documentation = "https://docs.rs/gaiku"
+homepage = "https://github.com/norman784/gaiku"
+repository = "https://github.com/norman784/gaiku"
+
+readme = "Readme.md"
+license = "MIT"
+
+[workspace]
 members = [
-  "gaiku-3d",
-  "gaiku-common",
+  "crates/*"
 ]
+
+#[features]
+#default = [
+#  "gaiku-heighmap", "gaiku-voxel", "gaiku-marching-cubes"
+#]
+
+# Mesh generation methods
+#heighmap = ["gaiku-baker-heighmap"]
+#marching_cubes = ["gaiku-baker-marching-cubes"]
+#voxel = ["gaiku-baker-voxel"]
+
+# File formats
+#gox = ["gaiku-file-format-gox"]
+#png = ["gaiku-file-format-png"]
+
+[dependencies]
+gaiku-common = { path = "crates/gaiku-common" }
+gox = "0.3.0"
+png = "0.16.7"
+
+# Optional
+#gaiku-heighmap = { path = "crates/gaiku-heighmap" }
+#gaiku-marching-cubes = { path = "crates/gaiku-marching-cubes" }
+#gaiku-voxel = { path = "crates/gaiku-voxel" }
+
+[dev-dependencies]
+obj-exporter = "0.2.0"
