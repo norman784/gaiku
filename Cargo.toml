@@ -22,7 +22,8 @@ members = [
 
 [features]
 default = [
-  "voxel", "gox",
+  "gox",
+  "voxel",
 ]
 
 # Mesh generation methods
