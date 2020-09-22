@@ -51,17 +51,17 @@ impl Gaiku {
     Ok(Self::new(chunks, size))
   }
 
-  pub fn bake<T: Baker>(&self, area: &Boundary) -> Vec<Mesh> {
+  pub fn bake<T: Baker>(&self, area: &Boundary) -> Vec<(Mesh, Vector3)> {
     self
       .query(area)
       .iter()
-      .map(|c| T::bake(c))
-      .filter(|v| v.is_some())
-      .map(|c| c.unwrap())
-      .collect::<Vec<Mesh>>()
+      .map(|c| (T::bake(c), c.position()))
+      .filter(|(m, _)| m.is_some())
+      .map(|(m, p)| (m.unwrap(), p))
+      .collect::<Vec<(Mesh, Vector3)>>()
   }
 
-  pub fn bake_all<T: Baker>(&self) -> Vec<Mesh> {
+  pub fn bake_all<T: Baker>(&self) -> Vec<(Mesh, Vector3)> {
     let boundary = Boundary::new([0., 0., 0.], self.terrain.size());
     self.bake::<T>(&boundary)
   }

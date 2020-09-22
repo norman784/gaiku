@@ -1,9 +1,9 @@
 use std::time::Instant;
 
 use gaiku::{
-  bakers::VoxelBaker,
-  common::{Baker, FileFormat},
-  formats::GoxReader,
+  bakers::Voxel,
+  Gaiku,
+  formats::Gox,
 };
 
 mod common;
@@ -17,28 +17,21 @@ fn read(name: &str) -> std::io::Result<()> {
     env!("CARGO_MANIFEST_DIR"),
     name
   );
-  let chunks = GoxReader::read(&file);
-  let mut meshes = vec![];
+  let gaiku = Gaiku::load::<Gox>(&file, [1., 1., 1.]).unwrap();
 
   let reader_elapsed = now.elapsed().as_secs();
   let now = Instant::now();
-
-  for chunk in chunks.iter() {
-    let mesh = VoxelBaker::bake(chunk);
-    if let Some(mesh) = mesh {
-      meshes.push((mesh, chunk.position()));
-    }
-  }
-
+  let meshes = gaiku.bake_all::<Voxel>();
   let baker_elapsed = now.elapsed().as_secs();
   let now = Instant::now();
+  let mesh_count = meshes.len();
 
   export(meshes, &format!("{}_vx", name));
 
   println!(
     "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
     name,
-    chunks.len(),
+    mesh_count,
     reader_elapsed,
     baker_elapsed,
     now.elapsed().as_secs()
