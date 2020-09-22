@@ -4,21 +4,11 @@ use bevy::{
   render::{mesh::VertexAttribute, pipeline::PrimitiveTopology},
 };
 use gaiku::{
-  bakers::{HeightMapBaker, MarchingCubesBaker, VoxelBaker},
+  bakers::{HeightMap, MarchingCubes, Voxel},
   common::{self, Baker, FileFormat},
-  formats::{GoxReader, PNGReader},
+  formats::{Gox, Png},
 };
-
-mod plugins;
-use plugins::fly_camera::*;
-
-struct MainCamera;
-
-#[derive(Debug)]
-enum CameraType {
-  DefaultCamera,
-  FlyCamera,
-}
+use gaiku_bevy::plugins::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum BakerType {
@@ -31,14 +21,12 @@ enum BakerType {
 #[derive(Debug)]
 struct Settings {
   baker: BakerType,
-  camera: CameraType,
 }
 
 impl Default for Settings {
   fn default() -> Self {
     Self {
       baker: BakerType::None,
-      camera: CameraType::DefaultCamera,
     }
   }
 }
@@ -79,17 +67,6 @@ impl From<IMesh> for Mesh {
 }
 
 //SYSTEMS
-// TODO: Implement custom camera plugin
-fn change_camera_system(mut settings: ResMut<Settings>, input: Res<Input<KeyCode>>) {
-  if input.just_released(KeyCode::Tab) {
-    match settings.camera {
-      CameraType::FlyCamera => settings.camera = CameraType::DefaultCamera,
-      _ => settings.camera = CameraType::FlyCamera,
-    }
-    println!("Current camera {:?}", settings.camera);
-  }
-}
-
 fn change_baker_system(
   mut commands: Commands,
   mut settings: ResMut<Settings>,
@@ -109,11 +86,11 @@ fn change_baker_system(
     );
 
     println!("Reading file: {}", &file);
-    let chunks = GoxReader::read(&file);
+    let chunks = Gox::read(&file);
 
     for chunk in chunks.iter() {
       //let mesh = MarchingCubesBaker::bake(chunk);
-      let mesh = VoxelBaker::bake(chunk);
+      let mesh = Voxel::bake(chunk);
       if let Some(mesh) = mesh {
         loaded_meshes.push((IMesh::from(mesh), chunk.position()));
       }
@@ -125,14 +102,14 @@ fn change_baker_system(
     let file = format!(
       "{}/../../examples/assets/{}.gox",
       env!("CARGO_MANIFEST_DIR"),
-      "small_tree"
+      "terrain"
     );
 
     println!("Reading file: {}", &file);
-    let chunks = GoxReader::read(&file);
+    let chunks = Gox::read(&file);
 
     for chunk in chunks.iter() {
-      let mesh = MarchingCubesBaker::bake(chunk);
+      let mesh = MarchingCubes::bake(chunk);
       if let Some(mesh) = mesh {
         loaded_meshes.push((IMesh::from(mesh), chunk.position()));
       }
@@ -148,10 +125,10 @@ fn change_baker_system(
     );
 
     println!("Reading file: {}", &file);
-    let chunks = PNGReader::read(&file);
+    let chunks = Png::read(&file);
 
     for chunk in chunks.iter() {
-      let mesh = HeightMapBaker::bake(chunk);
+      let mesh = HeightMap::bake(chunk);
       if let Some(mesh) = mesh {
         loaded_meshes.push((IMesh::from(mesh), chunk.position()));
       }
@@ -179,22 +156,41 @@ fn exit_app_system(input: Res<Input<KeyCode>>, mut event: ResMut<Events<AppExit>
   }
 }
 
-fn setup(mut commands: Commands) {
-  // add entities to the world
+fn setup(
+  mut commands: Commands,
+  //mut meshes: ResMut<Assets<Mesh>>,
+  asset_server: Res<AssetServer>,
+  mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+  // AssetLoader
+  commands.spawn(PbrComponents {
+    mesh: asset_server.load("assets/small_tree.gox").unwrap(),
+    material: materials.add(Color::rgb(0.5, 0.4, 0.3).into()),
+    translation: Translation::new(-1.5, 0.0, 0.0),
+    ..Default::default()
+  });
+  // Spawn temporary stuff
+  /*
   commands
-    /*
-    .spawn(Camera3dComponents {
-      translation: Translation::new(10.0, 5.0, 30.0),
-      rotation: Rotation::from_rotation_xyz(-0.3, 0.5, 0.0),
+    // Plane
+    .spawn(PbrComponents {
+      mesh: meshes.add(Mesh::from(shape::Plane { size: 10.0 })),
+      material: materials.add(Color::rgb(0.1, 0.2, 0.1).into()),
       ..Default::default()
     })
-    */
-    .spawn(FlyCamera::default())
-    .spawn(LightComponents {
-      translation: Translation::new(4.0, 8.0, 4.0),
+    // cube
+    .spawn(PbrComponents {
+      mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+      material: materials.add(Color::rgb(0.5, 0.4, 0.3).into()),
+      translation: Translation::new(0.0, 1.0, 0.0),
       ..Default::default()
-    })
-    .with(MainCamera);
+    });
+  */
+  // Default setup
+  commands.spawn(LightComponents {
+    translation: Translation::new(4.0, 8.0, 4.0),
+    ..Default::default()
+  });
 }
 
 // MAIN
@@ -203,10 +199,10 @@ fn main() {
     .add_resource(Msaa { samples: 4 })
     .add_resource(Settings::default())
     .add_default_plugins()
-    .add_plugin(FlyCameraPlugin)
+    .add_plugin(loaders::GoxPlugin)
+    .add_plugin(camera::editor::EditorCameraPlugin)
     .add_startup_system(setup.system())
     .add_system(exit_app_system.system())
-    .add_system(change_camera_system.system())
     .add_system(change_baker_system.system())
     .run();
 }

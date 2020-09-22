@@ -11,6 +11,5 @@ homepage = "https://github.com/norman784/gaiku"
 repository = "https://github.com/norman784/gaiku"
 
 [dependencies]
-decorum = "0.1.3"
+anyhow = "1.0.32"
 glam = "0.9.4"
-num-traits = "0.2.6"

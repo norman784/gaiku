@@ -1,5 +1,9 @@
-pub use glam;
-use std::fs::File;
+pub use crate::{
+  data::{Chunk, Mesh, MeshBuilder},
+  tree::{Boundary, Octree},
+};
+use anyhow::Result;
+use std::fs::read;
 
 mod data;
 mod tree;
@@ -9,22 +13,16 @@ pub type Vector2 = [f32; 2];
 pub type Vector3 = [f32; 3];
 pub type Vector4 = [f32; 4];
 
-pub use crate::{
-  data::{Chunk, Mesh, MeshBuilder},
-  tree::{Boundary, Octree},
-};
-
 pub trait Baker {
   fn bake(chunk: &Chunk) -> Option<Mesh>;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
-  fn load(stream: &mut File) -> Vec<Chunk>;
+  fn from_bytes(bytes: Vec<u8>) -> Result<Vec<Chunk>>;
 
-  fn read(file: &str) -> Vec<Chunk> {
-    let mut stream = File::open(file).unwrap();
-    Self::load(&mut stream)
+  fn load_file(file: &str) -> Result<Vec<Chunk>> {
+    Self::from_bytes(read(file)?)
   }
 }
 
@@ -41,6 +39,31 @@ impl Gaiku {
     }
 
     Self { terrain }
+  }
+
+  pub fn from_bytes<T: FileFormat>(bytes: Vec<u8>, size: Vector3) -> Result<Self> {
+    let chunks = T::from_bytes(bytes)?;
+    Ok(Self::new(chunks, size))
+  }
+
+  pub fn load<T: FileFormat>(path: &str, size: Vector3) -> Result<Self> {
+    let chunks = T::load_file(path)?;
+    Ok(Self::new(chunks, size))
+  }
+
+  pub fn bake<T: Baker>(&self, area: &Boundary) -> Vec<Mesh> {
+    self
+      .query(area)
+      .iter()
+      .map(|c| T::bake(c))
+      .filter(|v| v.is_some())
+      .map(|c| c.unwrap())
+      .collect::<Vec<Mesh>>()
+  }
+
+  pub fn bake_all<T: Baker>(&self) -> Vec<Mesh> {
+    let boundary = Boundary::new([0., 0., 0.], self.terrain.size());
+    self.bake::<T>(&boundary)
   }
 
   pub fn query(&self, boundary: &Boundary) -> Vec<Chunk> {

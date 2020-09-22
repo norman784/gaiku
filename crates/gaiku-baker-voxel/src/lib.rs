@@ -1,9 +1,9 @@
 use gaiku_common::{Baker, Chunk, Color, Mesh, MeshBuilder, Vector3};
 
-pub struct VoxelBaker;
+pub struct Voxel;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
-impl Baker for VoxelBaker {
+impl Baker for Voxel {
   fn bake(chunk: &Chunk) -> Option<Mesh> {
     let mut builder = MeshBuilder::new();
     let x_limit = chunk.width() - 1;

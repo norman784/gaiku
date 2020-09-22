@@ -1,15 +1,13 @@
+use anyhow::Result;
 use gaiku_common::{Chunk, FileFormat};
+use gox::{self, Block, Data, Only};
 
-use gox::{Block, Data, Gox, Only};
-
-use std::fs::File;
-
-pub struct GoxReader;
+pub struct Gox;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom
-impl FileFormat for GoxReader {
-  fn load(stream: &mut File) -> Vec<Chunk> {
-    let gox = Gox::new(stream, vec![Only::Layers, Only::Blocks]);
+impl FileFormat for Gox {
+  fn from_bytes(bytes: Vec<u8>) -> Result<Vec<Chunk>> {
+    let gox = gox::Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);
     let mut result = vec![];
     let mut block_data: Vec<&Block> = vec![];
 
@@ -52,6 +50,6 @@ impl FileFormat for GoxReader {
       }
     }
 
-    result
+    Ok(result)
   }
 }

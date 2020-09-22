@@ -9,35 +9,28 @@ The main crate is developed game engine agnostic, so we can help to reach more d
 
 General features:
 
-- Mesh generation
-  - Height map
-  - Marching Cubes
-  - Voxel
-- Mesh collider
-- Texturing
-- Foliage support
-- Chunk based for infinite generated terrains
-- Mesh optimization
-- LOD support
-- For procedural terrain generation check `Bakers` documentations.
+-[ ] Mesh generation
+  -[ ] Height map
+  -[ ] Marching Cubes
+  -[x] Voxel
+-[ ] Mesh collider
+-[ ] Texturing
+-[ ] Foliage support
+-[ ] Chunk based for infinite generated terrains
+-[ ] Mesh optimization
+-[ ] LOD support
 
 ## Examples
 
 To run the examples go to the folder `gaiku` and run with:
 
 ```bash
-cargo run --example heightmap
-cargo run --example marching_cubes
 cargo run --example voxel
 ```
 
-Then go to the `gaiku-3d/output` folder and see the exported `.obj` files.
+Then go to the `examples/output` folder and see the exported `.obj` files.
 
-**Heightmap**
-
-<img alt="Heightmap" src="images/gaiku-3d/heightmap.png" width="600px" />
-
-**Voxel and Marching cubes**
+**Voxel**
 
 Planet
 
@@ -51,5 +44,3 @@ Tree
 
 <img alt="Tree" src="images/gaiku-3d/tree.png" width="600px" />
 
-
-* *There are some kown and unresolved issues with the marching cubes baker.*

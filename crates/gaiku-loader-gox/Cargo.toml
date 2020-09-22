@@ -1,0 +1,13 @@
+[package]
+name = "gaiku-loader-gox"
+version = "0.1.0"
+authors = ["norman784 <normanpaniagua@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.32"
+gaiku-common = { path = "../../plugins/gaiku-common" }
+gox = { path = "../../../gox" }
+#gox = "0.4.0"

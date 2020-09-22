@@ -1,7 +1,5 @@
 use crate::{data::Chunk, Vector3};
 
-pub type Octree = Tree;
-
 #[derive(Clone, Debug)]
 pub struct Boundary {
   center: Vector3,
@@ -209,18 +207,19 @@ impl Node {
   }
 }
 
-// TODO: In a near future I want to use the same class to manage Quadtree and Octree
 #[derive(Clone, Debug)]
-pub struct Tree {
+pub struct Octree {
   nodes: Vec<Node>,
+  size: Vector3,
 }
 
-impl Tree {
+impl Octree {
   pub fn new(size: Vector3, bucket: usize) -> Self {
     let boundary = Boundary::new([0.0, 0.0, 0.0], size);
 
-    Tree {
+    Octree {
       nodes: subdivide(&boundary, bucket),
+      size,
     }
   }
 
@@ -238,6 +237,10 @@ impl Tree {
     }
 
     result
+  }
+
+  pub fn size(&self) -> Vector3 {
+    self.size
   }
 
   pub fn get_leaf(&self, point: &Vector3) -> Option<Chunk> {

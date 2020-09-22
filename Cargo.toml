@@ -17,32 +17,29 @@ license = "MIT"
 
 [workspace]
 members = [
-  "crates/*"
+  "plugins/*",
+  "bakers/*",
+  "loaders/*",
 ]
 
-#[features]
-#default = [
-#  "gaiku-heighmap", "gaiku-voxel", "gaiku-marching-cubes"
-#]
+[features]
+default = [
+  "voxel", "gox",
+]
 
 # Mesh generation methods
-#heighmap = ["gaiku-baker-heighmap"]
-#marching_cubes = ["gaiku-baker-marching-cubes"]
-#voxel = ["gaiku-baker-voxel"]
+voxel = ["gaiku-baker-voxel"]
 
-# File formats
-#gox = ["gaiku-file-format-gox"]
-#png = ["gaiku-file-format-png"]
+# Loaders
+gox = ["gaiku-loader-gox"]
 
 [dependencies]
 gaiku-common = { path = "crates/gaiku-common" }
-gox = "0.3.0"
-png = "0.16.7"
 
 # Optional
-#gaiku-heighmap = { path = "crates/gaiku-heighmap" }
-#gaiku-marching-cubes = { path = "crates/gaiku-marching-cubes" }
-#gaiku-voxel = { path = "crates/gaiku-voxel" }
+gaiku-baker-voxel = { path = "crates/gaiku-baker-voxel", optional = true }
+
+gaiku-loader-gox = { path = "crates/gaiku-loader-gox", optional = true }
 
 [dev-dependencies]
 obj-exporter = "0.2.0"
