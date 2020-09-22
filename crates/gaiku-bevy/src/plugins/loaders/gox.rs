@@ -5,9 +5,9 @@ use bevy::{
   render::{mesh::VertexAttribute, pipeline::PrimitiveTopology},
 };
 use gaiku::{
-  bakers::{HeightMap, MarchingCubes, Voxel},
+  bakers::Voxel,
   common::{self, Baker, FileFormat},
-  formats::{Gox, Png},
+  formats::Gox,
 };
 use std::path::Path;
 
@@ -20,10 +20,11 @@ pub struct GoxLoader;
 
 impl AssetLoader<Mesh> for GoxLoader {
   fn from_bytes(&self, asset_path: &Path, bytes: Vec<u8>) -> Result<Mesh, anyhow::Error> {
-    let chunks = Gox::read(asset_path.to_str().unwrap());
+    //let chunks = Gox::read(asset_path.to_str().unwrap());
+    let chunks = vec![];
     println!("asset_path: {:?} chunks: {:?}", asset_path, chunks.len());
     for chunk in chunks.iter() {
-      let mesh = MarchingCubes::bake(chunk);
+      let mesh = Voxel::bake(chunk);
       if let Some(mesh) = mesh {
         return Ok(Mesh {
           primitive_topology: PrimitiveTopology::TriangleList,

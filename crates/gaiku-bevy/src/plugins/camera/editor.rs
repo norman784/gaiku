@@ -26,9 +26,7 @@ pub struct EditorCameraComponents {
   pub perspective_projection: PerspectiveProjection,
   pub visible_entities: VisibleEntities,
   pub transform: Transform,
-  pub translation: Translation,
-  pub rotation: Rotation,
-  pub scale: Scale,
+  pub global_transform: GlobalTransform,
 }
 
 impl Default for EditorCameraComponents {
@@ -47,9 +45,7 @@ impl Default for EditorCameraComponents {
       perspective_projection: Default::default(),
       visible_entities: Default::default(),
       transform: Default::default(),
-      translation: Translation::new(0., 5., 10.),
-      rotation: Rotation::from_rotation_x(-0.4),
-      scale: Default::default(),
+      global_transform: Default::default(),
     }
   }
 }
@@ -73,16 +69,15 @@ pub struct EditorCameraControl {
 // ==============
 
 fn follow_system(
-  mut query: Query<(&EditorCameraControl, &Rotation, &mut Translation)>,
-  target_query: Query<&Translation>,
+  mut query: Query<(&EditorCameraControl, &mut Transform)>,
+  target_query: Query<&Transform>,
 ) {
-  for (control, rotation, mut translation) in &mut query.iter() {
+  for (control, mut transform) in &mut query.iter() {
     if let Some(target) = control.target {
-      if let Ok(target_transform) = target_query.get::<Translation>(target) {
-        let position = target_transform.0 - (rotation.0 * -Vec3::unit_z() * control.distance);
-        translation.set_x(position.x());
-        translation.set_y(position.y());
-        translation.set_z(position.z());
+      if let Ok(target_transform) = target_query.get::<Transform>(target) {
+        let position = target_transform.translation()
+          - (transform.rotation() * -Vec3::unit_z() * control.distance);
+        transform.set_translation(position);
       }
     }
   }
@@ -119,9 +114,8 @@ fn setup(mut commands: Commands) {
         invert_axis: false,
         ..Default::default()
       },
-      Rotation::default(),
       Transform::default(),
-      Translation::default(),
+      GlobalTransform::default(),
     ))
     .current_entity();
 

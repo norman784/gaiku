@@ -51,9 +51,9 @@ impl Default for KeyboardDisplacementControl {
 pub fn keyboard_displacement_system(
   time: Res<Time>,
   keyboard_input: Res<Input<KeyCode>>,
-  mut query: Query<(&KeyboardDisplacementControl, &Transform, &mut Translation)>,
+  mut query: Query<(&KeyboardDisplacementControl, &mut Transform)>,
 ) {
-  for (control, transform, mut translation) in &mut query.iter() {
+  for (control, mut transform) in &mut query.iter() {
     let mut movement = Vec2::new(
       axis_for_input(&keyboard_input, control.right, control.left),
       axis_for_input(&keyboard_input, control.forward, control.backward),
@@ -64,10 +64,11 @@ pub fn keyboard_displacement_system(
     }
 
     movement *= time.delta_seconds * control.speed;
-    let fwd = transform.value.z_axis().truncate() * movement.y();
-    let right = -transform.value.x_axis().truncate() * movement.x();
+    let fwd = transform.value().z_axis().truncate() * movement.y();
+    let right = -transform.value().x_axis().truncate() * movement.x();
 
-    translation.0 += Vec3::from(fwd + right);
+    let translation = transform.translation();
+    transform.set_translation(translation + Vec3::from(fwd + right));
   }
 }
 
@@ -78,7 +79,7 @@ pub fn mouse_displacement_system(
   keyboard_input: Res<Input<KeyCode>>,
   mouse_input: Res<Input<MouseButton>>,
   mouse_motion: Res<Events<MouseMotion>>,
-  mut query: Query<(&MouseDisplacementControl, &Transform, &mut Translation)>,
+  mut query: Query<(&MouseDisplacementControl, &mut Transform)>,
 ) {
   let mut delta = Vec2::zero();
 
@@ -86,7 +87,7 @@ pub fn mouse_displacement_system(
     delta += event.delta;
   }
 
-  for (control, transform, mut translation) in &mut query.iter() {
+  for (control, mut transform) in &mut query.iter() {
     if let Some(key) = control.keyboard_modifier {
       if !keyboard_input.pressed(key) {
         return;
@@ -111,10 +112,11 @@ pub fn mouse_displacement_system(
 
     movement *= time.delta_seconds * control.speed;
 
-    let fwd = transform.value.z_axis().truncate() * movement.y();
-    let right = -transform.value.x_axis().truncate() * movement.x();
+    let fwd = transform.value().z_axis().truncate() * movement.y();
+    let right = -transform.value().x_axis().truncate() * movement.x();
 
-    translation.0 += Vec3::from(fwd + right);
+    let translation = transform.translation();
+    transform.set_translation(translation + Vec3::from(fwd + right));
   }
 }
 

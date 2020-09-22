@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "69aa9bf9fdc925d7325b79221706e9ff6c4b2bad" }
+bevy = "0.2"
 gaiku = { path = "../../" }
 
 [[example]]

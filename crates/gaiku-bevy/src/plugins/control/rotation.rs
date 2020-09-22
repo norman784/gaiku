@@ -56,10 +56,10 @@ impl Default for MouseRotationControl {
 // ==============
 
 pub fn rotate_system(
-  mut query: Query<(&mut RotationControl, &mut Translation, &mut Rotation)>,
-  target_query: Query<&mut Rotation>,
+  mut query: Query<(&mut RotationControl, &mut Transform)>,
+  target_query: Query<&mut Transform>,
 ) {
-  for (mut control, mut translation, mut rotation) in &mut query.iter() {
+  for (mut control, mut transform) in &mut query.iter() {
     control.pitch = control
       .pitch
       .max(1f32.to_radians())
@@ -73,12 +73,12 @@ pub fn rotate_system(
       Vec3::new(0., control.pitch.cos(), -control.pitch.sin()).normalize() * control.distance;
 
     let look = Mat4::face_toward(pos, Vec3::zero(), Vec3::unit_y());
-    translation.0 = pos;
-    rotation.0 = look.to_scale_rotation_translation().1;
+    transform.set_translation(pos);
+    transform.set_rotation(look.to_scale_rotation_translation().1);
 
     if let Some(target) = control.target {
-      if let Ok(mut target_rotation) = target_query.get_mut::<Rotation>(target) {
-        target_rotation.0 = Quat::from_rotation_y(-control.yaw);
+      if let Ok(mut target_transform) = target_query.get_mut::<Transform>(target) {
+        target_transform.set_rotation(Quat::from_rotation_y(-control.yaw));
       }
     }
   }
