@@ -8,6 +8,6 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.32"
-gaiku-common = { path = "../../plugins/gaiku-common" }
+gaiku-common = { path = "../gaiku-common" }
 gox = { path = "../../../gox" }
 #gox = "0.4.0"

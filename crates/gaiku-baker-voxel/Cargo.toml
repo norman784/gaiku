@@ -7,4 +7,4 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-gaiku-common = { path = "../../plugins/gaiku-common" }
+gaiku-common = { path = "../gaiku-common" }

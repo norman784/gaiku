@@ -17,9 +17,7 @@ license = "MIT"
 
 [workspace]
 members = [
-  "plugins/*",
-  "bakers/*",
-  "loaders/*",
+  "crates/*",
 ]
 
 [features]
