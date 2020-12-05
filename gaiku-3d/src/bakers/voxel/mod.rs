@@ -22,6 +22,8 @@ impl Baker for VoxelBaker {
             };
             chunk.width() * chunk.height() * chunk.depth()
         ];
+        let mut normals_cache = HashMap::new();
+
         let x_limit = chunk.width() - 1;
         let y_limit = chunk.height() - 1;
         let z_limit = chunk.depth() - 1;
@@ -76,11 +78,13 @@ impl Baker for VoxelBaker {
                         // indices.push(top_left_front);
                         create_face(
                             &mut indices,
+                            &mut normals_cache,
                             &mut colors,
                             top_left_back,
                             top_right_back,
                             top_right_front,
                             top_left_front,
+                            Vector3 { x: 0, y: 1, z: 0 },
                             color,
                         );
                     }
@@ -89,11 +93,13 @@ impl Baker for VoxelBaker {
                     if y == 0 || (y > 0 && chunk.is_air(x, y - 1, z)) {
                         create_face(
                             &mut indices,
+                            &mut normals_cache,
                             &mut colors,
                             bottom_right_back,
                             bottom_left_back,
                             bottom_left_front,
                             bottom_right_front,
+                            Vector3 { x: 0, y: -1, z: 0 },
                             color,
                         );
                     }
@@ -102,11 +108,13 @@ impl Baker for VoxelBaker {
                     if x == 0 || (x > 0 && chunk.is_air(x - 1, y, z)) {
                         create_face(
                             &mut indices,
+                            &mut normals_cache,
                             &mut colors,
                             top_left_back,
                             top_left_front,
                             bottom_left_front,
                             bottom_left_back,
+                            Vector3 { x: -1, y: 0, z: 0 },
                             color,
                         );
                     }
@@ -115,11 +123,13 @@ impl Baker for VoxelBaker {
                     if x == x_limit || chunk.is_air(x + 1, y, z) {
                         create_face(
                             &mut indices,
+                            &mut normals_cache,
                             &mut colors,
                             top_right_front,
                             top_right_back,
                             bottom_right_back,
                             bottom_right_front,
+                            Vector3 { x: 1, y: 0, z: 0 },
                             color,
                         );
                     }
@@ -128,11 +138,13 @@ impl Baker for VoxelBaker {
                     if z == z_limit || chunk.is_air(x, y, z + 1) {
                         create_face(
                             &mut indices,
+                            &mut normals_cache,
                             &mut colors,
                             top_left_front,
                             top_right_front,
                             bottom_right_front,
                             bottom_left_front,
+                            Vector3 { x: 0, y: 0, z: 1 },
                             color,
                         );
                     }
@@ -141,11 +153,13 @@ impl Baker for VoxelBaker {
                     if z == 0 || chunk.is_air(x, y, z - 1) {
                         create_face(
                             &mut indices,
+                            &mut normals_cache,
                             &mut colors,
                             top_right_back,
                             top_left_back,
                             bottom_left_back,
                             bottom_right_back,
+                            Vector3 { x: 0, y: 0, z: -1 },
                             color,
                         );
                     }
@@ -154,8 +168,32 @@ impl Baker for VoxelBaker {
         }
 
         let mut vertices: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
+        let mut normals_vec: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
+        print!("Verticies: {:?}", vertices_cache);
+        print!("Normals: {:?}", normals_cache);
         for (_, (vertex, index)) in vertices_cache {
             vertices[index as usize] = vertex.clone();
+            let normal_source = normals_cache
+                .entry(index)
+                .or_insert(Vector3 { x: 0, y: 0, z: 0 });
+            let normal_len =
+                ((normal_source.x.pow(2) + normal_source.y.pow(2) + normal_source.z.pow(2)) as f32)
+                    .sqrt();
+
+            let normal = if normal_len > 0. {
+                Vector3 {
+                    x: (normal_source.x as f32) / normal_len,
+                    y: (normal_source.y as f32) / normal_len,
+                    z: (normal_source.z as f32) / normal_len,
+                }
+            } else {
+                Vector3 {
+                    x: 0.,
+                    y: 0.,
+                    z: 0.,
+                }
+            };
+            normals_vec[index as usize] = normal;
         }
 
         if indices.len() > 0 {
@@ -163,7 +201,7 @@ impl Baker for VoxelBaker {
             Some(Mesh {
                 indices,
                 vertices,
-                normals: vec![],
+                normals: normals_vec,
                 colors: colors[0..end].iter().map(|e| *e).collect::<Vec<_>>(),
                 uv: vec![],
                 tangents: vec![],
@@ -176,15 +214,25 @@ impl Baker for VoxelBaker {
 
 fn create_face(
     indices: &mut Vec<u16>,
+    normals_cache: &mut HashMap<u16, Vector3<i8>>,
     colors: &mut Vec<Vector4<u8>>,
     p1: u16,
     p2: u16,
     p3: u16,
     p4: u16,
+    normal: Vector3<i8>,
     color: Vector4<u8>,
 ) {
     [p1, p4, p2, p2, p4, p3].iter().for_each(|i| {
         indices.push(*i);
-        colors.insert((*i) as usize, color)
+        colors.insert((*i) as usize, color);
+    });
+    [p1, p2, p3, p4].iter().for_each(|i| {
+        let current_norm = normals_cache
+            .entry(*i)
+            .or_insert(Vector3 { x: 0, y: 0, z: 0 });
+        current_norm.x += normal.x;
+        current_norm.y += normal.y;
+        current_norm.z += normal.z;
     });
 }
