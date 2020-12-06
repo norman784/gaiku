@@ -5,5 +5,17 @@ authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-amethyst = "0.10.0"
-gaiku = { path = "gaiku", version = "0.1.0" }
+amethyst = "0.15.3"
+gaiku-common = { path = "../gaiku-common", version = "0.1.0" }
+
+[features]
+empty = ["amethyst/empty"]
+metal = ["amethyst/metal"]
+vulkan = ["amethyst/vulkan"]
+
+[[example]]
+name = "terrain"
+path =  "examples/terrain.rs"
+
+[dev-dependencies]
+gaiku-3d = { path = "../gaiku-3d", version = "0.1.0" }
