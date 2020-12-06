@@ -169,8 +169,6 @@ impl Baker for VoxelBaker {
 
         let mut vertices: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
         let mut normals_vec: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
-        print!("Verticies: {:?}", vertices_cache);
-        print!("Normals: {:?}", normals_cache);
         for (_, (vertex, index)) in vertices_cache {
             vertices[index as usize] = vertex.clone();
             let normal_source = normals_cache
