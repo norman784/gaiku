@@ -7,7 +7,7 @@ use amethyst::{
     assets::{Handle, Loader},
     controls::FlyControlBundle,
     controls::FlyControlTag,
-    core::math::Vector3,
+    core::math::{Matrix4, Vector3, Vector4},
     core::transform::Transform,
     core::transform::TransformBundle,
     input::{InputBundle, StringBindings},
@@ -98,7 +98,7 @@ impl GameLoad {
 
     fn initialise_camera(&self, world: &mut World) {
         let mut transform = Transform::default();
-        transform.set_translation_xyz(0., 10., -10.0);
+        transform.set_translation_xyz(0., 2., -10.0);
         transform.face_towards(Vector3::new(0., 0., 0.), Vector3::new(0., 1., 0.));
 
         let cam_ent = world
@@ -139,18 +139,30 @@ impl GameLoad {
         }
 
         let scale = Vector3::new(0.1, 0.1, 0.1);
+        let swap_axes = true;
+        let transform = if swap_axes {
+            Matrix4::from_euler_angles(-90., 0., 0.)
+        } else {
+            Matrix4::identity()
+        };
         for (mut mesh_gox, position) in meshes {
             let (mesh, mat) = {
-                // Swap y/z for amethyst coordinate system
-                for vert in &mut mesh_gox.vertices {
-                    let y = vert.y;
-                    vert.y = vert.z;
-                    vert.z = y;
-                }
-                for normal in &mut mesh_gox.normals {
-                    let y = normal.y;
-                    normal.y = normal.z;
-                    normal.z = y;
+                if swap_axes {
+                    // Swap y/z for amethyst coordinate system
+                    for vert in &mut mesh_gox.vertices {
+                        let v = Vector4::new(vert.x, vert.y, vert.z, 1.);
+                        let vtran = transform * v;
+                        vert.x = vtran[0];
+                        vert.y = vtran[1];
+                        vert.z = vtran[2];
+                    }
+                    for normal in &mut mesh_gox.normals {
+                        let v = Vector4::new(normal.x, normal.y, normal.z, 1.);
+                        let vtran = transform * v;
+                        normal.x = vtran[0];
+                        normal.y = vtran[1];
+                        normal.z = vtran[2];
+                    }
                 }
                 let loader = world.read_resource::<Loader>();
                 let mat_default = world.read_resource::<MaterialDefaults>();
@@ -166,12 +178,17 @@ impl GameLoad {
                 (mesh, mat)
             };
             let mut pos = Transform::default();
-            // Swap y/z for amethyst coordinate system
-            pos.set_translation_xyz(
-                position.x * scale[0],
-                position.z * scale[1],
-                position.y * scale[2],
-            );
+
+            let position_trans = {
+                let v = Vector4::new(position.x, position.y, position.z, 1.);
+                let vtrans = transform * v;
+                Vector3::new(
+                    vtrans[0] * scale[0],
+                    vtrans[1] * scale[1],
+                    vtrans[2] * scale[2],
+                )
+            };
+            pos.set_translation(position_trans);
             pos.set_scale(scale);
 
             let _voxel = world.create_entity().with(mesh).with(mat).with(pos).build();
