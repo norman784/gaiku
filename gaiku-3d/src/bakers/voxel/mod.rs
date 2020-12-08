@@ -16,10 +16,12 @@ struct VertexData {
 }
 
 impl VertexData {
+    /// Check if we need to split the vertex because the normals differ
     pub fn is_same_normal(&self, norm: Vector3<i8>) -> bool {
         norm.x == self.normal.x && norm.y == self.normal.y && norm.z == self.normal.z
     }
 
+    /// Check if we need to split the vertex because the colors differ
     pub fn is_same_color(&self, color: Vector4<u8>) -> bool {
         color.x == self.color.x
             && color.y == self.color.y
@@ -68,13 +70,6 @@ impl Baker for VoxelBaker {
 
                     // Top
                     if y == y_limit || chunk.is_air(x, y + 1, z) {
-                        // indices.push(top_left_back);
-                        // indices.push(top_right_back);
-                        // indices.push(top_left_front);
-
-                        // indices.push(top_right_back);
-                        // indices.push(top_right_front);
-                        // indices.push(top_left_front);
                         create_face(
                             &mut indices,
                             &mut vertices,
@@ -199,19 +194,28 @@ impl Baker for VoxelBaker {
     }
 }
 
+/// Either get the vertex at this position or inser one.
+/// Only returns an old vertex if the position normal and color are the same
+/// as the requsted one
 fn get_or_insert<'a>(
     cache: &'a mut HashMap<(usize, usize, usize), Vec<VertexData>>,
     position: (usize, usize, usize),
     color: Vector4<u8>,
     normal: Vector3<i8>,
 ) -> &'a VertexData {
+    // Get all verts at this position
     let verts = &mut cache.entry(position).or_insert(vec![]);
+
+    // Check each vert at this position to see if its valid.
+    // This loop will only ever have 6 vertexes max
     for i in 0..verts.len() {
         let vert = &verts[i];
         if vert.is_same_normal(normal) && vert.is_same_color(color) {
+            /// If there is already a valid vertex then return it
             return &cache.get(&position).unwrap()[i];
         }
     }
+    // If not we must make a new one
     let next_index = cache.values().fold(0, |acc, v| acc + v.len());
     let new_vert = VertexData {
         position: Vector3 {
@@ -228,6 +232,7 @@ fn get_or_insert<'a>(
     return &cache.get(&position).unwrap().last().unwrap();
 }
 
+/// Create the face and insert the vertexes into the cache
 fn create_face(
     indices: &mut Vec<u16>,
     cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
