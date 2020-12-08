@@ -211,7 +211,7 @@ fn get_or_insert<'a>(
     for i in 0..verts.len() {
         let vert = &verts[i];
         if vert.is_same_normal(normal) && vert.is_same_color(color) {
-            /// If there is already a valid vertex then return it
+            // If there is already a valid vertex then return it
             return &cache.get(&position).unwrap()[i];
         }
     }
