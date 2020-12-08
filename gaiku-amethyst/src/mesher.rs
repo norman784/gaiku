@@ -1,14 +1,36 @@
 use gaiku_common::Mesh;
 
 use amethyst::{
+    renderer::palette::Srgba,
     renderer::rendy::{
+        hal::image::{Filter, Kind, SamplerInfo, ViewKind, WrapMode},
         hal::Primitive,
         mesh::{Color, MeshBuilder, Normal, Position, TexCoord},
+        texture::{pixel::Rgba8Srgb, TextureBuilder},
     },
-    renderer::types::MeshData,
+    renderer::types::{MeshData, TextureData},
 };
 
-pub fn to_amethyst_mesh(mesh: Mesh) -> MeshData {
+pub fn get_amethyst_texture(mesh: &mut Mesh) -> TextureData {
+    let tex_data = mesh.generate_texture(1024, 1024);
+    let pixel_data = tex_data
+        .into_iter()
+        .map(|rgba| {
+            let [red, green, blue, alpha] = rgba.to_le_bytes();
+            Rgba8Srgb::from(Srgba::new(red, green, blue, alpha))
+        })
+        .collect::<Vec<Rgba8Srgb>>();
+    let texture_builder = TextureBuilder::new()
+        .with_kind(Kind::D2(1024, 1024, 1, 1))
+        .with_view_kind(ViewKind::D2)
+        .with_data_width(1024)
+        .with_data_height(1024)
+        .with_sampler_info(SamplerInfo::new(Filter::Linear, WrapMode::Clamp))
+        .with_data(pixel_data);
+    return texture_builder.into();
+}
+
+pub fn to_amethyst_mesh(mesh: &Mesh) -> MeshData {
     let mut vertices: Vec<Position> = vec![];
     let mut colors: Vec<Color> = vec![];
     let mut normals: Vec<Normal> = vec![];
@@ -58,4 +80,9 @@ pub fn to_amethyst_mesh(mesh: Mesh) -> MeshData {
         .with_prim_type(Primitive::TriangleList);
 
     ame.into()
+}
+
+pub fn to_amethyst_mesh_ww_tex(mesh: &mut Mesh) -> (MeshData, TextureData) {
+    let tex_data = get_amethyst_texture(mesh);
+    return (to_amethyst_mesh(mesh), tex_data);
 }

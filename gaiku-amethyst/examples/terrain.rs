@@ -29,7 +29,7 @@ use gaiku_3d::{
     common::{Baker, FileFormat},
     formats::GoxReader,
 };
-use gaiku_amethyst::mesher::to_amethyst_mesh;
+use gaiku_amethyst::mesher::to_amethyst_mesh_ww_tex;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -166,10 +166,13 @@ impl GameLoad {
                 }
                 let loader = world.read_resource::<Loader>();
                 let mat_default = world.read_resource::<MaterialDefaults>();
-                let builder = to_amethyst_mesh(mesh_gox);
-                let mesh: Handle<Mesh> = loader.load_from_data(builder, (), &world.read_resource());
+                let (mesh_data, tex_data) = to_amethyst_mesh_ww_tex(&mut mesh_gox);
+                let mesh: Handle<Mesh> =
+                    loader.load_from_data(mesh_data, (), &world.read_resource());
+                let tex = loader.load_from_data(tex_data, (), &world.read_resource());
                 let mat: Handle<Material> = loader.load_from_data(
                     Material {
+                        albedo: tex,
                         ..mat_default.0.clone()
                     },
                     (),
