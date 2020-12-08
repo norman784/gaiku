@@ -196,7 +196,7 @@ impl Baker for VoxelBaker {
 
 /// Either get the vertex at this position or inser one.
 /// Only returns an old vertex if the position normal and color are the same
-/// as the requsted one
+/// as the requested one
 fn get_or_insert<'a>(
     cache: &'a mut HashMap<(usize, usize, usize), Vec<VertexData>>,
     position: (usize, usize, usize),
