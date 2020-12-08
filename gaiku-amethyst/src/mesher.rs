@@ -11,6 +11,8 @@ use amethyst::{
     renderer::types::{MeshData, TextureData},
 };
 
+/// Creates an ametheyst texture data which can be attached to
+/// material to give the mesh color. Texture size is fixed at 1024x1024
 pub fn get_amethyst_texture(mesh: &mut Mesh) -> TextureData {
     let tex_data = mesh.generate_texture(1024, 1024);
     let pixel_data = tex_data
@@ -30,6 +32,8 @@ pub fn get_amethyst_texture(mesh: &mut Mesh) -> TextureData {
     return texture_builder.into();
 }
 
+/// Creates an ametheyst mesh data which can be attached to
+/// entity to render the mesh
 pub fn to_amethyst_mesh(mesh: &Mesh) -> MeshData {
     let mut vertices: Vec<Position> = vec![];
     let mut colors: Vec<Color> = vec![];
@@ -82,6 +86,7 @@ pub fn to_amethyst_mesh(mesh: &Mesh) -> MeshData {
     ame.into()
 }
 
+/// Creates both texture and mesh data for amethyst
 pub fn to_amethyst_mesh_ww_tex(mesh: &mut Mesh) -> (MeshData, TextureData) {
     let tex_data = get_amethyst_texture(mesh);
     return (to_amethyst_mesh(mesh), tex_data);
