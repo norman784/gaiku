@@ -194,7 +194,7 @@ impl Baker for VoxelBaker {
     }
 }
 
-/// Either get the vertex at this position or inser one.
+/// Either get the vertex at this position or insert one.
 /// Only returns an old vertex if the position normal and color are the same
 /// as the requested one
 fn get_or_insert<'a>(
