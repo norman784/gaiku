@@ -1,14 +1,40 @@
 use gaiku_common::Mesh;
 
 use amethyst::{
+    renderer::palette::Srgba,
     renderer::rendy::{
+        hal::image::{Filter, Kind, SamplerInfo, ViewKind, WrapMode},
         hal::Primitive,
         mesh::{Color, MeshBuilder, Normal, Position, TexCoord},
+        texture::{pixel::Rgba8Srgb, TextureBuilder},
     },
-    renderer::types::MeshData,
+    renderer::types::{MeshData, TextureData},
 };
 
-pub fn to_amethyst_mesh(mesh: Mesh) -> MeshData {
+/// Creates an ametheyst texture data which can be attached to
+/// material to give the mesh color. Texture size is fixed at 1024x1024
+pub fn get_amethyst_texture(mesh: &mut Mesh, width: u32, height: u32) -> TextureData {
+    let tex_data = mesh.generate_texture(width as usize, height as usize);
+    let pixel_data = tex_data
+        .into_iter()
+        .map(|rgba| {
+            let [red, green, blue, alpha] = rgba.to_le_bytes();
+            Rgba8Srgb::from(Srgba::new(red, green, blue, alpha))
+        })
+        .collect::<Vec<Rgba8Srgb>>();
+    let texture_builder = TextureBuilder::new()
+        .with_kind(Kind::D2(width as u32, height as u32, 1, 1))
+        .with_view_kind(ViewKind::D2)
+        .with_data_width(width as u32)
+        .with_data_height(height as u32)
+        .with_sampler_info(SamplerInfo::new(Filter::Linear, WrapMode::Clamp))
+        .with_data(pixel_data);
+    return texture_builder.into();
+}
+
+/// Creates an ametheyst mesh data which can be attached to
+/// entity to render the mesh
+pub fn to_amethyst_mesh(mesh: &Mesh) -> MeshData {
     let mut vertices: Vec<Position> = vec![];
     let mut colors: Vec<Color> = vec![];
     let mut normals: Vec<Normal> = vec![];
@@ -58,4 +84,14 @@ pub fn to_amethyst_mesh(mesh: Mesh) -> MeshData {
         .with_prim_type(Primitive::TriangleList);
 
     ame.into()
+}
+
+/// Creates both texture and mesh data for amethyst
+pub fn to_amethyst_mesh_ww_tex(
+    mesh: &mut Mesh,
+    width: u32,
+    height: u32,
+) -> (MeshData, TextureData) {
+    let tex_data = get_amethyst_texture(mesh, width, height);
+    return (to_amethyst_mesh(mesh), tex_data);
 }
