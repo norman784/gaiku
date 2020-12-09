@@ -166,7 +166,7 @@ impl GameLoad {
                 }
                 let loader = world.read_resource::<Loader>();
                 let mat_default = world.read_resource::<MaterialDefaults>();
-                let (mesh_data, tex_data) = to_amethyst_mesh_ww_tex(&mut mesh_gox);
+                let (mesh_data, tex_data) = to_amethyst_mesh_ww_tex(&mut mesh_gox, 32, 32);
                 let mesh: Handle<Mesh> =
                     loader.load_from_data(mesh_data, (), &world.read_resource());
                 let tex = loader.load_from_data(tex_data, (), &world.read_resource());

@@ -38,6 +38,10 @@ impl Mesh {
         }
 
         let current_num = colors.len();
+        // TODO: Currently we just use the sqrt so that there
+        // are equal number of colors in the rows and columns
+        // really we should use the width:height ratio for
+        // optimial placement.
         let colors_in_x = ((current_num as f32).sqrt()) as usize;
         let colors_in_y = current_num / colors_in_x;
         let scale_x = (colors_in_x + 1) as f32;

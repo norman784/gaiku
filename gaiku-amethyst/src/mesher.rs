@@ -13,8 +13,8 @@ use amethyst::{
 
 /// Creates an ametheyst texture data which can be attached to
 /// material to give the mesh color. Texture size is fixed at 1024x1024
-pub fn get_amethyst_texture(mesh: &mut Mesh) -> TextureData {
-    let tex_data = mesh.generate_texture(1024, 1024);
+pub fn get_amethyst_texture(mesh: &mut Mesh, width: u32, height: u32) -> TextureData {
+    let tex_data = mesh.generate_texture(width as usize, height as usize);
     let pixel_data = tex_data
         .into_iter()
         .map(|rgba| {
@@ -23,10 +23,10 @@ pub fn get_amethyst_texture(mesh: &mut Mesh) -> TextureData {
         })
         .collect::<Vec<Rgba8Srgb>>();
     let texture_builder = TextureBuilder::new()
-        .with_kind(Kind::D2(1024, 1024, 1, 1))
+        .with_kind(Kind::D2(width as u32, height as u32, 1, 1))
         .with_view_kind(ViewKind::D2)
-        .with_data_width(1024)
-        .with_data_height(1024)
+        .with_data_width(width as u32)
+        .with_data_height(height as u32)
         .with_sampler_info(SamplerInfo::new(Filter::Linear, WrapMode::Clamp))
         .with_data(pixel_data);
     return texture_builder.into();
@@ -87,7 +87,11 @@ pub fn to_amethyst_mesh(mesh: &Mesh) -> MeshData {
 }
 
 /// Creates both texture and mesh data for amethyst
-pub fn to_amethyst_mesh_ww_tex(mesh: &mut Mesh) -> (MeshData, TextureData) {
-    let tex_data = get_amethyst_texture(mesh);
+pub fn to_amethyst_mesh_ww_tex(
+    mesh: &mut Mesh,
+    width: u32,
+    height: u32,
+) -> (MeshData, TextureData) {
+    let tex_data = get_amethyst_texture(mesh, width, height);
     return (to_amethyst_mesh(mesh), tex_data);
 }
