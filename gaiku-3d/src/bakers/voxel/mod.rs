@@ -157,12 +157,17 @@ impl Baker for VoxelBaker {
 
         let mut all_verts: Vec<&VertexData> = vertices.values().flatten().collect();
         all_verts.sort_by_key(|k| k.index);
+        let center: Vector3<f32> = Vector3 {
+            x: (x_limit as f32) / 2.,
+            y: (y_limit as f32) / 2.,
+            z: (z_limit as f32) / 2.,
+        };
         let vertices: Vec<Vector3<f32>> = all_verts
             .iter()
             .map(|v| Vector3 {
-                x: v.position.x as f32 - 0.5,
-                y: v.position.y as f32 - 0.5,
-                z: v.position.z as f32 - 0.5,
+                x: v.position.x as f32 - center.x,
+                y: v.position.y as f32 - center.y,
+                z: v.position.z as f32 - center.z,
             })
             .collect();
         let normals: Vec<Vector3<f32>> = all_verts
