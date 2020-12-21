@@ -1,8 +1,0 @@
-[package]
-name = "gaiku-2d-example"
-version = "0.1.0"
-authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-gaiku-2d = { path = "../gaiku-2d", version = "0.1.0" }
