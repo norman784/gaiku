@@ -33,20 +33,10 @@ impl Baker for VoxelBaker {
         for z in 0..chunk.depth() {
           let fz = z as f32;
 
-          if chunk.is_air(x, y, z) {
+          let (value, color) = chunk.get_with_color(x, y, z);
+          if value == 0 {
             continue;
           }
-
-          let color = if let Some(color) = chunk.get_color(x, y, z) {
-            color
-          } else {
-            Vector4 {
-              x: 1,
-              y: 1,
-              z: 1,
-              w: 1,
-            }
-          };
 
           let top_left_back =
             Self::index(&mut vertices_cache, [fx - 0.5, fy + 0.5, fz - 0.5].into());

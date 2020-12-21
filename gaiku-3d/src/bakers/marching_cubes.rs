@@ -151,24 +151,24 @@ impl Baker for MarchingCubesBaker {
 
           let grid = GridCell {
             value: [
-              chunk.get(x    , y    , z    ),
-              chunk.get(x + 1, y    , z    ),
-              chunk.get(x + 1, y + 1, z    ),
-              chunk.get(x    , y + 1, z    ),
-              chunk.get(x    , y    , z + 1),
-              chunk.get(x + 1, y    , z + 1),
+              chunk.get(x, y, z),
+              chunk.get(x + 1, y, z),
+              chunk.get(x + 1, y + 1, z),
+              chunk.get(x, y + 1, z),
+              chunk.get(x, y, z + 1),
+              chunk.get(x + 1, y, z + 1),
               chunk.get(x + 1, y + 1, z + 1),
-              chunk.get(x    , y + 1, z + 1),
+              chunk.get(x, y + 1, z + 1),
             ],
             point: [
-              [fx      , fy      , fz      ].into(),
-              [fx + 1.0, fy      , fz      ].into(),
-              [fx + 1.0, fy + 1.0, fz      ].into(),
-              [fx      , fy + 1.0, fz      ].into(),
-              [fx      , fy      , fz + 1.0].into(),
-              [fx + 1.0, fy      , fz + 1.0].into(),
+              [fx, fy, fz].into(),
+              [fx + 1.0, fy, fz].into(),
+              [fx + 1.0, fy + 1.0, fz].into(),
+              [fx, fy + 1.0, fz].into(),
+              [fx, fy, fz + 1.0].into(),
+              [fx + 1.0, fy, fz + 1.0].into(),
               [fx + 1.0, fy + 1.0, fz + 1.0].into(),
-              [fx      , fy + 1.0, fz + 1.0].into(),
+              [fx, fy + 1.0, fz + 1.0].into(),
             ],
           };
 

@@ -4,10 +4,7 @@ pub trait Chunkify {
   fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self;
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
   fn get(&self, x: usize, y: usize, z: usize) -> u8;
-  fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>>;
-  fn index(&self, x: usize, y: usize, z: usize) -> usize;
   fn set(&mut self, x: usize, y: usize, z: usize, value: u8);
-  fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>);
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +26,15 @@ impl Chunk {
     self.depth
   }
 
+  pub fn get_with_color(&self, x: usize, y: usize, z: usize) -> (u8, Vector4<u8>) {
+    let index = self.index(x, y, z);
+    (self.values[index], self.colors[index])
+  }
+
+  fn index(&self, x: usize, y: usize, z: usize) -> usize {
+    get_index_from(x, y, z, self.width, self.height)
+  }
+
   pub fn position(&self) -> &Vector3<f32> {
     &self.position
   }
@@ -39,6 +45,13 @@ impl Chunk {
 
   pub fn height(&self) -> usize {
     self.depth
+  }
+
+  pub fn set_with_color(&mut self, x: usize, y: usize, z: usize, value: u8, color: Vector4<u8>) {
+    let index = self.index(x, y, z);
+
+    self.values[index] = value;
+    self.colors[index] = color;
   }
 
   pub fn update_neighbor_data(&mut self, _neighbor: &Chunk) {
@@ -74,37 +87,17 @@ impl Chunkify for Chunk {
     self.values[self.index(x, y, z)]
   }
 
-fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>> {
-    let index = self.index(x, y, z);
-    if let Some(color) = self.colors.get(index) {
-      Some(*color)
-    } else {
-      None
-    }
-  }
-
-  fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    get_index_from(x, y, z, self.width, self.height, self.depth)
-  }
-
   fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
-    let index = self.index(x, y, z);
-    self.values[index] = value;
-  }
+    let color = if self.get_with_color(x, y, z).1.w == 0 {
+      [255, 255, 255, 255]
+    } else {
+      [0, 0, 0, 0]
+    };
 
-  fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
-    let index = self.index(x, y, z);
-    self.colors[index] = color;
+    self.set_with_color(x, y, z, value, color.into());
   }
 }
 
-pub fn get_index_from(
-  x: usize,
-  y: usize,
-  z: usize,
-  width: usize,
-  height: usize,
-  _depth: usize,
-) -> usize {
+pub fn get_index_from(x: usize, y: usize, z: usize, width: usize, height: usize) -> usize {
   x + y * width + z * width * height
 }
