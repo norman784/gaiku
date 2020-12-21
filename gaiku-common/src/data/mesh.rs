@@ -43,14 +43,13 @@ impl Mesh {
     let scale_x = (colors_in_x + 1) as f32;
     let scale_y = (colors_in_y + 1) as f32;
 
-    let mut i = 0;
     let mut result: Vec<u32> = vec![0; width * height];
     // For each color and list of faces
     // Assign a uv coordinate
     //  This coordinate maps to a square in the texture
     // Then blit that area of the result (which is an array of colors representing the image)
     //   with the color.
-    for (color, faces) in colors {
+    for (i, (color, faces)) in colors.into_iter().enumerate() {
       let x_pos = (i % colors_in_x) as f32;
       let y_pos = (i / colors_in_x) as f32;
       // Update all faces with this UV
@@ -81,9 +80,8 @@ impl Mesh {
           result[i] = u32::from_le_bytes([r, g, b, a]);
         }
       }
-      i += 1;
     }
     // Return the texture
-    return result;
+    result
   }
 }

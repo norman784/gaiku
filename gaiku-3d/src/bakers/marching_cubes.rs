@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, mem};
 
 use gaiku_common::{glam::Vec3, mint::Vector3, Baker, Chunk, Chunkify, Mesh};
 
@@ -17,9 +17,7 @@ impl GridCell {
     let mut index2 = index2;
 
     if self.point[index1] < self.point[index2] {
-      let temp = index1;
-      index1 = index2;
-      index2 = temp;
+      mem::swap(&mut index1, &mut index2);
     }
 
     let isolevel = isolevel as f32 / 255.0;
@@ -153,24 +151,24 @@ impl Baker for MarchingCubesBaker {
 
           let grid = GridCell {
             value: [
-              chunk.get(x + 0, y + 0, z + 0),
-              chunk.get(x + 1, y + 0, z + 0),
-              chunk.get(x + 1, y + 1, z + 0),
-              chunk.get(x + 0, y + 1, z + 0),
-              chunk.get(x + 0, y + 0, z + 1),
-              chunk.get(x + 1, y + 0, z + 1),
+              chunk.get(x    , y    , z    ),
+              chunk.get(x + 1, y    , z    ),
+              chunk.get(x + 1, y + 1, z    ),
+              chunk.get(x    , y + 1, z    ),
+              chunk.get(x    , y    , z + 1),
+              chunk.get(x + 1, y    , z + 1),
               chunk.get(x + 1, y + 1, z + 1),
-              chunk.get(x + 0, y + 1, z + 1),
+              chunk.get(x    , y + 1, z + 1),
             ],
             point: [
-              [fx + 0.0, fy + 0.0, fz + 0.0].into(),
-              [fx + 1.0, fy + 0.0, fz + 0.0].into(),
-              [fx + 1.0, fy + 1.0, fz + 0.0].into(),
-              [fx + 0.0, fy + 1.0, fz + 0.0].into(),
-              [fx + 0.0, fy + 0.0, fz + 1.0].into(),
-              [fx + 1.0, fy + 0.0, fz + 1.0].into(),
+              [fx      , fy      , fz      ].into(),
+              [fx + 1.0, fy      , fz      ].into(),
+              [fx + 1.0, fy + 1.0, fz      ].into(),
+              [fx      , fy + 1.0, fz      ].into(),
+              [fx      , fy      , fz + 1.0].into(),
+              [fx + 1.0, fy      , fz + 1.0].into(),
               [fx + 1.0, fy + 1.0, fz + 1.0].into(),
-              [fx + 0.0, fy + 1.0, fz + 1.0].into(),
+              [fx      , fy + 1.0, fz + 1.0].into(),
             ],
           };
 
@@ -178,8 +176,8 @@ impl Baker for MarchingCubesBaker {
           Self::polygonize(&grid, 1, &mut triangles);
 
           for vertex in triangles {
-            for i in 0..3 {
-              indices.push(Self::index(&mut vertices_cache, vertex[i]));
+            for vert in &vertex {
+              indices.push(Self::index(&mut vertices_cache, *vert));
             }
           }
         }
@@ -188,10 +186,10 @@ impl Baker for MarchingCubesBaker {
 
     let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
     for (_, (vertex, index)) in vertices_cache {
-      vertices[index as usize] = vertex.clone();
+      vertices[index as usize] = vertex;
     }
 
-    if indices.len() > 0 {
+    if !indices.is_empty() {
       Some(Mesh {
         indices,
         vertices,

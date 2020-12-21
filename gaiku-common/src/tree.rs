@@ -115,7 +115,7 @@ impl Node {
         None => {
           self.leafs = Some(vec![leaf.clone()]);
         }
-      },
+      }
     }
 
     true
@@ -133,16 +133,13 @@ impl Node {
           result.append(node.query(range).as_mut());
         }
       }
-      None => match &self.leafs {
-        Some(leafs) => {
-          for leaf in leafs {
-            if range.contains(&leaf.position()) {
-              result.push(leaf.clone())
-            }
+      None => if let Some(leafs) = &self.leafs {
+        for leaf in leafs {
+          if range.contains(&leaf.position()) {
+            result.push(leaf.clone())
           }
         }
-        _ => {}
-      },
+      }
     }
 
     result
@@ -161,16 +158,13 @@ impl Node {
           }
         }
       }
-      None => match &self.leafs {
-        Some(leafs) => {
-          for leaf in leafs {
-            if leaf.position() == point {
-              return Some(leaf.clone());
-            }
+      None => if let Some(leafs) = &self.leafs {
+        for leaf in leafs {
+          if leaf.position() == point {
+            return Some(leaf.clone());
           }
         }
-        _ => {}
-      },
+      }
     }
 
     None
@@ -189,16 +183,13 @@ impl Node {
           }
         }
       }
-      None => match &mut self.leafs {
-        Some(leafs) => {
-          for leaf in leafs {
-            if leaf.position() == point {
-              return Some(leaf);
-            }
+      None => if let Some(leafs) = &mut self.leafs {
+        for leaf in leafs {
+          if leaf.position() == point {
+            return Some(leaf);
           }
         }
-        _ => {}
-      },
+      }
     }
 
     None
@@ -217,18 +208,15 @@ impl Node {
           }
         }
       }
-      None => match &mut self.leafs {
-        Some(leafs) => {
-          for (i, old) in leafs.iter().enumerate() {
-            if old.position() == leaf.position() {
-              leafs.insert(i, leaf.clone());
-              update_neighbors(self, leaf);
-              return true;
-            }
+      None => if let Some(leafs) = &mut self.leafs {
+        for (i, old) in leafs.iter().enumerate() {
+          if old.position() == leaf.position() {
+            leafs.insert(i, leaf.clone());
+            update_neighbors(self, leaf);
+            return true;
           }
         }
-        _ => {}
-      },
+      }
     }
 
     self.insert(leaf)
@@ -320,7 +308,7 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
     result.push(Node::new(
       Boundary {
         center: node_size,
-        size: coord.clone(),
+        size: *coord,
       },
       bucket,
     ));

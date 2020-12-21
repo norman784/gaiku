@@ -155,16 +155,16 @@ impl Baker for VoxelBaker {
 
     let mut vertices: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
     for (_, (vertex, index)) in vertices_cache {
-      vertices[index as usize] = vertex.clone();
+      vertices[index as usize] = vertex;
     }
 
-    if indices.len() > 0 {
+    if !indices.is_empty() {
       let end = vertices.len();
       Some(Mesh {
         indices,
         vertices,
         normals: vec![],
-        colors: colors[0..end].iter().map(|e| *e).collect::<Vec<_>>(),
+        colors: colors[0..end].iter().copied().collect::<Vec<_>>(),
         uv: vec![],
         tangents: vec![],
       })

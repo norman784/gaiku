@@ -40,10 +40,10 @@ impl Baker for HeightMapBaker {
 
     let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
     for (_, (vertex, index)) in vertices_cache {
-      vertices[index as usize] = vertex.clone();
+      vertices[index as usize] = vertex;
     }
 
-    if indices.len() > 0 {
+    if !indices.is_empty() {
       Some(Mesh {
         indices,
         vertices,
