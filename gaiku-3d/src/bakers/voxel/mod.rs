@@ -2,48 +2,37 @@ use std::collections::HashMap;
 
 use gaiku_common::{
     mint::{Vector3, Vector4},
-    Baker, Chunk, Mesh,
+    Baker, Chunk, Chunkify, Mesh,
 };
 
 pub struct VoxelBaker;
-
-// Each vertex has the following data
-struct VertexData {
-    position: Vector3<usize>,
-    normal: Vector3<i8>,
-    color: Vector4<u8>,
-    index: u16,
-}
-
-impl VertexData {
-    /// Check if we need to split the vertex because the normals differ
-    pub fn is_same_normal(&self, norm: Vector3<i8>) -> bool {
-        norm.x == self.normal.x && norm.y == self.normal.y && norm.z == self.normal.z
-    }
-
-    /// Check if we need to split the vertex because the colors differ
-    pub fn is_same_color(&self, color: Vector4<u8>) -> bool {
-        color.x == self.color.x
-            && color.y == self.color.y
-            && color.z == self.color.z
-            && color.w == self.color.w
-    }
-}
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
     fn bake(chunk: &Chunk) -> Option<Mesh> {
         let mut indices = vec![];
-        // Hash map in x, y, z coordinates to a list of verts at that coordinates
-        let mut vertices: HashMap<(usize, usize, usize), Vec<VertexData>> = HashMap::new();
-
+        let mut vertices_cache = HashMap::new();
+        // FIXME calculate correctly how many indices we need
+        let mut colors = vec![
+            Vector4 {
+                x: 0,
+                y: 0,
+                z: 0,
+                w: 0
+            };
+            chunk.width() * chunk.height() * chunk.depth()
+        ];
         let x_limit = chunk.width() - 1;
         let y_limit = chunk.height() - 1;
         let z_limit = chunk.depth() - 1;
 
-        for x in 0..*chunk.width() {
-            for y in 0..*chunk.height() {
-                for z in 0..*chunk.depth() {
+        for x in 0..chunk.width() {
+            let fx = x as f32;
+            for y in 0..chunk.height() {
+                let fy = y as f32;
+                for z in 0..chunk.depth() {
+                    let fz = z as f32;
+
                     if chunk.is_air(x, y, z) {
                         continue;
                     }
@@ -59,25 +48,39 @@ impl Baker for VoxelBaker {
                         }
                     };
 
-                    let top_left_back = (x, y + 1, z);
-                    let top_right_back = (x + 1, y + 1, z);
-                    let top_right_front = (x + 1, y + 1, z + 1);
-                    let top_left_front = (x, y + 1, z + 1);
-                    let bottom_left_back = (x, y, z);
-                    let bottom_right_back = (x + 1, y, z);
-                    let bottom_right_front = (x + 1, y, z + 1);
-                    let bottom_left_front = (x, y, z + 1);
+                    let top_left_back =
+                        Self::index(&mut vertices_cache, [fx - 0.5, fy + 0.5, fz - 0.5].into());
+                    let top_right_back =
+                        Self::index(&mut vertices_cache, [fx + 0.5, fy + 0.5, fz - 0.5].into());
+                    let top_right_front =
+                        Self::index(&mut vertices_cache, [fx + 0.5, fy + 0.5, fz + 0.5].into());
+                    let top_left_front =
+                        Self::index(&mut vertices_cache, [fx - 0.5, fy + 0.5, fz + 0.5].into());
+                    let bottom_left_back =
+                        Self::index(&mut vertices_cache, [fx - 0.5, fy - 0.5, fz - 0.5].into());
+                    let bottom_right_back =
+                        Self::index(&mut vertices_cache, [fx + 0.5, fy - 0.5, fz - 0.5].into());
+                    let bottom_right_front =
+                        Self::index(&mut vertices_cache, [fx + 0.5, fy - 0.5, fz + 0.5].into());
+                    let bottom_left_front =
+                        Self::index(&mut vertices_cache, [fx - 0.5, fy - 0.5, fz + 0.5].into());
 
                     // Top
                     if y == y_limit || chunk.is_air(x, y + 1, z) {
+                        // indices.push(top_left_back);
+                        // indices.push(top_right_back);
+                        // indices.push(top_left_front);
+
+                        // indices.push(top_right_back);
+                        // indices.push(top_right_front);
+                        // indices.push(top_left_front);
                         create_face(
                             &mut indices,
-                            &mut vertices,
+                            &mut colors,
                             top_left_back,
                             top_right_back,
                             top_right_front,
                             top_left_front,
-                            Vector3 { x: 0, y: 1, z: 0 },
                             color,
                         );
                     }
@@ -86,12 +89,11 @@ impl Baker for VoxelBaker {
                     if y == 0 || (y > 0 && chunk.is_air(x, y - 1, z)) {
                         create_face(
                             &mut indices,
-                            &mut vertices,
+                            &mut colors,
                             bottom_right_back,
                             bottom_left_back,
                             bottom_left_front,
                             bottom_right_front,
-                            Vector3 { x: 0, y: -1, z: 0 },
                             color,
                         );
                     }
@@ -100,12 +102,11 @@ impl Baker for VoxelBaker {
                     if x == 0 || (x > 0 && chunk.is_air(x - 1, y, z)) {
                         create_face(
                             &mut indices,
-                            &mut vertices,
+                            &mut colors,
                             top_left_back,
                             top_left_front,
                             bottom_left_front,
                             bottom_left_back,
-                            Vector3 { x: -1, y: 0, z: 0 },
                             color,
                         );
                     }
@@ -114,12 +115,11 @@ impl Baker for VoxelBaker {
                     if x == x_limit || chunk.is_air(x + 1, y, z) {
                         create_face(
                             &mut indices,
-                            &mut vertices,
+                            &mut colors,
                             top_right_front,
                             top_right_back,
                             bottom_right_back,
                             bottom_right_front,
-                            Vector3 { x: 1, y: 0, z: 0 },
                             color,
                         );
                     }
@@ -128,12 +128,11 @@ impl Baker for VoxelBaker {
                     if z == z_limit || chunk.is_air(x, y, z + 1) {
                         create_face(
                             &mut indices,
-                            &mut vertices,
+                            &mut colors,
                             top_left_front,
                             top_right_front,
                             bottom_right_front,
                             bottom_left_front,
-                            Vector3 { x: 0, y: 0, z: 1 },
                             color,
                         );
                     }
@@ -142,12 +141,11 @@ impl Baker for VoxelBaker {
                     if z == 0 || chunk.is_air(x, y, z - 1) {
                         create_face(
                             &mut indices,
-                            &mut vertices,
+                            &mut colors,
                             top_right_back,
                             top_left_back,
                             bottom_left_back,
                             bottom_right_back,
-                            Vector3 { x: 0, y: 0, z: -1 },
                             color,
                         );
                     }
@@ -155,36 +153,18 @@ impl Baker for VoxelBaker {
             }
         }
 
-        let mut all_verts: Vec<&VertexData> = vertices.values().flatten().collect();
-        all_verts.sort_by_key(|k| k.index);
-        let vertices: Vec<Vector3<f32>> = all_verts
-            .iter()
-            .map(|v| Vector3 {
-                x: v.position.x as f32 - 0.5,
-                y: v.position.y as f32 - 0.5,
-                z: v.position.z as f32 - 0.5,
-            })
-            .collect();
-        let normals: Vec<Vector3<f32>> = all_verts
-            .iter()
-            .map(|v| {
-                let (x, y, z) = (v.normal.x, v.normal.y, v.normal.z);
-                let len = ((x.pow(2) + y.pow(2) + z.pow(2)) as f32).sqrt();
-                Vector3 {
-                    x: x as f32 / len,
-                    y: y as f32 / len,
-                    z: z as f32 / len,
-                }
-            })
-            .collect();
-        let colors: Vec<Vector4<u8>> = all_verts.iter().map(|v| v.color).collect();
+        let mut vertices: Vec<Vector3<f32>> = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
+        for (_, (vertex, index)) in vertices_cache {
+            vertices[index as usize] = vertex.clone();
+        }
 
         if indices.len() > 0 {
+            let end = vertices.len();
             Some(Mesh {
                 indices,
                 vertices,
-                normals,
-                colors,
+                normals: vec![],
+                colors: colors[0..end].iter().map(|e| *e).collect::<Vec<_>>(),
                 uv: vec![],
                 tangents: vec![],
             })
@@ -194,57 +174,17 @@ impl Baker for VoxelBaker {
     }
 }
 
-/// Either get the vertex at this position or insert one.
-/// Only returns an old vertex if the position normal and color are the same
-/// as the requested one
-fn get_or_insert<'a>(
-    cache: &'a mut HashMap<(usize, usize, usize), Vec<VertexData>>,
-    position: (usize, usize, usize),
-    color: Vector4<u8>,
-    normal: Vector3<i8>,
-) -> &'a VertexData {
-    // Get all verts at this position
-    let verts = &mut cache.entry(position).or_insert(vec![]);
-
-    // Check each vert at this position to see if its valid.
-    // This loop will only ever have 6 vertexes max
-    for i in 0..verts.len() {
-        let vert = &verts[i];
-        if vert.is_same_normal(normal) && vert.is_same_color(color) {
-            // If there is already a valid vertex then return it
-            return &cache.get(&position).unwrap()[i];
-        }
-    }
-    // If not we must make a new one
-    let next_index = cache.values().fold(0, |acc, v| acc + v.len());
-    let new_vert = VertexData {
-        position: Vector3 {
-            x: position.0,
-            y: position.1,
-            z: position.2,
-        },
-        normal,
-        color,
-        index: next_index as u16,
-    };
-    let verts = &mut cache.entry(position).or_insert(vec![]);
-    verts.push(new_vert);
-    return &cache.get(&position).unwrap().last().unwrap();
-}
-
-/// Create the face and insert the vertexes into the cache
 fn create_face(
     indices: &mut Vec<u16>,
-    cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
-    p1: (usize, usize, usize),
-    p2: (usize, usize, usize),
-    p3: (usize, usize, usize),
-    p4: (usize, usize, usize),
-    normal: Vector3<i8>,
+    colors: &mut Vec<Vector4<u8>>,
+    p1: u16,
+    p2: u16,
+    p3: u16,
+    p4: u16,
     color: Vector4<u8>,
 ) {
-    [p1, p4, p2, p2, p4, p3].iter().for_each(|p| {
-        let v = get_or_insert(cache, *p, color, normal);
-        indices.push(v.index);
+    [p1, p4, p2, p2, p4, p3].iter().for_each(|i| {
+        indices.push(*i);
+        colors.insert((*i) as usize, color)
     });
 }

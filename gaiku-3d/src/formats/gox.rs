@@ -1,4 +1,4 @@
-use gaiku_common::{Chunk, FileFormat};
+use gaiku_common::{Chunk, Chunkify, FileFormat};
 
 use gox::{Block, Data, Gox, Only};
 
@@ -36,9 +36,9 @@ impl FileFormat for GoxReader {
                                     16,
                                 );
 
-                                for x in 0..*chunk.width() {
-                                    for y in 0..*chunk.height() {
-                                        for z in 0..*chunk.depth() {
+                                for x in 0..chunk.width() {
+                                    for y in 0..chunk.height() {
+                                        for z in 0..chunk.depth() {
                                             if !colors.is_empty(x, y, z) {
                                                 chunk.set(x, y, z, 255);
                                                 chunk.set_color(

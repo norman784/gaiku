@@ -1,28 +1,57 @@
 use mint::{Vector3, Vector4};
 
-// TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
+pub trait Chunkify {
+    fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self;
+    fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
+    fn get(&self, x: usize, y: usize, z: usize) -> u8;
+    fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>>;
+    fn index(&self, x: usize, y: usize, z: usize) -> usize;
+    fn set(&mut self, x: usize, y: usize, z: usize, value: u8);
+    fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>);
+}
 
-#[derive(Debug, Clone, TypedBuilder, Getters, Setters)]
+#[derive(Debug, Clone)]
 pub struct Chunk {
-    #[get = "pub"]
-    #[set = "pub"]
     colors: Vec<Vector4<u8>>,
-    #[get = "pub"]
-    #[set = "pub"]
     position: Vector3<f32>,
-    #[get = "pub"]
     width: usize,
-    #[get = "pub"]
     height: usize,
-    #[get = "pub"]
     depth: usize,
-    #[get = "pub"]
-    #[set = "pub"]
     values: Vec<u8>,
 }
 
 impl Chunk {
-    pub fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
+    pub fn colors(&self) -> &Vec<Vector4<u8>> {
+        &self.colors
+    }
+
+    pub fn depth(&self) -> usize {
+        self.depth
+    }
+
+    pub fn position(&self) -> &Vector3<f32> {
+        &self.position
+    }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.depth
+    }
+
+    pub fn update_neighbor_data(&mut self, _neighbor: &Chunk) {
+        unimplemented!();
+    }
+
+    pub fn values(&self) -> &Vec<u8> {
+        &self.values
+    }
+}
+
+impl Chunkify for Chunk {
+    fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
         Chunk {
             colors: vec![[0, 0, 0, 0].into(); depth * height * width],
             position: position.into(),
@@ -33,18 +62,7 @@ impl Chunk {
         }
     }
 
-    // pub fn clone(&self) -> Self {
-    //     Chunk {
-    //         colors: vec![],
-    //         position: self.position.clone(),
-    //         width: self.width,
-    //         height: self.height,
-    //         depth: self.depth,
-    //         values: self.values.clone(),
-    //     }
-    // }
-
-    pub fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
+    fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
         if x >= self.width || y >= self.height || z >= self.depth {
             true
         } else {
@@ -52,11 +70,11 @@ impl Chunk {
         }
     }
 
-    pub fn get(&self, x: usize, y: usize, z: usize) -> u8 {
+    fn get(&self, x: usize, y: usize, z: usize) -> u8 {
         self.values[self.index(x, y, z)]
     }
 
-    pub fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>> {
+    fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>> {
         let index = self.index(x, y, z);
         if let Some(color) = self.colors.get(index) {
             Some(color.clone())
@@ -69,19 +87,14 @@ impl Chunk {
         get_index_from(x, y, z, self.width, self.height, self.depth)
     }
 
-    pub fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
+    fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
         let index = self.index(x, y, z);
         self.values[index] = value;
     }
 
-    pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
+    fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
         let index = self.index(x, y, z);
         self.colors[index] = color;
-    }
-
-    // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
-    pub fn update_neighbor_data(&self, _neighbor: &Chunk) {
-        unimplemented!();
     }
 }
 

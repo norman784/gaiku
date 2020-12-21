@@ -1,11 +1,3 @@
-// TODO: Add common implementations to read file content and pass to the binary parser implementation
-// TODO: Check how amethyst does this
-#[macro_use]
-extern crate typed_builder;
-#[macro_use]
-extern crate derive_new;
-#[macro_use]
-extern crate getset;
 pub use glam;
 pub use mint;
 use std::{collections::HashMap, fs::File};
@@ -16,7 +8,7 @@ mod data;
 mod tree;
 
 pub use crate::tree::{Boundary, Octree};
-pub use crate::{data::Chunk, data::Mesh};
+pub use crate::{data::Chunk, data::Chunkify, data::Mesh};
 
 pub trait Baker {
     fn bake(chunk: &Chunk) -> Option<Mesh>;
