@@ -49,13 +49,15 @@ impl FileFormat for PNGReader {
         };
 
         let mut colors = vec![[0; 4]; (info.width * info.height) as usize];
+        let now = std::time::Instant::now();
         for (i, color) in data.chunks(4).enumerate() {
           if color.len() == 3 {
-            colors[i] = [color[0] << 0, color[1] << 0, color[2] << 0, 255];
+            colors[i] = [color[0], color[1], color[2], 255];
           } else {
-            colors[i] = [color[0] << 0, color[1] << 0, color[2] << 0, color[3] << 0];
+            colors[i] = [color[0], color[1], color[2], color[3]];
           }
         }
+        println!("elapsed {}", now.elapsed().as_micros());
 
         let mut chunk = Chunk::new(
           [0.0, 0.0, 0.0],
