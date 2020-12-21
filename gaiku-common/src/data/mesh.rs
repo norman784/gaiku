@@ -15,6 +15,17 @@ pub struct Mesh {
     pub tangents: Vec<Vector4<f32>>,
 }
 
+pub enum Corner {
+    TopLeftFront,
+    TopLeftBack,
+    TopRightFront,
+    TopRightBack,
+    BottomLeftFront,
+    BottomLeftBack,
+    BottomRightFront,
+    BottomRightBack,
+}
+
 impl Mesh {
     /// This will generate a texture from the
     /// mesh vertex colors and update the UV map
@@ -89,5 +100,50 @@ impl Mesh {
         }
         // Return the texture
         return result;
+    }
+
+    pub fn get_corner(&self, corner: Corner) -> Vector3<f32> {
+        match corner {
+            Corner::TopLeftFront => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::min),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::max),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::max),
+            },
+            Corner::TopLeftBack => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::min),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::max),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::min),
+            },
+            Corner::TopRightFront => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::max),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::max),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::max),
+            },
+            Corner::TopRightBack => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::max),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::max),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::min),
+            },
+            Corner::BottomLeftFront => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::min),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::min),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::max),
+            },
+            Corner::BottomLeftBack => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::min),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::min),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::min),
+            },
+            Corner::BottomRightFront => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::max),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::min),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::max),
+            },
+            Corner::BottomRightBack => Vector3 {
+                x: self.vertices.iter().map(|i| i.x).fold(f32::NAN, f32::max),
+                y: self.vertices.iter().map(|i| i.y).fold(f32::NAN, f32::min),
+                z: self.vertices.iter().map(|i| i.z).fold(f32::NAN, f32::min),
+            },
+        }
     }
 }
