@@ -70,12 +70,16 @@ impl Chunk {
     }
 
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
-        let index = self.index(x, y, z);
-        self.values[index] = value;
+        if value != 0 {
+            self.set_with_color(x, y, z, value, [0, 0, 0, 1].into());
+        } else {
+            self.set_with_color(x, y, z, value, [0, 0, 0, 0].into());
+        }
     }
 
-    pub fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
+    pub fn set_with_color(&mut self, x: usize, y: usize, z: usize, value: u8, color: Vector4<u8>) {
         let index = self.index(x, y, z);
+        self.values[index] = value;
         self.colors[index] = color;
     }
 
