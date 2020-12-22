@@ -13,6 +13,7 @@ impl FileFormat for PNGReader {
 
     match decoder.read_info() {
       Ok((info, mut reader)) => {
+        /*
         println!(
           "PNG w: {} h: {} bit_depth: {:?} buffer_size: {} color_type: {:?}",
           info.width,
@@ -21,6 +22,7 @@ impl FileFormat for PNGReader {
           info.buffer_size(),
           info.color_type
         );
+        */
 
         let mut buf = vec![0; info.buffer_size()];
 
@@ -49,7 +51,7 @@ impl FileFormat for PNGReader {
         };
 
         let mut colors = vec![[0; 4]; (info.width * info.height) as usize];
-        let now = std::time::Instant::now();
+        //let now = std::time::Instant::now();
         for (i, color) in data.chunks(4).enumerate() {
           if color.len() == 3 {
             colors[i] = [color[0], color[1], color[2], 255];
@@ -57,7 +59,7 @@ impl FileFormat for PNGReader {
             colors[i] = [color[0], color[1], color[2], color[3]];
           }
         }
-        println!("elapsed {}", now.elapsed().as_micros());
+        //println!("elapsed {}", now.elapsed().as_micros());
 
         let mut chunk = Chunk::new(
           [0.0, 0.0, 0.0],
