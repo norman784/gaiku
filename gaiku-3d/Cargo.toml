@@ -22,3 +22,8 @@ png = "0.14.0"
 
 [dev-dependencies]
 obj-exporter = "0.2.0"
+criterion = "0.3"
+
+[[bench]]
+name = "main"
+harness = false
