@@ -27,12 +27,15 @@ impl Chunk {
   }
 
   pub fn get_with_color(&self, x: usize, y: usize, z: usize) -> (u8, Vector4<u8>) {
-    let index = self.index(x, y, z);
-    (self.values[index], self.colors[index])
+    if let Some(index) = self.index(x, y, z) {
+      (self.values[index], self.colors[index])
+    } else {
+      (0, [0, 0, 0, 0].into())
+    }
   }
 
-  fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    get_index_from(x, y, z, self.width, self.height)
+  fn index(&self, x: usize, y: usize, z: usize) -> Option<usize> {
+    get_index_from(x, y, z, self.width, self.height, self.depth)
   }
 
   pub fn position(&self) -> &Vector3<f32> {
@@ -48,10 +51,10 @@ impl Chunk {
   }
 
   pub fn set_with_color(&mut self, x: usize, y: usize, z: usize, value: u8, color: Vector4<u8>) {
-    let index = self.index(x, y, z);
-
-    self.values[index] = value;
-    self.colors[index] = color;
+    if let Some(index) = self.index(x, y, z) {
+      self.values[index] = value;
+      self.colors[index] = color;
+    }
   }
 
   pub fn update_neighbor_data(&mut self, _neighbor: &Chunk) {
@@ -76,15 +79,19 @@ impl Chunkify for Chunk {
   }
 
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
-    if x >= self.width || y >= self.height || z >= self.depth {
-      true
+    if let Some(index) = self.index(x, y, z) {
+      self.values[index] == 0
     } else {
-      self.values[self.index(x, y, z)] == 0
+      true
     }
   }
 
   fn get(&self, x: usize, y: usize, z: usize) -> u8 {
-    self.values[self.index(x, y, z)]
+    if let Some(index) = self.index(x, y, z) {
+      self.values[index]
+    } else {
+      0
+    }
   }
 
   fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
@@ -98,6 +105,17 @@ impl Chunkify for Chunk {
   }
 }
 
-pub fn get_index_from(x: usize, y: usize, z: usize, width: usize, height: usize) -> usize {
-  x + y * width + z * width * height
+pub fn get_index_from(
+  x: usize,
+  y: usize,
+  z: usize,
+  width: usize,
+  height: usize,
+  deepth: usize,
+) -> Option<usize> {
+  if x < width && y < height && z < deepth {
+    Some(x + y * width + z * width * height)
+  } else {
+    None
+  }
 }

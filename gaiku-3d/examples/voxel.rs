@@ -1,56 +1,61 @@
 use std::time::Instant;
 
 use gaiku_3d::{
-  bakers::VoxelBaker,
-  common::{Baker, FileFormat},
+  bakers::voxel::{GreedyMeshingBaker, LinearBaker, PyramidBaker},
+  common::{Baker, Chunk, Chunkify},
   formats::GoxReader,
 };
 
 mod common;
 
-use crate::common::export;
+use common::{bake, read};
 
-fn read(name: &str) -> std::io::Result<()> {
-  let now = Instant::now();
-  let file = format!(
-    "{}/examples/assets/{}.gox",
-    env!("CARGO_MANIFEST_DIR"),
-    name
-  );
-  let chunks = GoxReader::read(&file);
-  let mut meshes = vec![];
+fn run<T>(algorithm: &str, suffix: &str)
+where
+  T: Baker,
+{
+  println!("\n{}", algorithm);
+  println!("---------------------------");
+  /*
+  read::<GoxReader, T>("small_tree.gox", suffix);
+  read::<GoxReader, T>("terrain.gox", suffix);
+  read::<GoxReader, T>("planet.gox", suffix);
+    */
+  // Cube
+  let mut chunk = Chunk::new([0.0, 0.0, 0.0], 16, 16, 16);
 
-  let reader_elapsed = now.elapsed().as_secs();
-  let now = Instant::now();
-
-  for chunk in chunks.iter() {
-    let mesh = VoxelBaker::bake(chunk);
-    if let Some(mesh) = mesh {
-      meshes.push((mesh, chunk.position()));
+  for x in 0..chunk.width() {
+    for y in 0..chunk.width() {
+      for z in 0..chunk.width() {
+        chunk.set(x, y, z, 255);
+      }
     }
   }
 
-  let baker_elapsed = now.elapsed().as_secs();
-  let now = Instant::now();
+  bake::<T>("cube", vec![chunk], Instant::now(), suffix);
 
-  export(meshes, &format!("{}_vx", name));
+  // Custom chunk
+  let mut chunk = Chunk::new([0.0, 0.0, 0.0], 16, 16, 16);
 
-  println!(
-    "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
-    name,
-    chunks.len(),
-    reader_elapsed,
-    baker_elapsed,
-    now.elapsed().as_secs()
-  );
+  for x in 0..chunk.width() {
+    for y in 0..chunk.width() {
+      for z in 0..chunk.width() {
+        chunk.set(x, y, z, 255);
+      }
+    }
+  }
 
-  Ok(())
+  chunk.set(2, 0, 0, 0);
+  chunk.set(0, 1, 0, 0);
+  chunk.set(3, 1, 0, 0);
+  chunk.set(4, 1, 0, 0);
+  chunk.set(1, 3, 0, 0);
+
+  bake::<T>("custom chunk", vec![chunk], Instant::now(), suffix);
 }
 
-fn main() -> std::io::Result<()> {
-  let _ = read("small_tree");
-  let _ = read("terrain");
-  let _ = read("planet");
-
-  Ok(())
+fn main() {
+  //run::<LinearBaker>("Linear", "vx_l");
+  run::<GreedyMeshingBaker>("Greedy meshing", "vx_gm");
+  //run::<PyramidBaker>("Pyramid", "vx_p");
 }
