@@ -71,7 +71,12 @@ impl Chunk {
 
     pub fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
         if value != 0 {
-            self.set_with_color(x, y, z, value, [0, 0, 0, 1].into());
+          let color: Vector4<u8> = if self.get_color(x, y, z).unwrap_or([0, 0, 0, 0].into())[3] == 0 {
+                   [1, 1, 1, 1].into()
+          } else {
+                   self.get_color(x, y, z).unwrap()
+          }
+          self.set_with_color(x, y, z, value,  color);
         } else {
             self.set_with_color(x, y, z, value, [0, 0, 0, 0].into());
         }
