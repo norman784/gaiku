@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use gaiku_common::{
   mint::{Vector3, Vector4},
-  Baker, Chunk, Mesh,
+  Baker, Chunk, Chunkify, Mesh,
 };
 
 pub struct VoxelBaker;
@@ -48,16 +48,7 @@ impl Baker for VoxelBaker {
             continue;
           }
 
-          let color = if let Some(color) = chunk.get_color(x, y, z) {
-            color
-          } else {
-            Vector4 {
-              x: 1,
-              y: 1,
-              z: 1,
-              w: 1,
-            }
-          };
+          let (_, color) = chunk.get_with_color(x, y, z);
 
           let top_left_back = (x, y + 1, z);
           let top_right_back = (x + 1, y + 1, z);

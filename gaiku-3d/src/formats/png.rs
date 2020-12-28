@@ -1,4 +1,4 @@
-use gaiku_common::{Chunk, FileFormat};
+use gaiku_common::{Chunk, Chunkify, FileFormat};
 
 use png::{ColorType, Decoder};
 

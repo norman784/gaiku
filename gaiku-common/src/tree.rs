@@ -1,4 +1,4 @@
-use crate::data::Chunk;
+use crate::data::{Chunk, Chunkify};
 use mint::Vector3;
 
 pub type Octree = Tree;

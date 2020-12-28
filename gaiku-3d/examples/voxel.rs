@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use gaiku_3d::{
   bakers::VoxelBaker,
-  common::{Baker, FileFormat},
+  common::{Baker, Chunkify, FileFormat},
   formats::GoxReader,
 };
 
