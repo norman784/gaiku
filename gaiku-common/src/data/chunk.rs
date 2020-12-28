@@ -2,22 +2,13 @@ use mint::{Vector3, Vector4};
 
 // TODO: Get inspiration on multiarray crate (https://github.com/sellibitze/multiarray) to make chunk 2d and 3d friendly
 
-#[derive(Debug, Clone, TypedBuilder, Getters, Setters)]
+#[derive(Debug, Clone)]
 pub struct Chunk {
-  #[get = "pub"]
-  #[set = "pub"]
   colors: Vec<Vector4<u8>>,
-  #[get = "pub"]
-  #[set = "pub"]
   position: Vector3<f32>,
-  #[get = "pub"]
   width: usize,
-  #[get = "pub"]
   height: usize,
-  #[get = "pub"]
   depth: usize,
-  #[get = "pub"]
-  #[set = "pub"]
   values: Vec<u8>,
 }
 
@@ -33,16 +24,9 @@ impl Chunk {
     }
   }
 
-  // pub fn clone(&self) -> Self {
-  //     Chunk {
-  //         colors: vec![],
-  //         position: self.position.clone(),
-  //         width: self.width,
-  //         height: self.height,
-  //         depth: self.depth,
-  //         values: self.values.clone(),
-  //     }
-  // }
+  pub fn depth(&self) -> usize {
+    self.depth
+  }
 
   pub fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
     if x >= self.width || y >= self.height || z >= self.depth {
@@ -69,6 +53,14 @@ impl Chunk {
     get_index_from(x, y, z, self.width, self.height, self.depth)
   }
 
+  pub fn height(&self) -> usize {
+    self.height
+  }
+
+  pub fn position(&self) -> Vector3<f32> {
+    self.position
+  }
+
   pub fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
     let index = self.index(x, y, z);
     self.values[index] = value;
@@ -82,6 +74,10 @@ impl Chunk {
   // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
   pub fn update_neighbor_data(&self, _neighbor: &Chunk) {
     unimplemented!();
+  }
+
+  pub fn width(&self) -> usize {
+    self.width
   }
 }
 

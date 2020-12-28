@@ -3,7 +3,7 @@ use mint::Vector3;
 
 pub type Octree = Tree;
 
-#[derive(Clone, Debug, new)]
+#[derive(Clone, Debug)]
 pub struct Boundary {
   center: Vector3<f32>,
   size: Vector3<f32>,
@@ -155,7 +155,7 @@ impl Node {
       None => match &self.leafs {
         Some(leafs) => {
           for leaf in leafs {
-            if leaf.position() == point {
+            if &leaf.position() == point {
               return Some(leaf.clone());
             }
           }
@@ -206,7 +206,10 @@ pub struct Tree {
 
 impl Tree {
   pub fn new(size: Vector3<f32>, bucket: usize) -> Self {
-    let boundary = Boundary::new([0.0, 0.0, 0.0].into(), size);
+    let boundary = Boundary {
+      center: [0.0, 0.0, 0.0].into(),
+      size,
+    };
 
     Tree {
       nodes: subdivide(&boundary, bucket),
@@ -254,10 +257,10 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
-  let node_size: Vector3<f32> = [w, h, d].into();
-  let hw = node_size.x / 2.0;
-  let hh = node_size.y / 2.0;
-  let hd = node_size.z / 2.0;
+  let size: Vector3<f32> = [w, h, d].into();
+  let hw = size.x / 2.0;
+  let hh = size.y / 2.0;
+  let hd = size.z / 2.0;
 
   let x = w - boundary.center.x;
   let y = h - boundary.center.y;
@@ -277,7 +280,13 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   let mut result = vec![];
 
   for coord in coords.iter() {
-    result.push(Node::new(Boundary::new(node_size, coord.clone()), bucket));
+    result.push(Node::new(
+      Boundary {
+        center: coord.clone(),
+        size,
+      },
+      bucket,
+    ));
   }
 
   result

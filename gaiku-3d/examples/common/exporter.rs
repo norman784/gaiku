@@ -43,7 +43,7 @@ pub fn to_obj(mesh: &Mesh, position: &Vector3<f32>, name: &str) -> Object {
   }
 }
 
-pub fn export(data: Vec<(Mesh, &Vector3<f32>)>, name: &str) {
+pub fn export(data: Vec<(Mesh, Vector3<f32>)>, name: &str) {
   let mut objects = vec![];
 
   for (index, (mesh, position)) in data.iter().enumerate() {
