@@ -1,5 +1,5 @@
-use mint::Vector3;
 use crate::data::Chunk;
+use mint::Vector3;
 
 pub type Octree = Tree;
 
@@ -11,23 +11,21 @@ pub struct Boundary {
 
 impl Boundary {
   fn contains(&self, point: &Vector3<f32>) -> bool {
-    self.start_x() > point.x &&
-        self.start_y() > point.y &&
-        self.start_z() > point.z &&
-        self.end_x() < point.x &&
-        self.end_y() < point.y &&
-        self.end_z() < point.z
+    self.start_x() > point.x
+      && self.start_y() > point.y
+      && self.start_z() > point.z
+      && self.end_x() < point.x
+      && self.end_y() < point.y
+      && self.end_z() < point.z
   }
 
   fn intersects(&self, range: &Boundary) -> bool {
-    !(
-      range.start_x() > self.start_x() ||
-          range.start_y() > self.start_y() ||
-          range.start_z() > self.start_z() ||
-          range.end_x() < self.end_x() ||
-          range.end_y() < self.end_y() ||
-          range.end_z() < self.end_z()
-    )
+    !(range.start_x() > self.start_x()
+      || range.start_y() > self.start_y()
+      || range.start_z() > self.start_z()
+      || range.end_x() < self.end_x()
+      || range.end_y() < self.end_y()
+      || range.end_z() < self.end_z())
   }
 
   fn start_x(&self) -> f32 {
@@ -75,7 +73,7 @@ impl Node {
 
   fn insert(&mut self, leaf: &Chunk) -> bool {
     if !self.boundary.contains(&leaf.position()) {
-      return false
+      return false;
     }
 
     match &mut self.nodes {
@@ -86,31 +84,29 @@ impl Node {
           }
         }
       }
-      None => {
-        match &mut self.leafs {
-          Some(leafs) => {
-            if leafs.len() >= self.bucket {
-              let mut nodes = subdivide(&self.boundary, self.bucket);
+      None => match &mut self.leafs {
+        Some(leafs) => {
+          if leafs.len() >= self.bucket {
+            let mut nodes = subdivide(&self.boundary, self.bucket);
 
-              for node in nodes.iter_mut() {
-                if node.insert(leaf) {
-                  update_neighbors(&node, leaf);
-                  break;
-                }
+            for node in nodes.iter_mut() {
+              if node.insert(leaf) {
+                update_neighbors(&node, leaf);
+                break;
               }
-
-              self.nodes = Some(nodes);
-              self.leafs = None;
-            } else {
-              leafs.push(leaf.clone());
-              update_neighbors(&self, leaf);
             }
-          }
-          None => {
-            self.leafs = Some(vec![leaf.clone()]);
+
+            self.nodes = Some(nodes);
+            self.leafs = None;
+          } else {
+            leafs.push(leaf.clone());
+            update_neighbors(&self, leaf);
           }
         }
-      }
+        None => {
+          self.leafs = Some(vec![leaf.clone()]);
+        }
+      },
     }
 
     true
@@ -128,18 +124,16 @@ impl Node {
           result.append(node.query(range).as_mut());
         }
       }
-      None => {
-        match &self.leafs {
-          Some(leafs) => {
-            for leaf in leafs {
-              if range.contains(&leaf.position()) {
-                result.push(leaf.clone())
-              }
+      None => match &self.leafs {
+        Some(leafs) => {
+          for leaf in leafs {
+            if range.contains(&leaf.position()) {
+              result.push(leaf.clone())
             }
           }
-          _ => {}
         }
-      }
+        _ => {}
+      },
     }
 
     result
@@ -158,18 +152,16 @@ impl Node {
           }
         }
       }
-      None => {
-        match &self.leafs {
-          Some(leafs) => {
-            for leaf in leafs {
-              if leaf.position() == point {
-                return Some(leaf.clone())
-              }
+      None => match &self.leafs {
+        Some(leafs) => {
+          for leaf in leafs {
+            if leaf.position() == point {
+              return Some(leaf.clone());
             }
           }
-          _ => {}
         }
-      }
+        _ => {}
+      },
     }
 
     None
@@ -188,20 +180,18 @@ impl Node {
           }
         }
       }
-      None => {
-        match &mut self.leafs {
-          Some(leafs) => {
-            for (i, old) in leafs.iter().enumerate() {
-              if old.position() == leaf.position() {
-                leafs.insert(i, leaf.clone());
-                update_neighbors(&self, leaf);
-                return true;
-              }
+      None => match &mut self.leafs {
+        Some(leafs) => {
+          for (i, old) in leafs.iter().enumerate() {
+            if old.position() == leaf.position() {
+              leafs.insert(i, leaf.clone());
+              update_neighbors(&self, leaf);
+              return true;
             }
           }
-          _ => {}
         }
-      }
+        _ => {}
+      },
     }
 
     self.insert(leaf)
@@ -211,15 +201,15 @@ impl Node {
 // TODO: In a near future I want to use the same class to manage Quadtree and Octree
 #[derive(Clone, Debug)]
 pub struct Tree {
-    nodes: Vec<Node>,
+  nodes: Vec<Node>,
 }
 
 impl Tree {
   pub fn new(size: Vector3<f32>, bucket: usize) -> Self {
     let boundary = Boundary::new([0.0, 0.0, 0.0].into(), size);
-    
-    Tree { 
-      nodes: subdivide(&boundary, bucket)
+
+    Tree {
+      nodes: subdivide(&boundary, bucket),
     }
   }
 
@@ -307,7 +297,7 @@ fn update_neighbors(node: &Node, leaf: &Chunk) {
     [x, y, z + 1.0].into(),
   ];
 
-  for coord in  coords.iter() {
+  for coord in coords.iter() {
     if let Some(chunk) = node.get_leaf(coord) {
       chunk.update_neighbor_data(&leaf);
     }
