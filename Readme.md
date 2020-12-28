@@ -1,6 +1,6 @@
 # Gaiku (WIP very early development stage)
 
-[2d](gaiku-2d) and [3d](gaiku-3d) agnostic framework (game engine) terrain engine. The purpose of the Gaiku is to provide a 
+[3d](gaiku-3d) agnostic framework (game engine) terrain engine. The purpose of the Gaiku is to provide a 
 foundation to build your games easily without worrying about implementing your own terrain engine.
 
 The main crate is developed game engine agnostic, so we can help to reach more developers.
@@ -23,9 +23,7 @@ General features:
 - Chunk based for infinite generated terrains
 - Mesh optimization
 - LOD support
-- For procedural terrain generation check the 2d and 3d `Bakers` documentations.
-
-For specific features check [2d](gaiku-2d/Readme.md) and [3d](gaiku-3d/Readme.md)
+- For procedural terrain generation check the 3d `Baker` documentation.
 
 ## Examples
 
