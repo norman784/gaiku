@@ -1,31 +1,25 @@
-pub use glam;
 pub use mint;
-use std::{collections::HashMap, fs::File};
+use std::fs::File;
 
 use mint::Vector3;
 
 mod data;
 mod tree;
 
-pub use crate::tree::{Boundary, Octree};
-pub use crate::{data::Chunk, data::Chunkify, data::Mesh};
+pub use crate::{
+  data::{Chunk, Chunkify, Mesh, Texture2d, TextureAtlas2d},
+  tree::{Boundary, Octree},
+};
 
 pub trait Baker {
-  fn bake(chunk: &Chunk) -> Option<Mesh>;
-
-  // TODO: Creating a string key from the coordinates is not the best solution, enhance this
-  fn index(vertices: &mut HashMap<String, (Vector3<f32>, u16)>, vertex: Vector3<f32>) -> u16 {
-    let index = vertices.len();
-    let key = format!("{:?}", vertex);
-    vertices.entry(key).or_insert((vertex, index as u16)).1
-  }
+  fn bake(chunk: &Chunk, texture: &Texture2d) -> Option<Mesh>;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
-  fn load(stream: &mut File) -> Vec<Chunk>;
+  fn load(stream: &mut File) -> (Vec<Chunk>, Texture2d);
 
-  fn read(file: &str) -> Vec<Chunk> {
+  fn read(file: &str) -> (Vec<Chunk>, Texture2d) {
     let mut stream = File::open(file).unwrap();
     Self::load(&mut stream)
   }

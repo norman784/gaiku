@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use gaiku_common::{glam::Vec3, mint::Vector3, Baker, Chunk, Chunkify, Mesh};
+use gaiku_common::{mint::Vector3, Baker, Chunk, Chunkify, Mesh};
+use glam::Vec3;
 
 mod tables;
 

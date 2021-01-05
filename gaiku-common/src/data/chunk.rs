@@ -1,4 +1,4 @@
-use mint::{Vector3, Vector4};
+use mint::Vector3;
 
 pub trait Chunkify {
   fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self;
@@ -13,7 +13,6 @@ pub trait Chunkify {
 
 #[derive(Debug, Clone)]
 pub struct Chunk {
-  colors: Vec<Vector4<u8>>,
   position: Vector3<f32>,
   width: usize,
   height: usize,
@@ -22,24 +21,8 @@ pub struct Chunk {
 }
 
 impl Chunk {
-  pub fn get_with_color(&self, x: usize, y: usize, z: usize) -> (u8, Vector4<u8>) {
-    let color = if let Some(color) = self.colors.get(self.index(x, y, z)) {
-      color
-    } else {
-      &Vector4 { x: 0, y: 0, z: 0, w: 0 }
-    };
-
-    (self.get(x, y, z), color.clone())
-  }
-
   fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    get_index_from(x, y, z, self.width, self.height, self.depth)
-  }
-
-  pub fn set_with_color(&mut self, x: usize, y: usize, z: usize, value: u8, color: Vector4<u8>) {
-    let index = self.index(x, y, z);
-    self.colors[index] = color;
-    self.values[index] = value;
+    x + y * self.width + z * self.width * self.width
   }
 
   // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
@@ -51,7 +34,6 @@ impl Chunk {
 impl Chunkify for Chunk {
   fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
     Chunk {
-      colors: vec![[0, 0, 0, 0].into(); depth * height * width],
       position: position.into(),
       width,
       height,
@@ -84,31 +66,11 @@ impl Chunkify for Chunk {
   }
 
   fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
-    let (_, mut color) = self.get_with_color(x, y, z);
-
-    if color.x == 0 && color.y == 0 && color.z == 0 && color.w == 0 {
-      color = if value > 0 {
-        [255, 255, 255, 255]
-      } else {
-        [0, 0, 0, 0]
-      }.into();
-    }
-
-    self.set_with_color(x, y, z, value, color);
+    let index = self.index(x, y, z);
+    self.values[index] = value;
   }
 
   fn width(&self) -> usize {
     self.width
   }
-}
-
-pub fn get_index_from(
-  x: usize,
-  y: usize,
-  z: usize,
-  width: usize,
-  height: usize,
-  _depth: usize,
-) -> usize {
-  x + y * width + z * width * height
 }
