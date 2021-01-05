@@ -3,5 +3,5 @@
 members = [
   "gaiku-3d",
   "gaiku-common",
-  "gaiku-amethyst",
+  #"gaiku-amethyst",
 ]
