@@ -1,5 +1,7 @@
 # Gaiku (WIP very early development stage)
 
+![Rust](https://github.com/norman784/gaiku/workflows/Rust/badge.svg)
+
 [2d](gaiku-2d) and [3d](gaiku-3d) agnostic framework (game engine) terrain engine. The purpose of the Gaiku is to provide a 
 foundation to build your games easily without worrying about implementing your own terrain engine.
 
