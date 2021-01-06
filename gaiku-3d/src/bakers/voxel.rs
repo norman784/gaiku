@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use gaiku_common::{
-  mint::{Vector3, Vector4},
-  Baker, Chunk, Chunkify, Mesh, Texture2d,
+  mint::{Vector2, Vector3},
+  Baker, Chunk, Chunkify, Mesh, TextureAtlas2d, Result,
 };
 
 pub struct VoxelBaker;
@@ -11,7 +11,7 @@ pub struct VoxelBaker;
 struct VertexData {
   position: Vector3<usize>,
   normal: Vector3<i8>,
-  color: Vector4<u8>,
+  uv: u8,
   index: u16,
 }
 
@@ -20,19 +20,11 @@ impl VertexData {
   pub fn is_same_normal(&self, norm: Vector3<i8>) -> bool {
     norm.x == self.normal.x && norm.y == self.normal.y && norm.z == self.normal.z
   }
-
-  /// Check if we need to split the vertex because the colors differ
-  pub fn is_same_color(&self, color: Vector4<u8>) -> bool {
-    color.x == self.color.x
-      && color.y == self.color.y
-      && color.z == self.color.z
-      && color.w == self.color.w
-  }
 }
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
-  fn bake(chunk: &Chunk, texture: &Texture2d) -> Option<Mesh> {
+  fn bake(chunk: &Chunk, atlas: Option<&TextureAtlas2d>) -> Result<Option<Mesh>> {
     let mut indices = vec![];
     // Hash map in x, y, z coordinates to a list of verts at that coordinates
     let mut vertices: HashMap<(usize, usize, usize), Vec<VertexData>> = HashMap::new();
@@ -48,14 +40,7 @@ impl Baker for VoxelBaker {
             continue;
           }
 
-          let texture_index = chunk.get(x, y, z);
-          let color = texture
-            .get_with_index(texture_index as usize)
-            .expect(&format!(
-              "Expect to have color for coords [{}, {}, {}]",
-              x, y, z
-            ))
-            .into();
+          let atlas_index = chunk.get(x, y, z);
 
           let top_left_back = (x, y + 1, z);
           let top_right_back = (x + 1, y + 1, z);
@@ -76,7 +61,7 @@ impl Baker for VoxelBaker {
               top_right_front,
               top_left_front,
               Vector3 { x: 0, y: 1, z: 0 },
-              color,
+              atlas_index,
             );
           }
 
@@ -90,7 +75,7 @@ impl Baker for VoxelBaker {
               bottom_left_front,
               bottom_right_front,
               Vector3 { x: 0, y: -1, z: 0 },
-              color,
+              atlas_index,
             );
           }
 
@@ -104,7 +89,7 @@ impl Baker for VoxelBaker {
               bottom_left_front,
               bottom_left_back,
               Vector3 { x: -1, y: 0, z: 0 },
-              color,
+              atlas_index,
             );
           }
 
@@ -118,7 +103,7 @@ impl Baker for VoxelBaker {
               bottom_right_back,
               bottom_right_front,
               Vector3 { x: 1, y: 0, z: 0 },
-              color,
+              atlas_index,
             );
           }
 
@@ -132,7 +117,7 @@ impl Baker for VoxelBaker {
               bottom_right_front,
               bottom_left_front,
               Vector3 { x: 0, y: 0, z: 1 },
-              color,
+              atlas_index,
             );
           }
 
@@ -146,7 +131,7 @@ impl Baker for VoxelBaker {
               bottom_left_back,
               bottom_right_back,
               Vector3 { x: 0, y: 0, z: -1 },
-              color,
+              atlas_index,
             );
           }
         }
@@ -163,6 +148,7 @@ impl Baker for VoxelBaker {
         z: v.position.z as f32 - 0.5,
       })
       .collect();
+
     let normals: Vec<Vector3<f32>> = all_verts
       .iter()
       .map(|v| {
@@ -175,19 +161,25 @@ impl Baker for VoxelBaker {
         }
       })
       .collect();
-    let colors: Vec<Vector4<u8>> = all_verts.iter().map(|v| v.color).collect();
+
+    let uv: Vec<(Vector2<f32>, Vector2<f32>)> = all_verts
+      .iter()
+      .map(|v| match atlas {
+        Some(atlas) => atlas.get_uv(v.uv),
+        _ => ([0.0, 0.0].into(), [0.0, 0.0].into()),
+      })
+      .collect();
 
     if indices.len() > 0 {
-      Some(Mesh {
+      Ok(Some(Mesh {
         indices,
         vertices,
         normals,
-        colors,
-        uv: vec![],
+        uv,
         tangents: vec![],
-      })
+      }))
     } else {
-      None
+      Ok(None)
     }
   }
 }
@@ -198,21 +190,22 @@ impl Baker for VoxelBaker {
 fn get_or_insert<'a>(
   cache: &'a mut HashMap<(usize, usize, usize), Vec<VertexData>>,
   position: (usize, usize, usize),
-  color: Vector4<u8>,
+  uv: u8,
   normal: Vector3<i8>,
-) -> &'a VertexData {
-  // Get all verts at this position
+) -> Result<u16> {
+  // Get all verts at this position if exists
   let verts = &mut cache.entry(position).or_insert(vec![]);
 
   // Check each vert at this position to see if its valid.
   // This loop will only ever have 6 vertexes max
   for i in 0..verts.len() {
     let vert = &verts[i];
-    if vert.is_same_normal(normal) && vert.is_same_color(color) {
+    if vert.is_same_normal(normal) && vert.uv == uv {
       // If there is already a valid vertex then return it
-      return &cache.get(&position).unwrap()[i];
+      return Ok(vert.index);
     }
   }
+  
   // If not we must make a new one
   let next_index = cache.values().fold(0, |acc, v| acc + v.len());
   let new_vert = VertexData {
@@ -222,12 +215,14 @@ fn get_or_insert<'a>(
       z: position.2,
     },
     normal,
-    color,
+    uv,
     index: next_index as u16,
   };
+
   let verts = &mut cache.entry(position).or_insert(vec![]);
   verts.push(new_vert);
-  return &cache.get(&position).unwrap().last().unwrap();
+
+  Ok(next_index as u16)
 }
 
 /// Create the face and insert the vertexes into the cache
@@ -239,10 +234,10 @@ fn create_face(
   p3: (usize, usize, usize),
   p4: (usize, usize, usize),
   normal: Vector3<i8>,
-  color: Vector4<u8>,
+  uv: u8,
 ) {
   [p1, p4, p2, p2, p4, p3].iter().for_each(|p| {
-    let v = get_or_insert(cache, *p, color, normal);
-    indices.push(v.index);
+    let index = get_or_insert(cache, *p, uv, normal).expect(&format!("Expect VertexData index. position: {:?}, uv: {:?}, normal: {:?}", p, uv, normal));
+    indices.push(index);
   });
 }

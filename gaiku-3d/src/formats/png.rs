@@ -1,4 +1,4 @@
-use gaiku_common::{Chunk, Chunkify, FileFormat};
+use gaiku_common::{Chunk, Chunkify, FileFormat, TextureAtlas2d, Result};
 
 use png::{ColorType, Decoder};
 
@@ -7,7 +7,7 @@ use std::fs::File;
 pub struct PNGReader;
 
 impl FileFormat for PNGReader {
-  fn load(stream: &mut File) -> Vec<Chunk> {
+  fn load(stream: &mut File) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
     let mut result = vec![];
     let decoder = Decoder::new(stream);
 
@@ -24,7 +24,7 @@ impl FileFormat for PNGReader {
 
         let mut buf = vec![0; info.buffer_size()];
 
-        reader.next_frame(&mut buf).unwrap();
+        reader.next_frame(&mut buf)?;
 
         let data = match info.color_type {
           ColorType::RGB => buf,
@@ -80,6 +80,6 @@ impl FileFormat for PNGReader {
       Err(error) => println!("PNG error: {}", error),
     }
 
-    result
+    Ok((result, None))
   }
 }

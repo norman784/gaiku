@@ -180,7 +180,7 @@ impl Baker for MarchingCubesBaker {
 
           for vertex in triangles {
             for i in 0..3 {
-              indices.push(Self::index(&mut vertices_cache, vertex[i]));
+              //indices.push(Self::index(&mut vertices_cache, vertex[i]));
             }
           }
         }
@@ -197,7 +197,6 @@ impl Baker for MarchingCubesBaker {
         indices,
         vertices,
         normals: vec![],
-        colors: vec![],
         uv: vec![],
         tangents: vec![],
       })

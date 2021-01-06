@@ -1,6 +1,7 @@
 pub use mint;
 use std::fs::File;
 
+pub use anyhow::Result;
 use mint::Vector3;
 
 mod data;
@@ -12,15 +13,15 @@ pub use crate::{
 };
 
 pub trait Baker {
-  fn bake(chunk: &Chunk, texture: &Texture2d) -> Option<Mesh>;
+  fn bake(chunk: &Chunk, texture: Option<&TextureAtlas2d>) -> Result<Option<Mesh>>;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
-  fn load(stream: &mut File) -> (Vec<Chunk>, Texture2d);
+  fn load(stream: &mut File) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)>;
 
-  fn read(file: &str) -> (Vec<Chunk>, Texture2d) {
-    let mut stream = File::open(file).unwrap();
+  fn read(file: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
+    let mut stream = File::open(file)?;
     Self::load(&mut stream)
   }
 }
