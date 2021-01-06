@@ -26,7 +26,12 @@ impl Chunk {
     let color = if let Some(color) = self.colors.get(self.index(x, y, z)) {
       color
     } else {
-      &Vector4 { x: 0, y: 0, z: 0, w: 0 }
+      &Vector4 {
+        x: 0,
+        y: 0,
+        z: 0,
+        w: 0,
+      }
     };
 
     (self.get(x, y, z), color.clone())
@@ -91,7 +96,8 @@ impl Chunkify for Chunk {
         [255, 255, 255, 255]
       } else {
         [0, 0, 0, 0]
-      }.into();
+      }
+      .into();
     }
 
     self.set_with_color(x, y, z, value, color);
