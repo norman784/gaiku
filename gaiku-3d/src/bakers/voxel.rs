@@ -56,10 +56,12 @@ impl Baker for VoxelBaker {
             create_face(
               &mut indices,
               &mut vertices,
-              top_left_back,
-              top_right_back,
-              top_right_front,
-              top_left_front,
+              [
+                top_left_back,
+                top_right_back,
+                top_right_front,
+                top_left_front,
+              ],
               Vector3 { x: 0, y: 1, z: 0 },
               atlas_index,
             );
@@ -70,10 +72,12 @@ impl Baker for VoxelBaker {
             create_face(
               &mut indices,
               &mut vertices,
-              bottom_right_back,
-              bottom_left_back,
-              bottom_left_front,
-              bottom_right_front,
+              [
+                bottom_right_back,
+                bottom_left_back,
+                bottom_left_front,
+                bottom_right_front,
+              ],
               Vector3 { x: 0, y: -1, z: 0 },
               atlas_index,
             );
@@ -84,10 +88,12 @@ impl Baker for VoxelBaker {
             create_face(
               &mut indices,
               &mut vertices,
-              top_left_back,
-              top_left_front,
-              bottom_left_front,
-              bottom_left_back,
+              [
+                top_left_back,
+                top_left_front,
+                bottom_left_front,
+                bottom_left_back,
+              ],
               Vector3 { x: -1, y: 0, z: 0 },
               atlas_index,
             );
@@ -98,10 +104,12 @@ impl Baker for VoxelBaker {
             create_face(
               &mut indices,
               &mut vertices,
-              top_right_front,
-              top_right_back,
-              bottom_right_back,
-              bottom_right_front,
+              [
+                top_right_front,
+                top_right_back,
+                bottom_right_back,
+                bottom_right_front,
+              ],
               Vector3 { x: 1, y: 0, z: 0 },
               atlas_index,
             );
@@ -112,10 +120,12 @@ impl Baker for VoxelBaker {
             create_face(
               &mut indices,
               &mut vertices,
-              top_left_front,
-              top_right_front,
-              bottom_right_front,
-              bottom_left_front,
+              [
+                top_left_front,
+                top_right_front,
+                bottom_right_front,
+                bottom_left_front,
+              ],
               Vector3 { x: 0, y: 0, z: 1 },
               atlas_index,
             );
@@ -126,10 +136,12 @@ impl Baker for VoxelBaker {
             create_face(
               &mut indices,
               &mut vertices,
-              top_right_back,
-              top_left_back,
-              bottom_left_back,
-              bottom_right_back,
+              [
+                top_right_back,
+                top_left_back,
+                bottom_left_back,
+                bottom_right_back,
+              ],
               Vector3 { x: 0, y: 0, z: -1 },
               atlas_index,
             );
@@ -187,12 +199,12 @@ impl Baker for VoxelBaker {
 /// Either get the vertex at this position or insert one.
 /// Only returns an old vertex if the position normal and color are the same
 /// as the requested one
-fn get_or_insert<'a>(
-  cache: &'a mut HashMap<(usize, usize, usize), Vec<VertexData>>,
+fn get_or_insert(
+  cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
   position: (usize, usize, usize),
   uv: u8,
   normal: Vector3<i8>,
-) -> Result<u16> {
+) -> u16 {
   // Get all verts at this position
   let verts = &mut cache.entry(position).or_insert_with(Vec::new);
 
@@ -202,12 +214,12 @@ fn get_or_insert<'a>(
     let vert = &verts[i];
     if vert.is_same_normal(normal) && vert.uv == uv {
       // If there is already a valid vertex then return it
-      return Ok(vert.index);
+      return vert.index;
     }
   }
 
   // If not we must make a new one
-  let next_index = cache.values().fold(0, |acc, v| acc + v.len());
+  let next_index = cache.values().fold(0, |acc, v| acc + v.len()) as u16;
   let new_vert = VertexData {
     position: Vector3 {
       x: position.0,
@@ -216,31 +228,25 @@ fn get_or_insert<'a>(
     },
     normal,
     uv,
-    index: next_index as u16,
+    index: next_index,
   };
 
-  let verts = &mut cache.entry(position).or_insert(vec![]);
+  let verts = &mut cache.entry(position).or_insert_with(Vec::new);
   verts.push(new_vert);
 
-  Ok(next_index as u16)
+  next_index
 }
 
 /// Create the face and insert the vertexes into the cache
 fn create_face(
   indices: &mut Vec<u16>,
   cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
-  p1: (usize, usize, usize),
-  p2: (usize, usize, usize),
-  p3: (usize, usize, usize),
-  p4: (usize, usize, usize),
+  p: [(usize, usize, usize); 4],
   normal: Vector3<i8>,
   uv: u8,
 ) {
-  [p1, p4, p2, p2, p4, p3].iter().for_each(|p| {
-    let index = get_or_insert(cache, *p, uv, normal).expect(&format!(
-      "Expect VertexData index. position: {:?}, uv: {:?}, normal: {:?}",
-      p, uv, normal
-    ));
+  [p[0], p[3], p[1], p[1], p[3], p[2]].iter().for_each(|p| {
+    let index = get_or_insert(cache, *p, uv, normal);
     indices.push(index);
   });
 }

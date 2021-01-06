@@ -89,7 +89,7 @@ impl Texture2d {
     if x < self.width && y < self.height {
       let index = (x + self.width * y) as usize;
 
-      self.data[index + 0] = data[0];
+      self.data[index] = data[0];
       self.data[index + 1] = data[1];
       self.data[index + 2] = data[2];
       self.data[index + 3] = data[3];
