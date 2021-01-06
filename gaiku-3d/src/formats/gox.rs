@@ -8,7 +8,7 @@ pub struct GoxReader;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom
 impl FileFormat for GoxReader {
-  fn load(stream: &mut File) -> Vec<Chunk> {
+  fn load(stream: &mut File) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
     let gox = Gox::new(stream, vec![Only::Layers, Only::Blocks]);
     let mut colors: Vec<[u8; 4]> = Vec::with_capacity(255);
     let mut result = vec![];
@@ -26,8 +26,7 @@ impl FileFormat for GoxReader {
           if layer.blocks.len() > 0 {
             for data in layer.blocks.iter() {
               let block_colors = block_data[data.block_index];
-              let mut chunk =
-                Chunk::new([data.x as f32, data.y as f32, data.z as f32], 16, 16, 16);
+              let mut chunk = Chunk::new([data.x as f32, data.y as f32, data.z as f32], 16, 16, 16);
 
               for x in 0..chunk.width() {
                 for y in 0..chunk.height() {
@@ -48,9 +47,8 @@ impl FileFormat for GoxReader {
                         index
                       };
 
-                        if index <= std::u8::MAX as usize {
-                          chunk.set(x, y, z, (index as u8, 255));
-                        }
+                      if index <= std::u8::MAX as usize {
+                        chunk.set(x, y, z, (index as u8, 255));
                       }
                     }
                   }
