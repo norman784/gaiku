@@ -48,16 +48,13 @@ impl FileFormat for PNGReader {
           _ => unreachable!("uncovered color type"),
         };
 
-        let mut i = 0;
         let mut colors = vec![[0; 4]; (info.width * info.height) as usize];
-        for color in data.chunks(4) {
+        for (i, color) in data.chunks(4).enumerate() {
           if color.len() == 3 {
             colors[i] = [color[0], color[1], color[2], 255];
           } else {
             colors[i] = [color[0], color[1], color[2], color[3]];
           }
-
-          i += 1;
         }
 
         let mut chunk = Chunk::new(

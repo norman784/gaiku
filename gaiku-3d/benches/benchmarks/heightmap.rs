@@ -1,7 +1,7 @@
 use criterion::{criterion_group, Criterion};
 use gaiku_3d::{
   bakers::HeightMapBaker,
-  common::{Baker, Chunk, FileFormat},
+  common::{Baker, Chunk, Chunkify, FileFormat},
   formats::GoxReader,
 };
 

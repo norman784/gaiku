@@ -34,7 +34,7 @@ impl Chunk {
       }
     };
 
-    (self.get(x, y, z), color.clone())
+    (self.get(x, y, z), *color)
   }
 
   fn index(&self, x: usize, y: usize, z: usize) -> usize {

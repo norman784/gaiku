@@ -170,7 +170,7 @@ impl Baker for VoxelBaker {
       .collect();
     let colors: Vec<Vector4<u8>> = all_verts.iter().map(|v| v.color).collect();
 
-    if indices.len() > 0 {
+    if !indices.is_empty() {
       Some(Mesh {
         indices,
         vertices,
@@ -193,9 +193,9 @@ fn get_or_insert<'a>(
   position: (usize, usize, usize),
   color: Vector4<u8>,
   normal: Vector3<i8>,
-) -> &'a VertexData {
+) -> &'_ VertexData {
   // Get all verts at this position
-  let verts = &mut cache.entry(position).or_insert(vec![]);
+  let verts = &mut cache.entry(position).or_insert_with(Vec::new);
 
   // Check each vert at this position to see if its valid.
   // This loop will only ever have 6 vertexes max
@@ -218,7 +218,7 @@ fn get_or_insert<'a>(
     color,
     index: next_index as u16,
   };
-  let verts = &mut cache.entry(position).or_insert(vec![]);
+  let verts = &mut cache.entry(position).or_insert_with(Vec::new);
   verts.push(new_vert);
   return &cache.get(&position).unwrap().last().unwrap();
 }
