@@ -52,9 +52,9 @@ impl FileFormat for PNGReader {
         let mut colors = vec![[0; 4]; (info.width * info.height) as usize];
         for color in data.chunks(4) {
           if color.len() == 3 {
-            colors[i] = [color[0] << 0, color[1] << 0, color[2] << 0, 255];
+            colors[i] = [color[0], color[1], color[2], 255];
           } else {
-            colors[i] = [color[0] << 0, color[1] << 0, color[2] << 0, color[3] << 0];
+            colors[i] = [color[0], color[1], color[2], color[3]];
           }
 
           i += 1;
