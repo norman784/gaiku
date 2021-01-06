@@ -1,0 +1,40 @@
+name: Style
+
+on: [push, pull_request]
+
+jobs:
+  check_clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+    - name:        Checkout
+      uses: actions/checkout@v1
+    - name:        Install dependencies
+      run: |
+        sudo apt update
+        sudo apt-get install -y gcc pkg-config openssl libasound2-dev cmake build-essential python3 libfreetype6-dev libexpat1-dev libxcb-composite0-dev libssl-dev libx11-dev pulseaudio
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly
+          components: clippy
+    - name: Run clippy
+      uses: actions-rs/clippy-check@v1
+      with:
+        toolchain: nightly
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: +--features=empty -Zpackage-features
+
+  check_fmt:
+    name: Rust-fmt
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly
+          components: rustfmt
+          override: true
+    - name: rustfmt
+      run: |
+        cargo +nightly fmt -- --check
