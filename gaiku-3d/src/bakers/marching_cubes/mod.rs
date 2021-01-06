@@ -17,9 +17,7 @@ impl GridCell {
         let mut index2 = index2;
 
         if self.point[index1] < self.point[index2] {
-            let temp = index1;
-            index1 = index2;
-            index2 = temp;
+            std::mem::swap(&mut index1, &mut index2)
         }
 
         let isolevel = isolevel as f32 / 255.0;
@@ -29,7 +27,14 @@ impl GridCell {
         let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
         if (point1 - point2).abs() > [0.00001, 0.00001, 0.00001].into() {
-            (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
+            // #FIXME msg from QEAndy to Norman
+            // Possible issue here:
+            // Originally this said
+            // (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
+            // But (point2 - point1) / (point2 - point1) = [1., 1., 1.]
+            // Is this intentional?
+            // Not sure so swapped it for an explicit [1., 1., 1.]
+            (point1 + Vec3::one() * (iso - point1)).into()
         } else {
             self.point[index1]
         }
@@ -151,6 +156,7 @@ impl Baker for MarchingCubesBaker {
                 for z in 0..chunk.depth() - 1 {
                     let fz = z as f32;
 
+                    #[allow(clippy::identity_op)]
                     let grid = GridCell {
                         value: [
                             chunk.get(x + 0, y + 0, z + 0),
@@ -177,9 +183,9 @@ impl Baker for MarchingCubesBaker {
                     let mut triangles = vec![];
                     Self::polygonize(&grid, 1, &mut triangles);
 
-                    for vertex in triangles {
-                        for i in 0..3 {
-                            indices.push(Self::index(&mut vertices_cache, vertex[i]));
+                    for vertices in triangles {
+                        for vertex in &vertices {
+                            indices.push(Self::index(&mut vertices_cache, *vertex));
                         }
                     }
                 }
@@ -188,10 +194,10 @@ impl Baker for MarchingCubesBaker {
 
         let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
         for (_, (vertex, index)) in vertices_cache {
-            vertices[index as usize] = vertex.clone();
+            vertices[index as usize] = vertex;
         }
 
-        if indices.len() > 0 {
+        if !indices.is_empty() {
             Some(Mesh {
                 indices,
                 vertices,

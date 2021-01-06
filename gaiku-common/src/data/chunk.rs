@@ -59,7 +59,7 @@ impl Chunk {
     pub fn get_color(&self, x: usize, y: usize, z: usize) -> Option<Vector4<u8>> {
         let index = self.index(x, y, z);
         if let Some(color) = self.colors.get(index) {
-            Some(color.clone())
+            Some(*color)
         } else {
             None
         }
