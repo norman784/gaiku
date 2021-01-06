@@ -7,8 +7,11 @@ pub trait Chunkify {
   fn get(&self, x: usize, y: usize, z: usize) -> u8;
   fn height(&self) -> usize;
   fn position(&self) -> Vector3<f32>;
-  fn set(&mut self, x: usize, y: usize, z: usize, value: u8);
   fn width(&self) -> usize;
+}
+
+pub trait ChunkifyMut {
+  fn set(&mut self, x: usize, y: usize, z: usize, value: u8);
 }
 
 #[derive(Debug, Clone)]
@@ -88,6 +91,12 @@ impl Chunkify for Chunk {
     self.position
   }
 
+  fn width(&self) -> usize {
+    self.width
+  }
+}
+
+impl ChunkifyMut for Chunk {
   fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
     let (_, mut color) = self.get_with_color(x, y, z);
 
@@ -101,10 +110,6 @@ impl Chunkify for Chunk {
     }
 
     self.set_with_color(x, y, z, value, color);
-  }
-
-  fn width(&self) -> usize {
-    self.width
   }
 }
 

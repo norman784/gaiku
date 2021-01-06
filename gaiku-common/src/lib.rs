@@ -8,7 +8,7 @@ mod data;
 mod tree;
 
 pub use crate::tree::{Boundary, Octree};
-pub use crate::{data::Chunk, data::Chunkify, data::Mesh};
+pub use crate::{data::Chunk, data::Chunkify, data::ChunkifyMut, data::Mesh};
 
 pub trait Baker {
   fn bake(chunk: &Chunk) -> Option<Mesh>;
