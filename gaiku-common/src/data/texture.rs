@@ -40,8 +40,8 @@ impl TextureAtlas2d {
   pub fn set_at_index(&mut self, index: usize, pixels: Vec<[u8; 4]>) {
     if index + (pixels.len() * 4) < self.texture.data.len() {
       for (p_i, pixel) in pixels.iter().enumerate() {
-        for v_i in 0..4 {
-          self.texture.data[index + p_i + v_i] = pixel[v_i];
+        for (v_i, value) in pixel.iter().enumerate() {
+          self.texture.data[index + p_i + v_i] = *value;
         }
       }
     }

@@ -1,4 +1,4 @@
-use gaiku_common::{Chunk, Chunkify, FileFormat, TextureAtlas2d, Result};
+use gaiku_common::{Chunk, Chunkify, FileFormat, Result, TextureAtlas2d};
 
 use png::{ColorType, Decoder};
 

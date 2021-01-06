@@ -23,7 +23,7 @@ impl FileFormat for GoxReader {
     for data in gox.data.iter() {
       if let Data::Layers(layers, _bounds) = &data {
         for layer in layers.iter() {
-          if layer.blocks.len() > 0 {
+          if !layer.blocks.is_empty() {
             for data in layer.blocks.iter() {
               let block_colors = block_data[data.block_index];
               let mut chunk = Chunk::new([data.x as f32, data.y as f32, data.z as f32], 16, 16, 16);
@@ -62,7 +62,7 @@ impl FileFormat for GoxReader {
       }
     }
 
-    if colors.len() > 0 {
+    if !colors.is_empty() {
       let mut atlas = TextureAtlas2d::new(1);
 
       for (index, color) in colors.iter().enumerate() {
