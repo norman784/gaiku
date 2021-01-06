@@ -21,6 +21,7 @@ impl Mesh {
     /// Assumes a face has only one color.
     /// The result is an array of u32 which represents
     /// the RGBA color
+    #[allow(clippy::many_single_char_names)]
     pub fn generate_texture(&mut self, width: usize, height: usize) -> Vec<u32> {
         let mut colors: HashMap<(u8, u8, u8, u8), Vec<[u16; 3]>> = HashMap::new();
         self.uv = vec![Vector2 { x: 0., y: 0. }; self.vertices.len()];
@@ -33,7 +34,7 @@ impl Mesh {
             let color = self.colors[f1 as usize];
             let verts_for_color = colors
                 .entry((color.x, color.y, color.z, color.w))
-                .or_insert(vec![]);
+                .or_insert_with(Vec::new);
             verts_for_color.push([f1, f2, f3]);
         }
 
@@ -47,14 +48,13 @@ impl Mesh {
         let scale_x = (colors_in_x + 1) as f32;
         let scale_y = (colors_in_y + 1) as f32;
 
-        let mut i = 0;
         let mut result: Vec<u32> = vec![0; width * height];
         // For each color and list of faces
         // Assign a uv coordinate
         //  This coordinate maps to a square in the texture
         // Then blit that area of the result (which is an array of colors representing the image)
         //   with the color.
-        for (color, faces) in colors {
+        for (i, (color, faces)) in colors.into_iter().enumerate() {
             let x_pos = (i % colors_in_x) as f32;
             let y_pos = (i / colors_in_x) as f32;
             // Update all faces with this UV
@@ -85,9 +85,8 @@ impl Mesh {
                     result[i] = u32::from_le_bytes([r, g, b, a]);
                 }
             }
-            i += 1;
         }
         // Return the texture
-        return result;
+        result
     }
 }
