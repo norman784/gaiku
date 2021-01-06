@@ -26,7 +26,7 @@ use amethyst::{
 
 use gaiku_3d::{
   bakers::VoxelBaker,
-  common::{Baker, FileFormat},
+  common::{Baker, Chunkify, FileFormat},
   formats::GoxReader,
 };
 use gaiku_amethyst::mesher::to_amethyst_mesh_ww_tex;
