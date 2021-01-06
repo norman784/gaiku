@@ -27,14 +27,8 @@ impl GridCell {
         let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
         if (point1 - point2).abs() > [0.00001, 0.00001, 0.00001].into() {
-            // #FIXME msg from QEAndy to Norman
-            // Possible issue here:
-            // Originally this said
-            // (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
-            // But (point2 - point1) / (point2 - point1) = [1., 1., 1.]
-            // Is this intentional?
-            // Not sure so swapped it for an explicit [1., 1., 1.]
-            (point1 + Vec3::one() * (iso - point1)).into()
+            #[allow(clippy::eq_op)]
+            (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
         } else {
             self.point[index1]
         }
