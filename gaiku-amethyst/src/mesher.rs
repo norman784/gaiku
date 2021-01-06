@@ -29,8 +29,8 @@ pub fn get_amethyst_texture(mesh: &mut Mesh, width: u32, height: u32) -> Texture
     .with_data_height(height as u32)
     .with_sampler_info(SamplerInfo::new(Filter::Linear, WrapMode::Clamp))
     .with_data(pixel_data);
-  return texture_builder.into();
-}
+
+  texture_builder.into()
 
 /// Creates an ametheyst mesh data which can be attached to
 /// entity to render the mesh
@@ -93,5 +93,5 @@ pub fn to_amethyst_mesh_ww_tex(
   height: u32,
 ) -> (MeshData, TextureData) {
   let tex_data = get_amethyst_texture(mesh, width, height);
-  return (to_amethyst_mesh(mesh), tex_data);
+  (to_amethyst_mesh(mesh), tex_data)
 }

@@ -1,7 +1,7 @@
 use criterion::{criterion_group, Criterion};
 use gaiku_3d::{
   bakers::VoxelBaker,
-  common::{Baker, Chunk, FileFormat},
+  common::{Baker, Chunk, Chunkify, FileFormat},
   formats::GoxReader,
 };
 

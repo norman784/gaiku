@@ -57,6 +57,7 @@ impl Chunkify for Chunk {
   fn get(&self, x: usize, y: usize, z: usize) -> u8 {
     self.values[self.index(x, y, z)]
   }
+
   fn height(&self) -> usize {
     self.height
   }
