@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use gaiku_common::{
   mint::{Vector2, Vector3},
-  Baker, Chunk, Chunkify, Mesh, TextureAtlas2d, Result,
+  Baker, Chunk, Chunkify, Mesh, Result, TextureAtlas2d,
 };
 
 pub struct VoxelBaker;
@@ -40,7 +40,7 @@ impl Baker for VoxelBaker {
             continue;
           }
 
-          let atlas_index = chunk.get(x, y, z);
+          let atlas_index = chunk.get_index(x, y, z);
 
           let top_left_back = (x, y + 1, z);
           let top_right_back = (x + 1, y + 1, z);
@@ -205,7 +205,7 @@ fn get_or_insert<'a>(
       return Ok(vert.index);
     }
   }
-  
+
   // If not we must make a new one
   let next_index = cache.values().fold(0, |acc, v| acc + v.len());
   let new_vert = VertexData {
@@ -237,7 +237,10 @@ fn create_face(
   uv: u8,
 ) {
   [p1, p4, p2, p2, p4, p3].iter().for_each(|p| {
-    let index = get_or_insert(cache, *p, uv, normal).expect(&format!("Expect VertexData index. position: {:?}, uv: {:?}, normal: {:?}", p, uv, normal));
+    let index = get_or_insert(cache, *p, uv, normal).expect(&format!(
+      "Expect VertexData index. position: {:?}, uv: {:?}, normal: {:?}",
+      p, uv, normal
+    ));
     indices.push(index);
   });
 }

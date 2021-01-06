@@ -1,4 +1,4 @@
-use gaiku_common::{Chunk, Chunkify, FileFormat, TextureAtlas2d, Result};
+use gaiku_common::{Chunk, Chunkify, FileFormat, Result, TextureAtlas2d};
 
 use gox::{Block, Data, Gox, Only};
 
@@ -53,7 +53,7 @@ impl FileFormat for GoxReader {
                         };
 
                         if index <= std::u8::MAX as usize {
-                          chunk.set(x, y, z, index as u8);
+                          chunk.set(x, y, z, (index as u8, 255));
                         }
                       }
                     }

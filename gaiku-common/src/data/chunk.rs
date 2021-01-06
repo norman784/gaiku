@@ -4,10 +4,14 @@ pub trait Chunkify {
   fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self;
   fn depth(&self) -> usize;
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
-  fn get(&self, x: usize, y: usize, z: usize) -> u8;
+  fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8);
+  fn get_index(&self, x: usize, y: usize, z: usize) -> u8;
+  fn get_value(&self, x: usize, y: usize, z: usize) -> u8;
   fn height(&self) -> usize;
   fn position(&self) -> Vector3<f32>;
-  fn set(&mut self, x: usize, y: usize, z: usize, value: u8);
+  fn set(&mut self, x: usize, y: usize, z: usize, index_value: (u8, u8));
+  fn set_index(&mut self, x: usize, y: usize, z: usize, index: u8);
+  fn set_value(&mut self, x: usize, y: usize, z: usize, value: u8);
   fn width(&self) -> usize;
 }
 
@@ -17,7 +21,7 @@ pub struct Chunk {
   width: usize,
   height: usize,
   depth: usize,
-  values: Vec<u8>,
+  indices_values: Vec<(u8, u8)>,
 }
 
 impl Chunk {
@@ -38,7 +42,7 @@ impl Chunkify for Chunk {
       width,
       height,
       depth,
-      values: vec![0; depth * height * width],
+      indices_values: vec![(0, 0); depth * height * width],
     }
   }
 
@@ -50,13 +54,22 @@ impl Chunkify for Chunk {
     if x >= self.width || y >= self.height || z >= self.depth {
       true
     } else {
-      self.values[self.index(x, y, z)] == 0
+      self.get_value(x, y, z) == 0
     }
   }
 
-  fn get(&self, x: usize, y: usize, z: usize) -> u8 {
-    self.values[self.index(x, y, z)]
+  fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8) {
+    self.indices_values[self.index(x, y, z)]
   }
+
+  fn get_index(&self, x: usize, y: usize, z: usize) -> u8 {
+    self.get(x, y, z).0
+  }
+
+  fn get_value(&self, x: usize, y: usize, z: usize) -> u8 {
+    self.get(x, y, z).1
+  }
+
   fn height(&self) -> usize {
     self.height
   }
@@ -65,9 +78,19 @@ impl Chunkify for Chunk {
     self.position
   }
 
-  fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
+  fn set(&mut self, x: usize, y: usize, z: usize, value: (u8, u8)) {
     let index = self.index(x, y, z);
-    self.values[index] = value;
+    self.indices_values[index] = value;
+  }
+
+  fn set_index(&mut self, x: usize, y: usize, z: usize, index: u8) {
+    let value = self.get_value(x, y, z);
+    self.set(x, y, z, (index, value));
+  }
+
+  fn set_value(&mut self, x: usize, y: usize, z: usize, value: u8) {
+    let index = self.get_index(x, y, z);
+    self.set(x, y, z, (index, value));
   }
 
   fn width(&self) -> usize {
