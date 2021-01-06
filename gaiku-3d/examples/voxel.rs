@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use gaiku_3d::{
   bakers::VoxelBaker,
-  common::{Baker, Chunkify, FileFormat},
+  common::{Baker, Chunkify, FileFormat, Result},
   formats::GoxReader,
 };
 
@@ -10,21 +10,21 @@ mod common;
 
 use crate::common::export;
 
-fn read(name: &str) -> std::io::Result<()> {
+fn read(name: &str) -> Result<()> {
   let now = Instant::now();
   let file = format!(
     "{}/examples/assets/{}.gox",
     env!("CARGO_MANIFEST_DIR"),
     name
   );
-  let chunks = GoxReader::read(&file);
+  let (chunks, textures) = GoxReader::read(&file)?;
   let mut meshes = vec![];
 
   let reader_elapsed = now.elapsed().as_secs();
   let now = Instant::now();
 
   for chunk in chunks.iter() {
-    let mesh = VoxelBaker::bake(chunk);
+    let mesh = VoxelBaker::bake(chunk, textures.as_ref())?;
     if let Some(mesh) = mesh {
       meshes.push((mesh, chunk.position()));
     }
@@ -47,7 +47,7 @@ fn read(name: &str) -> std::io::Result<()> {
   Ok(())
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<()> {
   let _ = read("small_tree");
   let _ = read("terrain");
   let _ = read("planet");
