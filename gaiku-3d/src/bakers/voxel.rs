@@ -170,7 +170,7 @@ impl Baker for VoxelBaker {
       })
       .collect();
 
-    if indices.len() > 0 {
+    if !indices.is_empty() {
       Ok(Some(Mesh {
         indices,
         vertices,
@@ -193,8 +193,8 @@ fn get_or_insert<'a>(
   uv: u8,
   normal: Vector3<i8>,
 ) -> Result<u16> {
-  // Get all verts at this position if exists
-  let verts = &mut cache.entry(position).or_insert(vec![]);
+  // Get all verts at this position
+  let verts = &mut cache.entry(position).or_insert_with(Vec::new);
 
   // Check each vert at this position to see if its valid.
   // This loop will only ever have 6 vertexes max

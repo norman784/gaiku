@@ -1,22 +1,40 @@
-name: Rust
+name:                Rust
 
 on:
   push:
-    branches: [ master ]
+    branches:        [ master ]
   pull_request:
-    branches: [ master ]
+    branches:        [ master ]
 
 env:
-  CARGO_TERM_COLOR: always
+  CARGO_TERM_COLOR:  always
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on:         ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - name:        Checkout
+        uses:        actions/checkout@v2
+      - name:        Install dependencies
+        run: |
+          sudo apt update
+          sudo apt-get install -y gcc pkg-config openssl libasound2-dev cmake build-essential python3 libfreetype6-dev libexpat1-dev libxcb-composite0-dev libssl-dev libx11-dev pulseaudio
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: nightly
+            components: cargo
+      - name:        Build
+        uses:        actions-rs/cargo@v1
+        with:
+          command: build
+          toolchain: nightly
+          args:    --verbose --features=empty -Zpackage-features
+      - name:        Test
+        uses:        actions-rs/cargo@v1
+        with:
+          command: test
+          toolchain: nightly
+          args:    --verbose --features=empty -Zpackage-features

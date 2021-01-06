@@ -124,16 +124,15 @@ impl Node {
           result.append(node.query(range).as_mut());
         }
       }
-      None => match &self.leafs {
-        Some(leafs) => {
+      None => {
+        if let Some(leafs) = &self.leafs {
           for leaf in leafs {
             if range.contains(&leaf.position()) {
               result.push(leaf.clone())
             }
           }
         }
-        _ => {}
-      },
+      }
     }
 
     result
@@ -152,16 +151,15 @@ impl Node {
           }
         }
       }
-      None => match &self.leafs {
-        Some(leafs) => {
+      None => {
+        if let Some(leafs) = &self.leafs {
           for leaf in leafs {
-            if &leaf.position() == point {
+            if leaf.position() == *point {
               return Some(leaf.clone());
             }
           }
         }
-        _ => {}
-      },
+      }
     }
 
     None
@@ -180,8 +178,8 @@ impl Node {
           }
         }
       }
-      None => match &mut self.leafs {
-        Some(leafs) => {
+      None => {
+        if let Some(leafs) = self.leafs.as_mut() {
           for (i, old) in leafs.iter().enumerate() {
             if old.position() == leaf.position() {
               leafs.insert(i, leaf.clone());
@@ -190,8 +188,7 @@ impl Node {
             }
           }
         }
-        _ => {}
-      },
+      }
     }
 
     self.insert(leaf)
@@ -253,6 +250,7 @@ impl Tree {
   }
 }
 
+#[allow(clippy::many_single_char_names)]
 fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
@@ -282,7 +280,7 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   for coord in coords.iter() {
     result.push(Node::new(
       Boundary {
-        center: coord.clone(),
+        center: *coord,
         size,
       },
       bucket,
