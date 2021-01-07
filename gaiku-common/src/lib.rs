@@ -1,7 +1,8 @@
-pub use mint;
-use std::fs::File;
+use std::fs::read;
 
 pub use anyhow::Result;
+pub use mint;
+
 use mint::Vector3;
 
 mod data;
@@ -18,11 +19,11 @@ pub trait Baker {
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
-  fn load(stream: &mut File) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)>;
+  fn load(bytes: Vec<u8>) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)>;
 
   fn read(file: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
-    let mut stream = File::open(file)?;
-    Self::load(&mut stream)
+    let bytes = read(file)?;
+    Self::load(bytes)
   }
 }
 

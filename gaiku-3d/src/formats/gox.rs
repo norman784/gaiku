@@ -2,14 +2,12 @@ use gaiku_common::{Chunk, Chunkify, FileFormat, Result, TextureAtlas2d};
 
 use gox::{Block, Data, Gox, Only};
 
-use std::fs::File;
-
 pub struct GoxReader;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom
 impl FileFormat for GoxReader {
-  fn load(stream: &mut File) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
-    let gox = Gox::new(stream, vec![Only::Layers, Only::Blocks]);
+  fn load(bytes: Vec<u8>) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
+    let gox = Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);
     let mut colors: Vec<[u8; 4]> = Vec::with_capacity(255);
     let mut result = vec![];
     let mut block_data: Vec<&Block> = vec![];
