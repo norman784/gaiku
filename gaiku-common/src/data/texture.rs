@@ -1,3 +1,6 @@
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use mint::Vector2;
 
 pub const COLS: u16 = 16;
@@ -11,6 +14,8 @@ fn xy_to_uv((x, y): (u8, u8)) -> (f32, f32) {
   (x as f32 / COLS as f32, y as f32 / ROWS as f32)
 }
 
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TextureAtlas2d {
   texture: Texture2d,
 }
@@ -48,6 +53,8 @@ impl TextureAtlas2d {
   }
 }
 
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Texture2d {
   width: u16,
   height: u16,
@@ -92,16 +99,6 @@ impl Texture2d {
       for (i, value) in data.iter().enumerate() {
         self.data[index + i] = *value;
       }
-    }
-  }
-}
-
-impl Clone for Texture2d {
-  fn clone(&self) -> Self {
-    Self {
-      width: self.width,
-      height: self.height,
-      data: self.data.clone(),
     }
   }
 }

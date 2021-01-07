@@ -1,3 +1,6 @@
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use mint::Vector3;
 
 pub trait Chunkify {
@@ -16,6 +19,7 @@ pub trait Chunkify {
 }
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Chunk {
   position: Vector3<f32>,
   width: usize,
