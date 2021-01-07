@@ -25,7 +25,7 @@ serde = ["gaiku-common/serialization"]
 
 [dependencies]
 gaiku-common = { path = "../gaiku-common", version = "^0.1.0" }
-gox = { path = "../../gox", version = "^0.4.0", optional = true }
+gox = { version = "^0.4.0", optional = true }
 png = { version = "^0.16.7", optional = true }
 glam = { version = "^0.11.3", features = ["mint"], optional = true }
 
