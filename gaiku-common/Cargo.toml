@@ -13,8 +13,10 @@ repository = "https://github.com/norman784/gaiku"
 [features]
 default = []
 serialization = ["serde", "mint/serde"]
+export = ["png"]
 
 [dependencies]
 anyhow = "^1.0.37"
 mint = "^0.5.6"
+png = { version = "^0.16.7", optional = true }
 serde = { version = "1.0", optional = true, features = ["derive"] }

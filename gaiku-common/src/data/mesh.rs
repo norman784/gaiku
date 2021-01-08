@@ -5,7 +5,7 @@ pub struct Mesh {
   pub indices: Vec<u16>,
   pub vertices: Vec<Vector3<f32>>,
   pub normals: Vec<Vector3<f32>>,
-  pub uv: Vec<(Vector2<f32>, Vector2<f32>)>,
+  pub uv: Vec<Vector2<f32>>,
   pub tangents: Vec<Vector4<f32>>,
 }
 

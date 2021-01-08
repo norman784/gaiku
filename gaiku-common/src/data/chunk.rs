@@ -33,6 +33,10 @@ impl Chunk {
     x + y * self.width + z * self.width * self.width
   }
 
+  pub fn values(&self) -> Vec<(u8, u8)> {
+    self.indices_values.clone()
+  }
+
   // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
   pub fn update_neighbor_data(&self, _neighbor: &Chunk) {
     unimplemented!();

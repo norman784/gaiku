@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use gaiku_common::{
   mint::{Vector2, Vector3},
-  Baker, Chunk, Chunkify, Mesh, Result, TextureAtlas2d,
+  prelude::*,
+  Chunk, Result,
 };
 
 pub struct VoxelBaker;
@@ -11,7 +12,8 @@ pub struct VoxelBaker;
 struct VertexData {
   position: Vector3<usize>,
   normal: Vector3<i8>,
-  uv: u8,
+  uv: Vector2<f32>,
+  uv_index: u8,
   index: u16,
 }
 
@@ -24,7 +26,7 @@ impl VertexData {
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
-  fn bake(chunk: &Chunk, atlas: Option<&TextureAtlas2d>) -> Result<Option<Mesh>> {
+  fn bake(chunk: &Chunk, options: &BakerOptions) -> Result<Option<Mesh>> {
     let mut indices = vec![];
     // Hash map in x, y, z coordinates to a list of verts at that coordinates
     let mut vertices: HashMap<(usize, usize, usize), Vec<VertexData>> = HashMap::new();
@@ -41,15 +43,25 @@ impl Baker for VoxelBaker {
           }
 
           let atlas_index = chunk.get_index(x, y, z);
+          let uv = if let Some(texture) = &options.texture {
+            texture.get_uv(atlas_index)
+          } else {
+            (
+              [0.0, 0.0].into(),
+              [0.0, 0.0].into(),
+              [0.0, 0.0].into(),
+              [0.0, 0.0].into(),
+            )
+          };
 
-          let top_left_back = (x, y + 1, z);
-          let top_right_back = (x + 1, y + 1, z);
-          let top_right_front = (x + 1, y + 1, z + 1);
-          let top_left_front = (x, y + 1, z + 1);
-          let bottom_left_back = (x, y, z);
-          let bottom_right_back = (x + 1, y, z);
-          let bottom_right_front = (x + 1, y, z + 1);
-          let bottom_left_front = (x, y, z + 1);
+          let top_left_back = ((x, y + 1, z), uv.0);
+          let top_right_back = ((x + 1, y + 1, z), uv.1);
+          let top_right_front = ((x + 1, y + 1, z + 1), uv.2);
+          let top_left_front = ((x, y + 1, z + 1), uv.3);
+          let bottom_left_back = ((x, y, z), uv.0);
+          let bottom_right_back = ((x + 1, y, z), uv.1);
+          let bottom_right_front = ((x + 1, y, z + 1), uv.2);
+          let bottom_left_front = ((x, y, z + 1), uv.3);
 
           // Top
           if y == y_limit || chunk.is_air(x, y + 1, z) {
@@ -174,13 +186,7 @@ impl Baker for VoxelBaker {
       })
       .collect();
 
-    let uv: Vec<(Vector2<f32>, Vector2<f32>)> = all_verts
-      .iter()
-      .map(|v| match atlas {
-        Some(atlas) => atlas.get_uv(v.uv),
-        _ => ([0.0, 0.0].into(), [0.0, 0.0].into()),
-      })
-      .collect();
+    let uv: Vec<Vector2<f32>> = all_verts.iter().map(|v| v.uv).collect();
 
     if !indices.is_empty() {
       Ok(Some(Mesh {
@@ -202,7 +208,8 @@ impl Baker for VoxelBaker {
 fn get_or_insert(
   cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
   position: (usize, usize, usize),
-  uv: u8,
+  uv: Vector2<f32>,
+  uv_index: u8,
   normal: Vector3<i8>,
 ) -> u16 {
   // Get all verts at this position
@@ -212,7 +219,7 @@ fn get_or_insert(
   // This loop will only ever have 6 vertexes max
   for i in 0..verts.len() {
     let vert = &verts[i];
-    if vert.is_same_normal(normal) && vert.uv == uv {
+    if vert.is_same_normal(normal) && vert.uv_index == uv_index {
       // If there is already a valid vertex then return it
       return vert.index;
     }
@@ -228,6 +235,7 @@ fn get_or_insert(
     },
     normal,
     uv,
+    uv_index,
     index: next_index,
   };
 
@@ -241,12 +249,14 @@ fn get_or_insert(
 fn create_face(
   indices: &mut Vec<u16>,
   cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
-  p: [(usize, usize, usize); 4],
+  p: [((usize, usize, usize), Vector2<f32>); 4],
   normal: Vector3<i8>,
-  uv: u8,
+  uv_index: u8,
 ) {
-  [p[0], p[3], p[1], p[1], p[3], p[2]].iter().for_each(|p| {
-    let index = get_or_insert(cache, *p, uv, normal);
-    indices.push(index);
-  });
+  [p[0], p[3], p[1], p[1], p[3], p[2]]
+    .iter()
+    .for_each(|(p, uv)| {
+      let index = get_or_insert(cache, *p, *uv, uv_index, normal);
+      indices.push(index);
+    });
 }

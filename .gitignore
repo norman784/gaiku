@@ -551,3 +551,5 @@ healthchecksdb
 target
 *.swp
 *.iml
+
+gaiku-3d/examples/output

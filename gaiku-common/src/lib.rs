@@ -6,6 +6,7 @@ pub use mint;
 use mint::Vector3;
 
 mod data;
+pub mod prelude;
 mod tree;
 
 pub use crate::{
@@ -13,8 +14,22 @@ pub use crate::{
   tree::{Boundary, Octree},
 };
 
+pub struct BakerOptions {
+  pub level_of_detail: usize,
+  pub texture: Option<TextureAtlas2d>,
+}
+
+impl Default for BakerOptions {
+  fn default() -> Self {
+    Self {
+      level_of_detail: 1,
+      texture: None,
+    }
+  }
+}
+
 pub trait Baker {
-  fn bake(chunk: &Chunk, texture: Option<&TextureAtlas2d>) -> Result<Option<Mesh>>;
+  fn bake(chunk: &Chunk, options: &BakerOptions) -> Result<Option<Mesh>>;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
