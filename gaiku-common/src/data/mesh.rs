@@ -120,10 +120,10 @@ pub enum VertexAttribute {
 }
 
 impl VertexAttribute {
-  pub const ATTRIBUTE_COLOR: &'static str = "color";
-  pub const ATTRIBUTE_NORMAL: &'static str = "normal";
-  pub const ATTRIBUTE_POSITION: &'static str = "position";
-  pub const ATTRIBUTE_UV: &'static str = "uv";
+  const ATTRIBUTE_COLOR: &'static str = "color";
+  const ATTRIBUTE_NORMAL: &'static str = "normal";
+  const ATTRIBUTE_POSITION: &'static str = "position";
+  const ATTRIBUTE_UV: &'static str = "uv";
 }
 
 impl Into<&str> for VertexAttribute {
@@ -163,6 +163,11 @@ impl Default for Mesh {
 impl Mesh {
   pub fn new() -> Self {
     Default::default()
+  }
+
+  pub fn get_attributes(&self, attribute: VertexAttribute) -> Option<&VertexAttributeValues> {
+    let attribute: &str = attribute.into();
+    self.attributes.get(attribute.into())
   }
 
   pub fn set_attributes(&mut self, attribute: VertexAttribute, values: VertexAttributeValues) {
@@ -286,9 +291,9 @@ struct Position(i32, i32, i32);
 impl From<[f32; 3]> for Position {
   fn from([x, y, z]: [f32; 3]) -> Self {
     Position(
-      (x * 1_000_000.0) as i32,
-      (y * 1_000_000.0) as i32,
-      (z * 1_000_000.0) as i32,
+      (x * 1_000_0.0) as i32,
+      (y * 1_000_0.0) as i32,
+      (z * 1_000_0.0) as i32,
     )
   }
 }
@@ -345,20 +350,16 @@ impl MeshBuilder {
   pub fn add_triangle(
     &mut self,
     triangle: [[f32; 3]; 3],
-    normals: Option<[[f32; 3]; 3]>,
+    normal: Option<[f32; 3]>,
     uv: Option<[[f32; 2]; 3]>,
-    atlas_index: [u16; 3],
+    atlas_index: u16,
   ) {
     for (i, vertex) in triangle.iter().enumerate() {
       self.add(
         *vertex,
-        if let Some(normals) = normals {
-          Some(normals[i])
-        } else {
-          None
-        },
+        normal,
         if let Some(uv) = uv { Some(uv[i]) } else { None },
-        atlas_index[i],
+        atlas_index,
       );
     }
   }
@@ -368,25 +369,21 @@ impl MeshBuilder {
     &mut self,
 
     face: [[f32; 3]; 4],
-    normals: Option<[[f32; 3]; 4]>,
+    normal: Option<[f32; 3]>,
     uv: Option<[[f32; 2]; 4]>,
-    atlas_index: [u16; 4],
+    atlas_index: u16,
   ) {
     [[0, 1, 3], [1, 2, 3]].iter().for_each(|triangle| {
       triangle.iter().for_each(|i| {
         self.add(
           face[*i],
-          if let Some(normals) = normals {
-            Some(normals[*i])
-          } else {
-            None
-          },
+          normal,
           if let Some(uv) = uv {
             Some(uv[*i])
           } else {
             None
           },
-          atlas_index[*i],
+          atlas_index,
         );
       });
     });

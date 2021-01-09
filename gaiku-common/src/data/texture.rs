@@ -1,8 +1,6 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use mint::Vector2;
-
 #[cfg(feature = "png")]
 use std::{fs::File, io::BufWriter, path::Path};
 
@@ -43,15 +41,15 @@ impl TextureAtlas2d {
     self.texture.clone()
   }
 
-  pub fn get_uv(&self, index: u8) -> (Vector2<f32>, Vector2<f32>, Vector2<f32>, Vector2<f32>) {
+  pub fn get_uv(&self, index: u8) -> ([f32; 2], [f32; 2], [f32; 2], [f32; 2]) {
     let xy = index_to_xy(index);
     let (x, y) = xy_to_uv(xy);
 
     (
-      [x, y].into(),
-      [x + COL_SIZE, y].into(),
-      [x + COL_SIZE, y + ROW_SIZE].into(),
-      [x, y + ROW_SIZE].into(),
+      [x, y],
+      [x + COL_SIZE, y],
+      [x + COL_SIZE, y + ROW_SIZE],
+      [x, y + ROW_SIZE],
     )
   }
 
@@ -148,7 +146,7 @@ mod test {
     let index = x + y * ROWS;
     assert!(index <= 255);
     let uv = atlas.get_uv(index as u8);
-    (uv.0.into(), uv.1.into(), uv.2.into(), uv.3.into())
+    (uv.0, uv.1, uv.2, uv.3)
   }
 
   #[test]
