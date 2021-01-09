@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use gaiku_common::{
+  mesh::{Indices, VertexAttribute, VertexAttributeValues},
   mint::{Vector2, Vector3},
   prelude::*,
   Chunk, Result,
@@ -162,40 +163,44 @@ impl Baker for VoxelBaker {
       }
     }
 
-    let mut all_verts: Vec<&VertexData> = vertices.values().flatten().collect();
-    all_verts.sort_by_key(|k| k.index);
-    let vertices: Vec<Vector3<f32>> = all_verts
-      .iter()
-      .map(|v| Vector3 {
-        x: v.position.x as f32 - 0.5,
-        y: v.position.y as f32 - 0.5,
-        z: v.position.z as f32 - 0.5,
-      })
-      .collect();
-
-    let normals: Vec<Vector3<f32>> = all_verts
-      .iter()
-      .map(|v| {
-        let (x, y, z) = (v.normal.x, v.normal.y, v.normal.z);
-        let len = ((x.pow(2) + y.pow(2) + z.pow(2)) as f32).sqrt();
-        Vector3 {
-          x: x as f32 / len,
-          y: y as f32 / len,
-          z: z as f32 / len,
-        }
-      })
-      .collect();
-
-    let uv: Vec<Vector2<f32>> = all_verts.iter().map(|v| v.uv).collect();
-
     if !indices.is_empty() {
-      Ok(Some(Mesh {
-        indices,
-        vertices,
-        normals,
-        uv,
-        tangents: vec![],
-      }))
+      let mut all_verts: Vec<&VertexData> = vertices.values().flatten().collect();
+      all_verts.sort_by_key(|k| k.index);
+      let vertices: Vec<[f32; 3]> = all_verts
+        .iter()
+        .map(|v| {
+          [
+            v.position.x as f32 - 0.5,
+            v.position.y as f32 - 0.5,
+            v.position.z as f32 - 0.5,
+          ]
+        })
+        .collect();
+
+      let normals: Vec<[f32; 3]> = all_verts
+        .iter()
+        .map(|v| {
+          let (x, y, z) = (v.normal.x, v.normal.y, v.normal.z);
+          let len = ((x.pow(2) + y.pow(2) + z.pow(2)) as f32).sqrt();
+          [x as f32 / len, y as f32 / len, z as f32 / len]
+        })
+        .collect();
+
+      let uv: Vec<[f32; 2]> = all_verts.iter().map(|v| [v.uv.x, v.uv.y]).collect();
+
+      let mut mesh = Mesh::new();
+      mesh.set_indices(Indices::U16(indices));
+      mesh.set_attributes(
+        VertexAttribute::Position,
+        VertexAttributeValues::Float3(vertices),
+      );
+      mesh.set_attributes(
+        VertexAttribute::Normal,
+        VertexAttributeValues::Float3(normals),
+      );
+      mesh.set_attributes(VertexAttribute::UV, VertexAttributeValues::Float2(uv));
+
+      Ok(Some(mesh))
     } else {
       Ok(None)
     }

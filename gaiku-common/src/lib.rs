@@ -6,13 +6,19 @@ pub use mint;
 use mint::Vector3;
 
 mod data;
-pub mod prelude;
 mod tree;
 
 pub use crate::{
-  data::{Chunk, Chunkify, Mesh, Texture2d, TextureAtlas2d},
+  data::{mesh, texture, Chunk, Chunkify, Mesh, MeshBuilder, Texture2d, TextureAtlas2d},
   tree::{Boundary, Octree},
 };
+
+pub mod prelude {
+  pub use crate::{
+    data::{Chunkify, Mesh, MeshBuilder},
+    Baker, BakerOptions, FileFormat,
+  };
+}
 
 pub struct BakerOptions {
   pub level_of_detail: usize,

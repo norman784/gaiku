@@ -1,15 +1,178 @@
-use mint::{Vector2, Vector3, Vector4};
+use std::{borrow::Cow, collections::HashMap};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub enum VertexAttributeValues {
+  Float(Vec<f32>),
+  Int(Vec<i32>),
+  Uint(Vec<u32>),
+  Float2(Vec<[f32; 2]>),
+  Int2(Vec<[i32; 2]>),
+  Uint2(Vec<[u32; 2]>),
+  Float3(Vec<[f32; 3]>),
+  Int3(Vec<[i32; 3]>),
+  Uint3(Vec<[u32; 3]>),
+  Float4(Vec<[f32; 4]>),
+  Int4(Vec<[i32; 4]>),
+  Uint4(Vec<[u32; 4]>),
+}
+
+impl VertexAttributeValues {
+  pub fn len(&self) -> usize {
+    match *self {
+      VertexAttributeValues::Float(ref values) => values.len(),
+      VertexAttributeValues::Int(ref values) => values.len(),
+      VertexAttributeValues::Uint(ref values) => values.len(),
+      VertexAttributeValues::Float2(ref values) => values.len(),
+      VertexAttributeValues::Int2(ref values) => values.len(),
+      VertexAttributeValues::Uint2(ref values) => values.len(),
+      VertexAttributeValues::Float3(ref values) => values.len(),
+      VertexAttributeValues::Int3(ref values) => values.len(),
+      VertexAttributeValues::Uint3(ref values) => values.len(),
+      VertexAttributeValues::Float4(ref values) => values.len(),
+      VertexAttributeValues::Int4(ref values) => values.len(),
+      VertexAttributeValues::Uint4(ref values) => values.len(),
+    }
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
+}
+
+impl From<Vec<f32>> for VertexAttributeValues {
+  fn from(vec: Vec<f32>) -> Self {
+    VertexAttributeValues::Float(vec)
+  }
+}
+
+impl From<Vec<i32>> for VertexAttributeValues {
+  fn from(vec: Vec<i32>) -> Self {
+    VertexAttributeValues::Int(vec)
+  }
+}
+
+impl From<Vec<u32>> for VertexAttributeValues {
+  fn from(vec: Vec<u32>) -> Self {
+    VertexAttributeValues::Uint(vec)
+  }
+}
+
+impl From<Vec<[f32; 2]>> for VertexAttributeValues {
+  fn from(vec: Vec<[f32; 2]>) -> Self {
+    VertexAttributeValues::Float2(vec)
+  }
+}
+
+impl From<Vec<[i32; 2]>> for VertexAttributeValues {
+  fn from(vec: Vec<[i32; 2]>) -> Self {
+    VertexAttributeValues::Int2(vec)
+  }
+}
+
+impl From<Vec<[u32; 2]>> for VertexAttributeValues {
+  fn from(vec: Vec<[u32; 2]>) -> Self {
+    VertexAttributeValues::Uint2(vec)
+  }
+}
+
+impl From<Vec<[f32; 3]>> for VertexAttributeValues {
+  fn from(vec: Vec<[f32; 3]>) -> Self {
+    VertexAttributeValues::Float3(vec)
+  }
+}
+
+impl From<Vec<[i32; 3]>> for VertexAttributeValues {
+  fn from(vec: Vec<[i32; 3]>) -> Self {
+    VertexAttributeValues::Int3(vec)
+  }
+}
+
+impl From<Vec<[u32; 3]>> for VertexAttributeValues {
+  fn from(vec: Vec<[u32; 3]>) -> Self {
+    VertexAttributeValues::Uint3(vec)
+  }
+}
+
+impl From<Vec<[f32; 4]>> for VertexAttributeValues {
+  fn from(vec: Vec<[f32; 4]>) -> Self {
+    VertexAttributeValues::Float4(vec)
+  }
+}
+
+impl From<Vec<[i32; 4]>> for VertexAttributeValues {
+  fn from(vec: Vec<[i32; 4]>) -> Self {
+    VertexAttributeValues::Int4(vec)
+  }
+}
+
+impl From<Vec<[u32; 4]>> for VertexAttributeValues {
+  fn from(vec: Vec<[u32; 4]>) -> Self {
+    VertexAttributeValues::Uint4(vec)
+  }
+}
+
+#[derive(Debug)]
+pub enum VertexAttribute {
+  Color,
+  Normal,
+  Position,
+  UV,
+}
+
+impl VertexAttribute {
+  pub const ATTRIBUTE_COLOR: &'static str = "color";
+  pub const ATTRIBUTE_NORMAL: &'static str = "normal";
+  pub const ATTRIBUTE_POSITION: &'static str = "position";
+  pub const ATTRIBUTE_UV: &'static str = "uv";
+}
+
+impl Into<&str> for VertexAttribute {
+  fn into(self) -> &'static str {
+    use VertexAttribute::*;
+
+    match self {
+      Color => VertexAttribute::ATTRIBUTE_COLOR,
+      Normal => VertexAttribute::ATTRIBUTE_NORMAL,
+      Position => VertexAttribute::ATTRIBUTE_POSITION,
+      UV => VertexAttribute::ATTRIBUTE_UV,
+    }
+  }
+}
+
+#[derive(Debug)]
+pub enum Indices {
+  U16(Vec<u16>),
+  U32(Vec<u32>),
+}
+
+#[derive(Debug)]
 pub struct Mesh {
-  pub indices: Vec<u16>,
-  pub vertices: Vec<Vector3<f32>>,
-  pub normals: Vec<Vector3<f32>>,
-  pub uv: Vec<Vector2<f32>>,
-  pub tangents: Vec<Vector4<f32>>,
+  pub indices: Option<Indices>,
+  pub attributes: HashMap<Cow<'static, str>, VertexAttributeValues>,
+}
+
+impl Default for Mesh {
+  fn default() -> Self {
+    Self {
+      indices: None,
+      attributes: HashMap::new(),
+    }
+  }
 }
 
 impl Mesh {
+  pub fn new() -> Self {
+    Default::default()
+  }
+
+  pub fn set_attributes(&mut self, attribute: VertexAttribute, values: VertexAttributeValues) {
+    let attribute: &str = attribute.into();
+    self.attributes.insert(attribute.into(), values);
+  }
+
+  pub fn set_indices(&mut self, indices: Indices) {
+    self.indices = Some(indices);
+  }
   /*
     /// This will generate a texture from the
     /// mesh vertex colors and update the UV map
@@ -86,4 +249,162 @@ impl Mesh {
       return result;
     }
   */
+}
+
+#[derive(Debug)]
+struct MeshBuilderData {
+  position: [f32; 3],
+  normal: Option<[f32; 3]>,
+  uv: Option<[f32; 2]>,
+  atlas_index: u16,
+  index: u32,
+}
+
+impl From<([f32; 3], Option<[f32; 3]>, Option<[f32; 2]>, u16, u32)> for MeshBuilderData {
+  fn from(
+    (position, normal, uv, atlas_index, index): (
+      [f32; 3],
+      Option<[f32; 3]>,
+      Option<[f32; 2]>,
+      u16,
+      u32,
+    ),
+  ) -> Self {
+    MeshBuilderData {
+      position,
+      normal,
+      uv,
+      atlas_index,
+      index,
+    }
+  }
+}
+
+#[derive(Debug, Eq, Hash, PartialEq)]
+struct Position(i32, i32, i32);
+
+impl From<[f32; 3]> for Position {
+  fn from([x, y, z]: [f32; 3]) -> Self {
+    Position(
+      (x * 1_000_000.0) as i32,
+      (y * 1_000_000.0) as i32,
+      (z * 1_000_000.0) as i32,
+    )
+  }
+}
+
+#[derive(Debug)]
+pub struct MeshBuilder {
+  indices: Vec<u32>,
+  cache: HashMap<Position, Vec<MeshBuilderData>>,
+}
+
+impl MeshBuilder {
+  pub fn create() -> Self {
+    Self {
+      indices: vec![],
+      cache: HashMap::new(),
+    }
+  }
+
+  pub fn add(
+    &mut self,
+    position: [f32; 3],
+    normal: Option<[f32; 3]>,
+    uv: Option<[f32; 2]>,
+    atlas_index: u16,
+  ) {
+    let next_index = self.cache.values().fold(0, |acc, v| acc + v.len()) as u32;
+    let data = self.cache.entry(position.into()).or_insert_with(Vec::new);
+
+    if !data.is_empty() {
+      for row in data.iter() {
+        if non_precise_eq_vec3_f32(
+          row.normal.unwrap_or([0.0, 0.0, 0.0]),
+          normal.unwrap_or([0.0, 0.0, 0.0]),
+        ) && non_precise_eq_vec2_f32(row.uv.unwrap_or([0.0, 0.0]), uv.unwrap_or([0.0, 0.0]))
+          && row.atlas_index == atlas_index
+        {
+          self.indices.push(row.index);
+          return;
+        }
+      }
+    }
+
+    data.push(MeshBuilderData {
+      position,
+      normal,
+      uv,
+      atlas_index,
+      index: next_index,
+    });
+
+    self.indices.push(next_index);
+  }
+
+  pub fn add_triangle(
+    &mut self,
+    triangle: [[f32; 3]; 3],
+    normals: Option<[[f32; 3]; 3]>,
+    uv: Option<[[f32; 2]; 3]>,
+    atlas_index: [u16; 3],
+  ) {
+    for (i, vertex) in triangle.iter().enumerate() {
+      self.add(
+        *vertex,
+        if let Some(normals) = normals {
+          Some(normals[i])
+        } else {
+          None
+        },
+        if let Some(uv) = uv { Some(uv[i]) } else { None },
+        atlas_index[i],
+      );
+    }
+  }
+
+  /// The face data is expected to be clockwise
+  pub fn add_face(
+    &mut self,
+
+    face: [[f32; 3]; 4],
+    normals: Option<[[f32; 3]; 4]>,
+    uv: Option<[[f32; 2]; 4]>,
+    atlas_index: [u16; 4],
+  ) {
+    [[0, 1, 3], [1, 2, 3]].iter().for_each(|triangle| {
+      triangle.iter().for_each(|i| {
+        self.add(
+          face[*i],
+          if let Some(normals) = normals {
+            Some(normals[*i])
+          } else {
+            None
+          },
+          if let Some(uv) = uv {
+            Some(uv[*i])
+          } else {
+            None
+          },
+          atlas_index[*i],
+        );
+      });
+    });
+  }
+
+  pub fn build(&self) -> Option<Mesh> {
+    None
+  }
+}
+
+fn non_precise_eq_vec3_f32([lx, ly, lz]: [f32; 3], [rx, ry, rz]: [f32; 3]) -> bool {
+  non_precise_eq_f32(lx, rx) && non_precise_eq_f32(ly, ry) && non_precise_eq_f32(lz, rz)
+}
+
+fn non_precise_eq_vec2_f32([lx, ly]: [f32; 2], [rx, ry]: [f32; 2]) -> bool {
+  non_precise_eq_f32(lx, rx) && non_precise_eq_f32(ly, ry)
+}
+
+fn non_precise_eq_f32(l: f32, r: f32) -> bool {
+  (l * 1_000_000.0) as i32 == (r * 1_000_000.0) as i32
 }
