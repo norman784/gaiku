@@ -354,7 +354,7 @@ impl MeshBuilderOctree {
             }
           }
 
-          let boundary = Boundary::new(leaf.position, [f32::EPSILON, f32::EPSILON, f32::EPSILON]);
+          let boundary = Boundary::new(leaf.position, [0.0, 0.0, 0.0]);
           leafs.push((leaf.clone(), boundary));
 
           if leafs.len() > self.split_at && self.bucket > 0 {
@@ -436,11 +436,11 @@ pub struct MeshBuilder {
 }
 
 impl MeshBuilder {
-  pub fn create(center: [f32; 3], size: f32) -> Self {
+  pub fn create(center: [f32; 3], size: [f32; 3]) -> Self {
     Self {
       current_index: 0,
       indices: vec![],
-      cache: MeshBuilderOctree::new(Boundary::new(center, [size, size, size]), 3, 25),
+      cache: MeshBuilderOctree::new(Boundary::new(center, size), 3, 25),
     }
   }
 
@@ -458,8 +458,22 @@ impl MeshBuilder {
         self.current_index += 1;
       }
       InsertResult::AlreadyExists(index) => self.indices.push(index),
-      InsertResult::FailedInsert => panic!("Failed to insert {:?}", mesh_data),
-      InsertResult::OutOfBounds => {}
+      InsertResult::FailedInsert => {
+        use std::io::prelude::*;
+        let contents = format!("{:#?} {:?}", self.cache, mesh_data);
+        let path = format!("{}/panic.log", env!["CARGO_MANIFEST_DIR"],);
+        let mut file = std::fs::File::create(&path).unwrap();
+        file.write_all(contents.as_bytes()).unwrap();
+        panic!("Failed to insert {:?}", mesh_data)
+      }
+      InsertResult::OutOfBounds => {
+        use std::io::prelude::*;
+        let contents = format!("{:#?} {:?}", self.cache, mesh_data);
+        let path = format!("{}/panic.log", env!["CARGO_MANIFEST_DIR"],);
+        let mut file = std::fs::File::create(&path).unwrap();
+        file.write_all(contents.as_bytes()).unwrap();
+        panic!("Out of bounds {:?}", mesh_data)
+      }
     }
   }
 
@@ -544,7 +558,7 @@ impl MeshBuilder {
 
 impl Default for MeshBuilder {
   fn default() -> Self {
-    MeshBuilder::create([0.0, 0.0, 0.0], 40.0)
+    MeshBuilder::create([0.0, 0.0, 0.0], [40.0, 40.0, 40.0])
   }
 }
 
@@ -611,6 +625,31 @@ fn subdivide(boundary: &Boundary, bucket: usize, split_at: usize) -> Box<[MeshBu
 #[cfg(test)]
 mod test {
   use super::*;
+
+  #[test]
+  fn test_octree_subtrees_size() {
+    let mut tree = MeshBuilderOctree::new(Boundary::new([0.0, 0.0, 0.0], [4.0, 4.0, 4.0]), 3, 5);
+
+    for x in 0..4 {
+      for y in 0..4 {
+        for z in 0..4 {
+          tree.insert(&MeshBuilderData::new(
+            [x as f32, y as f32, z as f32],
+            None,
+            None,
+            0,
+            0,
+          ));
+        }
+      }
+    }
+
+    use std::io::prelude::*;
+    let contents = format!("{:#?}", tree);
+    let path = format!("{}/debug.log", env!["CARGO_MANIFEST_DIR"],);
+    let mut file = std::fs::File::create(&path).unwrap();
+    file.write_all(contents.as_bytes()).unwrap();
+  }
 
   #[test]
   fn test_octree_insert() {

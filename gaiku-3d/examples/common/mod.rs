@@ -97,6 +97,8 @@ pub fn to_obj(mesh: &Mesh, [pos_x, pos_y, pos_z]: [f32; 3], name: &str) -> Objec
 }
 
 pub fn export(data: Vec<(Mesh, [f32; 3])>, name: &str) {
+  assert!(!data.is_empty());
+
   let mut objects = vec![];
 
   for (index, (mesh, position)) in data.iter().enumerate() {

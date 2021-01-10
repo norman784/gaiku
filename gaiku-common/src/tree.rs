@@ -13,14 +13,23 @@ pub struct Boundary {
 
 impl Boundary {
   pub fn new(center: [f32; 3], size: [f32; 3]) -> Self {
-    let div = 1.9;
     let [cx, cy, cz] = center;
-    let [sx, sy, sz] = [size[0] / div, size[1] / div, size[2] / div];
+    let [sx, sy, sz] = [size[0] / 2.0, size[1] / 2.0, size[2] / 2.0];
     Self {
       center: center.into(),
       size: size.into(),
-      start: [cx - sx, cy - sy, cz - sz].into(),
-      end: [cx + sx, cy + sy, cz + sz].into(),
+      start: [
+        cx - sx - f32::EPSILON,
+        cy - sy - f32::EPSILON,
+        cz - sz - f32::EPSILON,
+      ]
+      .into(),
+      end: [
+        cx + sx + f32::EPSILON,
+        cy + sy + f32::EPSILON,
+        cz + sz + f32::EPSILON,
+      ]
+      .into(),
     }
   }
 

@@ -8,10 +8,10 @@ impl Baker for HeightMapBaker {
     let mut builder = MeshBuilder::create(
       [
         chunk.width() as f32 / 2.0,
+        height as f32 / 2.0,
         chunk.height() as f32 / 2.0,
-        chunk.depth() as f32 / 2.0,
       ],
-      chunk.width() as f32,
+      [chunk.width() as f32, height as f32, chunk.height() as f32],
     );
 
     for x in 0..chunk.width() - 1 {
@@ -28,10 +28,10 @@ impl Baker for HeightMapBaker {
         let rb = (chunk.get(x + 1, y, 0).0 as u32 * height) as f32 / 255.0;
         let rf = (chunk.get(x + 1, y + 1, 0).0 as u32 * height) as f32 / 255.0;
 
-        let left_back = [fx - 0.5, lb, fz - 0.5];
-        let right_back = [fx + 0.5, rb, fz - 0.5];
-        let right_front = [fx + 0.5, rf, fz + 0.5];
-        let left_front = [fx - 0.5, lf, fz + 0.5];
+        let left_back = [fx, lb, fz];
+        let right_back = [fx + 1.0, rb, fz];
+        let right_front = [fx + 1.0, rf, fz + 1.0];
+        let left_front = [fx, lf, fz + 1.0];
 
         builder.add_triangle([left_back, right_back, left_front], None, None, 0);
         builder.add_triangle([right_back, right_front, left_front], None, None, 0);

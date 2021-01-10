@@ -146,7 +146,11 @@ impl Baker for MarchingCubesBaker {
         chunk.height() as f32 / 2.0,
         chunk.depth() as f32 / 2.0,
       ],
-      chunk.width() as f32 * 3.0,
+      [
+        chunk.width() as f32,
+        chunk.height() as f32,
+        chunk.depth() as f32,
+      ],
     );
 
     // TODO: Solve issue where data of next chunk is needed to bake the chunk

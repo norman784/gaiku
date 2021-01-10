@@ -11,7 +11,11 @@ impl Baker for VoxelBaker {
         chunk.height() as f32 / 2.0,
         chunk.depth() as f32 / 2.0,
       ],
-      chunk.width() as f32,
+      [
+        chunk.width() as f32,
+        chunk.height() as f32,
+        chunk.depth() as f32,
+      ],
     );
 
     let x_limit = chunk.width() - 1;
