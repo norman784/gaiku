@@ -325,14 +325,16 @@ struct MeshBuilderOctree {
   boundary: Boundary,
   bucket: usize,
   node: MeshBuilderOctreeNode,
+  split_at: usize,
 }
 
 impl MeshBuilderOctree {
-  fn new(boundary: Boundary, bucket: usize) -> Self {
+  fn new(boundary: Boundary, bucket: usize, split_at: usize) -> Self {
     Self {
       boundary,
       bucket,
       node: MeshBuilderOctreeNode::Leaf(vec![]),
+      split_at,
     }
   }
 
@@ -349,9 +351,9 @@ impl MeshBuilderOctree {
           let boundary = Boundary::new(leaf.position, [0.00000001, 0.00000001, 0.00000001]);
           leafs.push((leaf.clone(), boundary));
 
-          if leafs.len() > 100 && self.bucket > 0 {
+          if leafs.len() > self.split_at && self.bucket > 0 {
             let leafs = leafs.clone();
-            let mut nodes = subdivide(&self.boundary, self.bucket);
+            let mut nodes = subdivide(&self.boundary, self.bucket, self.split_at);
             for (leaf, _) in leafs.iter() {
               for node in nodes.iter_mut() {
                 match node.insert(leaf) {
@@ -433,7 +435,7 @@ impl MeshBuilder {
     Self {
       current_index: 0,
       indices: vec![],
-      cache: MeshBuilderOctree::new(Boundary::new(center, [size, size, size]), 3),
+      cache: MeshBuilderOctree::new(Boundary::new(center, [size, size, size]), 3, 25),
     }
   }
 
@@ -536,7 +538,7 @@ impl MeshBuilder {
 }
 
 #[allow(clippy::many_single_char_names)]
-fn subdivide(boundary: &Boundary, bucket: usize) -> Box<[MeshBuilderOctree; 8]> {
+fn subdivide(boundary: &Boundary, bucket: usize, split_at: usize) -> Box<[MeshBuilderOctree; 8]> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
@@ -552,14 +554,46 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Box<[MeshBuilderOctree; 8]> 
   let new_bucket = bucket - 1;
 
   Box::new([
-    MeshBuilderOctree::new(Boundary::new([x - hw, y + hh, z + hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x + hw, y + hh, z + hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x - hw, y + hh, z - hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x + hw, y + hh, z - hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x - hw, y - hh, z + hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x + hw, y - hh, z + hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x - hw, y - hh, z - hd], size), new_bucket),
-    MeshBuilderOctree::new(Boundary::new([x + hw, y - hh, z - hd], size), new_bucket),
+    MeshBuilderOctree::new(
+      Boundary::new([x - hw, y + hh, z + hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x + hw, y + hh, z + hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x - hw, y + hh, z - hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x + hw, y + hh, z - hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x - hw, y - hh, z + hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x + hw, y - hh, z + hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x - hw, y - hh, z - hd], size),
+      new_bucket,
+      split_at,
+    ),
+    MeshBuilderOctree::new(
+      Boundary::new([x + hw, y - hh, z - hd], size),
+      new_bucket,
+      split_at,
+    ),
   ])
 }
 
