@@ -5,35 +5,39 @@ pub struct HeightMapBaker;
 impl Baker for HeightMapBaker {
   fn bake(chunk: &Chunk, _options: &BakerOptions) -> Result<Option<Mesh>> {
     let height = 30;
-    let mut builder = MeshBuilder::create();
-
-    println!("{}", chunk.width() * chunk.height());
+    let mut builder = MeshBuilder::create(
+      [
+        chunk.width() as f32 / 2.0,
+        chunk.height() as f32 / 2.0,
+        chunk.depth() as f32 / 2.0,
+      ],
+      chunk.width() as f32,
+    );
 
     for x in 0..chunk.width() - 1 {
-      for z in 0..chunk.height() - 1 {
-        if chunk.is_air(x, z, 0) {
+      for y in 0..chunk.height() - 1 {
+        if chunk.is_air(x, y, 0) {
           continue;
         }
 
-        println!("{} {}", x, y);
+        let fx = x as f32;
+        let fz = y as f32;
 
         let lb = (chunk.get(x, y, 0).0 as u32 * height) as f32 / 255.0;
         let lf = (chunk.get(x, y + 1, 0).0 as u32 * height) as f32 / 255.0;
         let rb = (chunk.get(x + 1, y, 0).0 as u32 * height) as f32 / 255.0;
         let rf = (chunk.get(x + 1, y + 1, 0).0 as u32 * height) as f32 / 255.0;
 
-        let left_back = [x - 1, lb, z - 1].into();
-        let right_back = [x + 1, rb, z - 1].into();
-        let right_front = [x + 1, rf, z + 1].into();
-        let left_front = [x - 1, lf, z + 1].into();
+        let left_back = [fx - 0.5, lb, fz - 0.5];
+        let right_back = [fx + 0.5, rb, fz - 0.5];
+        let right_front = [fx + 0.5, rf, fz + 0.5];
+        let left_front = [fx - 0.5, lf, fz + 0.5];
 
-        builder.add_triangle([left_back, right_back, left_front], None, None, None);
-        builder.add_triangle([right_back, right_front, left_front], None, None, None);
+        builder.add_triangle([left_back, right_back, left_front], None, None, 0);
+        builder.add_triangle([right_back, right_front, left_front], None, None, 0);
       }
     }
 
-    println!("{:?}", &builder);
-
-    Ok(builder.build(-0.5))
+    Ok(builder.build())
   }
 }

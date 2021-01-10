@@ -148,6 +148,13 @@ pub enum Indices {
 }
 
 impl Indices {
+  pub fn is_empty(&self) -> bool {
+    match self {
+      Indices::U16(arr) => arr.is_empty(),
+      Indices::U32(arr) => arr.is_empty(),
+    }
+  }
+
   pub fn len(&self) -> usize {
     match self {
       Indices::U16(arr) => arr.len(),
@@ -177,7 +184,6 @@ impl Mesh {
   }
 
   pub fn get_attributes(&self, attribute: VertexAttribute) -> Option<&VertexAttributeValues> {
-    let attribute: &str = attribute.into();
     self.attributes.get(attribute.into())
   }
 
@@ -356,9 +362,8 @@ impl MeshBuilderOctree {
             let mut nodes = subdivide(&self.boundary, self.bucket, self.split_at);
             for (leaf, _) in leafs.iter() {
               for node in nodes.iter_mut() {
-                match node.insert(leaf) {
-                  InsertResult::Inserted => break,
-                  _ => {}
+                if let InsertResult::Inserted = node.insert(leaf) {
+                  break;
                 }
               }
             }
@@ -537,6 +542,12 @@ impl MeshBuilder {
   }
 }
 
+impl Default for MeshBuilder {
+  fn default() -> Self {
+    MeshBuilder::create([0.0, 0.0, 0.0], 40.0)
+  }
+}
+
 #[allow(clippy::many_single_char_names)]
 fn subdivide(boundary: &Boundary, bucket: usize, split_at: usize) -> Box<[MeshBuilderOctree; 8]> {
   let w = boundary.size.x / 2.0;
@@ -603,12 +614,32 @@ mod test {
 
   #[test]
   fn test_octree_insert() {
-    let mut tree = MeshBuilderOctree::new(Boundary::new([0.0, 0.0, 0.0], [16.0, 16.0, 16.0]), 10);
+    let mut tree =
+      MeshBuilderOctree::new(Boundary::new([0.0, 0.0, 0.0], [16.0, 16.0, 16.0]), 3, 25);
 
     match tree.insert(&MeshBuilderData::new(
       [0.0, 0.0, 0.0],
       Some([0.0, 0.0, 0.0]),
       Some([0.0, 0.0]),
+      0,
+      0,
+    )) {
+      InsertResult::Inserted => assert!(true),
+      _ => assert!(false),
+    }
+
+    assert_eq!(tree.get_all().len(), 1);
+  }
+
+  #[test]
+  fn test_octree_insert_edge_case() {
+    let mut tree =
+      MeshBuilderOctree::new(Boundary::new([8.0, 8.0, 8.0], [16.0, 16.0, 16.0]), 3, 25);
+
+    match tree.insert(&MeshBuilderData::new(
+      [3.5, 16.352942, 12.5],
+      None,
+      None,
       0,
       0,
     )) {

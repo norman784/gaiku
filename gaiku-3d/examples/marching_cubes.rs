@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use gaiku_3d::{
   bakers::MarchingCubesBaker,
-  common::{Baker, Chunkify, FileFormat, Result},
+  common::{prelude::*, Result},
   formats::GoxReader,
 };
 
@@ -17,31 +17,35 @@ fn read(name: &str) -> Result<()> {
     env!("CARGO_MANIFEST_DIR"),
     name
   );
-  let (chunks, textures) = GoxReader::read(&file)?;
+  let (chunks, texture) = GoxReader::read(&file)?;
+  let options = BakerOptions {
+    texture,
+    ..Default::default()
+  };
   let mut meshes = vec![];
 
-  let reader_elapsed = now.elapsed().as_secs();
+  let reader_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
 
   for chunk in chunks.iter() {
-    let mesh = MarchingCubesBaker::bake(chunk, textures.as_ref())?;
+    let mesh = MarchingCubesBaker::bake(chunk, &options)?;
     if let Some(mesh) = mesh {
       meshes.push((mesh, chunk.position().into()));
     }
   }
 
-  let baker_elapsed = now.elapsed().as_secs();
+  let baker_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
 
   export(meshes, &format!("{}_mc", name));
 
   println!(
-    "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
+    "<<{}>> Chunks: {} Reader: {} micros Baker: {} micros Export: {} micros",
     name,
     chunks.len(),
     reader_elapsed,
     baker_elapsed,
-    now.elapsed().as_secs()
+    now.elapsed().as_micros()
   );
 
   Ok(())

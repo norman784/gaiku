@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use gaiku_3d::{
   bakers::VoxelBaker,
-  common::{Baker, BakerOptions, Chunkify, FileFormat, Result},
+  common::{prelude::*, Result},
   formats::GoxReader,
 };
 
@@ -45,18 +45,12 @@ fn read(name: &str) -> Result<()> {
     ))?;
   }
 
-  let mesh_count = meshes.len();
-  meshes
-    .iter()
-    .for_each(|(m, _)| println!("Mesh {}", m.indices.as_ref().unwrap().len()));
-
   export(meshes, &format!("{}_vx", name));
 
   println!(
-    "<<{}>> Chunks: {} Meshes: {} Reader: {} micros Baker: {} micros Export: {} micros",
+    "<<{}>> Chunks: {} Reader: {} micros Baker: {} micros Export: {} micros",
     name,
     chunks.len(),
-    mesh_count,
     reader_elapsed,
     baker_elapsed,
     now.elapsed().as_micros()

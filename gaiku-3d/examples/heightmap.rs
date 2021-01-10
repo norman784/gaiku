@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use gaiku_3d::{
   bakers::HeightMapBaker,
-  common::{Baker, BakerOptions, Chunkify, FileFormat, Result},
+  common::{prelude::*, Result},
   formats::PNGReader,
 };
 
@@ -24,7 +24,7 @@ fn read(name: &str) -> Result<()> {
   };
   let mut meshes = vec![];
 
-  let reader_elapsed = now.elapsed().as_secs();
+  let reader_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
 
   for chunk in chunks.iter() {
@@ -34,18 +34,18 @@ fn read(name: &str) -> Result<()> {
     }
   }
 
-  let baker_elapsed = now.elapsed().as_secs();
+  let baker_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
 
   export(meshes, &format!("{}_png", name));
 
   println!(
-    "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
+    "<<{}>> Chunks: {} Reader: {} micros Baker: {} micros Export: {} micros",
     name,
     chunks.len(),
     reader_elapsed,
     baker_elapsed,
-    now.elapsed().as_secs()
+    now.elapsed().as_micros()
   );
 
   Ok(())
