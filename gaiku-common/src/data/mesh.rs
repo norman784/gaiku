@@ -354,7 +354,7 @@ impl MeshBuilderOctree {
             }
           }
 
-          let boundary = Boundary::new(leaf.position, [0.00000001, 0.00000001, 0.00000001]);
+          let boundary = Boundary::new(leaf.position, [f32::EPSILON, f32::EPSILON, f32::EPSILON]);
           leafs.push((leaf.clone(), boundary));
 
           if leafs.len() > self.split_at && self.bucket > 0 {
