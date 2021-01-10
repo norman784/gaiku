@@ -147,6 +147,15 @@ pub enum Indices {
   U32(Vec<u32>),
 }
 
+impl Indices {
+  pub fn len(&self) -> usize {
+    match self {
+      Indices::U16(arr) => arr.len(),
+      Indices::U32(arr) => arr.len(),
+    }
+  }
+}
+
 #[derive(Debug)]
 pub struct Mesh {
   pub indices: Option<Indices>,
@@ -265,7 +274,6 @@ struct MeshBuilderData {
   uv: Option<[f32; 2]>,
   atlas_index: u16,
   index: u32,
-  bbox: ami::BBox,
 }
 
 impl MeshBuilderData {
@@ -282,10 +290,6 @@ impl MeshBuilderData {
       uv,
       atlas_index,
       index,
-      bbox: ami::BBox::new(
-        [position[0] - 0.1, position[1] - 0.1, position[2] - 0.1].into(),
-        [position[0] + 0.1, position[1] + 0.1, position[2] + 0.1].into(),
-      ),
     }
   }
 }
@@ -304,17 +308,23 @@ impl From<([f32; 3], Option<[f32; 3]>, Option<[f32; 2]>, u16, u32)> for MeshBuil
   }
 }
 
-impl ami::Collider for MeshBuilderData {
-  fn bbox(&self) -> ami::BBox {
-    self.bbox
-  }
+#[derive(Debug)]
+enum MeshBuilderOctreeNode {
+  Leaf(Vec<(MeshBuilderData, Boundary)>),
+  Subtree(Box<[MeshBuilderOctree; 8]>),
+}
+
+enum InsertResult {
+  AlreadyExists(u32),
+  FailedInsert,
+  Inserted,
+  OutOfBounds,
 }
 
 struct MeshBuilderOctree {
   boundary: Boundary,
   bucket: usize,
-  leafs: Vec<(MeshBuilderData, Boundary)>,
-  nodes: Vec<MeshBuilderOctree>,
+  node: MeshBuilderOctreeNode,
 }
 
 impl MeshBuilderOctree {
@@ -322,89 +332,68 @@ impl MeshBuilderOctree {
     Self {
       boundary,
       bucket,
-      nodes: vec![],
-      leafs: vec![],
+      node: MeshBuilderOctreeNode::Leaf(vec![]),
     }
   }
 
-  fn insert(&mut self, leaf: &MeshBuilderData) -> bool {
+  fn insert(&mut self, leaf: &MeshBuilderData) -> InsertResult {
     if self.boundary.contains(&leaf.position.into()) {
-      if self.nodes.is_empty() {
-        if self
-          .leafs
-          .iter()
-          .any(|(_, b)| b.contains(&leaf.position.into()))
-        {
-          return false;
-        } else {
-          let boundary = Boundary::new(leaf.position, [0.00000001, 0.00000001, 0.00000001]);
-          self.leafs.push((leaf.clone(), boundary));
+      match &mut self.node {
+        MeshBuilderOctreeNode::Leaf(leafs) => {
+          for (data, position) in leafs.iter() {
+            if position.contains(&leaf.position.into()) {
+              return InsertResult::AlreadyExists(data.index);
+            }
+          }
 
-          if self.leafs.len() > 100 && self.bucket > 0 {
-            let leafs = self.leafs.clone();
-            self.nodes = subdivide(&self.boundary, self.bucket);
+          let boundary = Boundary::new(leaf.position, [0.00000001, 0.00000001, 0.00000001]);
+          leafs.push((leaf.clone(), boundary));
+
+          if leafs.len() > 100 && self.bucket > 0 {
+            let leafs = leafs.clone();
+            let mut nodes = subdivide(&self.boundary, self.bucket);
             for (leaf, _) in leafs.iter() {
-              for node in self.nodes.iter_mut() {
-                if node.insert(leaf) {
-                  break;
+              for node in nodes.iter_mut() {
+                match node.insert(leaf) {
+                  InsertResult::Inserted => break,
+                  _ => {}
                 }
               }
             }
 
-            self.leafs.clear();
+            self.node = MeshBuilderOctreeNode::Subtree(nodes);
           }
 
-          return true;
+          InsertResult::Inserted
         }
-      } else {
-        for node in self.nodes.iter_mut() {
-          if node.insert(leaf) {
-            return true;
+        MeshBuilderOctreeNode::Subtree(nodes) => {
+          for node in nodes.iter_mut() {
+            match node.insert(leaf) {
+              InsertResult::Inserted => return InsertResult::Inserted,
+              InsertResult::AlreadyExists(index) => return InsertResult::AlreadyExists(index),
+              InsertResult::FailedInsert => return InsertResult::FailedInsert,
+              _ => {}
+            }
           }
+
+          InsertResult::FailedInsert
         }
-      }
-    }
-
-    false
-  }
-
-  fn get(&self, leaf: &MeshBuilderData) -> Option<u32> {
-    if self.nodes.is_empty() {
-      if let Some((d, _)) = self
-        .leafs
-        .iter()
-        .find(|(_, b)| b.contains(&leaf.position.into()))
-      {
-        return Some(d.index);
-      } else {
-        return None;
       }
     } else {
-      for node in self.nodes.iter() {
-        if let Some(index) = node.get(leaf) {
-          return Some(index);
-        }
-      }
+      InsertResult::OutOfBounds
     }
-
-    None
   }
 
   fn get_all(&self) -> Vec<MeshBuilderData> {
-    if self.nodes.is_empty() {
-      self
-        .leafs
-        .iter()
-        .map(|(d, _)| d.clone())
-        .collect::<Vec<_>>()
-    } else {
-      let mut res = vec![];
-
-      for node in self.nodes.iter() {
-        res.push(node.get_all());
+    match &self.node {
+      MeshBuilderOctreeNode::Leaf(leafs) => {
+        leafs.iter().map(|(d, _)| d.clone()).collect::<Vec<_>>()
       }
-
-      res.iter().cloned().flatten().collect::<Vec<_>>()
+      MeshBuilderOctreeNode::Subtree(nodes) => nodes
+        .iter()
+        .map(|n| n.get_all())
+        .flatten()
+        .collect::<Vec<_>>(),
     }
   }
 }
@@ -414,8 +403,7 @@ impl std::fmt::Debug for MeshBuilderOctree {
     f.debug_struct("MeshBuilderOctree")
       .field("boundary", &self.boundary)
       .field("bucket", &self.bucket)
-      .field("nodes", &self.nodes)
-      .field("leafs", &self.leafs.len())
+      .field("nodes", &self.node)
       .finish()
   }
 }
@@ -438,9 +426,6 @@ pub struct MeshBuilder {
   current_index: u32,
   indices: Vec<u32>,
   cache: MeshBuilderOctree,
-  cache2: HashMap<Position, Vec<MeshBuilderData>>,
-  cache3: ami::Octree<MeshBuilderData>,
-  cache_impl: u8,
 }
 
 impl MeshBuilder {
@@ -449,9 +434,6 @@ impl MeshBuilder {
       current_index: 0,
       indices: vec![],
       cache: MeshBuilderOctree::new(Boundary::new(center, [size, size, size]), 3),
-      cache2: HashMap::new(),
-      cache3: ami::Octree::new(),
-      cache_impl: 2,
     }
   }
 
@@ -462,53 +444,15 @@ impl MeshBuilder {
     uv: Option<[f32; 2]>,
     atlas_index: u16,
   ) {
-    if self.cache_impl == 0 {
-      let next_index = self.cache2.values().fold(0, |acc, v| acc + v.len()) as u32;
-      let data = self.cache2.entry(position.into()).or_insert_with(Vec::new);
-
-      if !data.is_empty() {
-        for row in data.iter() {
-          if non_precise_eq_vec3_f32(
-            row.normal.unwrap_or([0.0, 0.0, 0.0]),
-            normal.unwrap_or([0.0, 0.0, 0.0]),
-          ) && non_precise_eq_vec2_f32(row.uv.unwrap_or([0.0, 0.0]), uv.unwrap_or([0.0, 0.0]))
-            && row.atlas_index == atlas_index
-          {
-            self.indices.push(row.index);
-            return;
-          }
-        }
-      }
-
-      data.push(MeshBuilderData::new(
-        position,
-        normal,
-        uv,
-        atlas_index,
-        next_index,
-      ));
-
-      self.indices.push(next_index);
-    } else if self.cache_impl == 1 {
-      if let Some(index) =
-        self
-          .cache
-          .get(&MeshBuilderData::new(position, normal, uv, atlas_index, 0))
-      {
-        self.indices.push(index);
-      } else if self.cache.insert(&MeshBuilderData::new(
-        position,
-        normal,
-        uv,
-        atlas_index,
-        self.current_index,
-      )) {
+    let mesh_data = MeshBuilderData::new(position, normal, uv, atlas_index, self.current_index);
+    match self.cache.insert(&mesh_data) {
+      InsertResult::Inserted => {
         self.indices.push(self.current_index);
         self.current_index += 1;
-      } else {
-        panic!("Couldn't insert {:?} {:#?}", position, self.cache);
       }
-    } else if self.cache_impl == 2 {
+      InsertResult::AlreadyExists(index) => self.indices.push(index),
+      InsertResult::FailedInsert => panic!("Failed to insert {:?}", mesh_data),
+      InsertResult::OutOfBounds => {}
     }
   }
 
@@ -591,20 +535,8 @@ impl MeshBuilder {
   }
 }
 
-fn non_precise_eq_vec3_f32([lx, ly, lz]: [f32; 3], [rx, ry, rz]: [f32; 3]) -> bool {
-  non_precise_eq_f32(lx, rx) && non_precise_eq_f32(ly, ry) && non_precise_eq_f32(lz, rz)
-}
-
-fn non_precise_eq_vec2_f32([lx, ly]: [f32; 2], [rx, ry]: [f32; 2]) -> bool {
-  non_precise_eq_f32(lx, rx) && non_precise_eq_f32(ly, ry)
-}
-
-fn non_precise_eq_f32(l: f32, r: f32) -> bool {
-  (l * 1_000_000.0) as i32 == (r * 1_000_000.0) as i32
-}
-
 #[allow(clippy::many_single_char_names)]
-fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<MeshBuilderOctree> {
+fn subdivide(boundary: &Boundary, bucket: usize) -> Box<[MeshBuilderOctree; 8]> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
@@ -617,27 +549,18 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<MeshBuilderOctree> {
   let y = boundary.center.y;
   let z = boundary.center.z;
 
-  let coords: [[f32; 3]; 8] = [
-    [x - hw, y + hh, z + hd],
-    [x + hw, y + hh, z + hd],
-    [x - hw, y + hh, z - hd],
-    [x + hw, y + hh, z - hd],
-    [x - hw, y - hh, z + hd],
-    [x + hw, y - hh, z + hd],
-    [x - hw, y - hh, z - hd],
-    [x + hw, y - hh, z - hd],
-  ];
+  let new_bucket = bucket - 1;
 
-  let mut result = vec![];
-
-  for coord in coords.iter() {
-    result.push(MeshBuilderOctree::new(
-      Boundary::new(*coord, size),
-      bucket - 1,
-    ));
-  }
-
-  result
+  Box::new([
+    MeshBuilderOctree::new(Boundary::new([x - hw, y + hh, z + hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x + hw, y + hh, z + hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x - hw, y + hh, z - hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x + hw, y + hh, z - hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x - hw, y - hh, z + hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x + hw, y - hh, z + hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x - hw, y - hh, z - hd], size), new_bucket),
+    MeshBuilderOctree::new(Boundary::new([x + hw, y - hh, z - hd], size), new_bucket),
+  ])
 }
 
 #[cfg(test)]
@@ -648,13 +571,16 @@ mod test {
   fn test_octree_insert() {
     let mut tree = MeshBuilderOctree::new(Boundary::new([0.0, 0.0, 0.0], [16.0, 16.0, 16.0]), 10);
 
-    assert!(tree.insert(&MeshBuilderData::new(
+    match tree.insert(&MeshBuilderData::new(
       [0.0, 0.0, 0.0],
       Some([0.0, 0.0, 0.0]),
       Some([0.0, 0.0]),
       0,
       0,
-    )));
+    )) {
+      InsertResult::Inserted => assert!(true),
+      _ => assert!(false),
+    }
 
     assert_eq!(tree.get_all().len(), 1);
   }

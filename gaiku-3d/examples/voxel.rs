@@ -44,12 +44,19 @@ fn read(name: &str) -> Result<()> {
       name
     ))?;
   }
+
+  let mesh_count = meshes.len();
+  meshes
+    .iter()
+    .for_each(|(m, _)| println!("Mesh {}", m.indices.as_ref().unwrap().len()));
+
   export(meshes, &format!("{}_vx", name));
 
   println!(
-    "<<{}>> Chunks: {} Reader: {} micros Baker: {} micros Export: {} micros",
+    "<<{}>> Chunks: {} Meshes: {} Reader: {} micros Baker: {} micros Export: {} micros",
     name,
     chunks.len(),
+    mesh_count,
     reader_elapsed,
     baker_elapsed,
     now.elapsed().as_micros()
