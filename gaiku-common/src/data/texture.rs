@@ -173,27 +173,27 @@ mod test {
     let atlas = TextureAtlas2d::new(tile_size);
 
     let uv = get_uv_helper(&atlas, 0, 0);
-    assert_eq!(uv.0, [0.0000, 0.0000]);
-    assert_eq!(uv.1, [0.0625, 0.0000]);
-    assert_eq!(uv.2, [0.0625, 0.0625]);
-    assert_eq!(uv.3, [0.0000, 0.0625]);
+    assert_eq!(uv.0, [0.0000, 0.9375]);
+    assert_eq!(uv.1, [0.0625, 0.9375]);
+    assert_eq!(uv.2, [0.0625, 1.0]);
+    assert_eq!(uv.3, [0.0000, 1.0]);
 
     let uv = get_uv_helper(&atlas, 15, 0);
-    assert_eq!(uv.0, [0.9375, 0.0000]);
-    assert_eq!(uv.1, [0.9375, 0.0000]);
-    assert_eq!(uv.2, [0.9375, 0.0000]);
-    assert_eq!(uv.3, [0.9375, 0.0000]);
+    assert_eq!(uv.0, [0.9375, 0.9375]);
+    assert_eq!(uv.1, [1.0000, 0.9375]);
+    assert_eq!(uv.2, [1.0000, 1.0000]);
+    assert_eq!(uv.3, [0.9375, 1.0000]);
 
     let uv = get_uv_helper(&atlas, 1, 0);
-    assert_eq!(uv.0, [0.0625, 0.0000]);
-    assert_eq!(uv.1, [0.0625, 0.0000]);
-    assert_eq!(uv.2, [0.0625, 0.0000]);
-    assert_eq!(uv.3, [0.0625, 0.0000]);
+    assert_eq!(uv.0, [0.0625, 0.9375]);
+    assert_eq!(uv.1, [0.1250, 0.9375]);
+    assert_eq!(uv.2, [0.1250, 1.0000]);
+    assert_eq!(uv.3, [0.0625, 1.0000]);
 
     let uv = get_uv_helper(&atlas, 15, 15);
-    assert_eq!(uv.0, [0.9375, 0.9375]);
-    assert_eq!(uv.1, [0.9375, 0.9375]);
-    assert_eq!(uv.2, [0.9375, 0.9375]);
-    assert_eq!(uv.3, [0.9375, 0.9375]);
+    assert_eq!(uv.0, [0.9375, 0.0000]);
+    assert_eq!(uv.1, [1.0000, 0.0000]);
+    assert_eq!(uv.2, [1.0000, 0.0625]);
+    assert_eq!(uv.3, [0.9375, 0.0625]);
   }
 }

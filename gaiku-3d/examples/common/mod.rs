@@ -1,60 +1,92 @@
 use obj_exporter::{Geometry, ObjSet, Object, Primitive, Shape, TVertex, Vertex};
 
 use gaiku_3d::common::{
-  mint::{Vector2, Vector3},
+  mesh::{Indices, VertexAttribute, VertexAttributeValues},
   Mesh,
 };
 
-pub fn to_obj(mesh: &Mesh, position: &Vector3<f32>, name: &str) -> Object {
+pub fn to_obj(mesh: &Mesh, [pos_x, pos_y, pos_z]: [f32; 3], name: &str) -> Object {
   let mut vertices = vec![];
+  let mut normals = vec![];
+  let mut tex_vertices = vec![];
   let mut indices = vec![];
 
-  for vertex in mesh.vertices.iter() {
-    let x = vertex.x as f64 + position.x as f64;
-    let y = vertex.y as f64 + position.y as f64;
-    let z = vertex.z as f64 + position.z as f64;
-    vertices.push((x, y, z));
+  if let Some(value) = mesh.get_attributes(VertexAttribute::Position) {
+    match value {
+      VertexAttributeValues::Float3(arr) => arr.iter().for_each(|[x, y, z]| {
+        vertices.push(Vertex {
+          x: (x + pos_x) as f64,
+          y: (y + pos_y) as f64,
+          z: (z + pos_z) as f64,
+        })
+      }),
+      _ => {}
+    }
   }
 
-  for i in (0..mesh.indices.len()).step_by(3) {
-    indices.push((mesh.indices[i], mesh.indices[i + 1], mesh.indices[i + 2]))
+  if let Some(value) = mesh.get_attributes(VertexAttribute::Normal) {
+    match value {
+      VertexAttributeValues::Float3(arr) => arr.iter().for_each(|[x, y, z]| {
+        normals.push(Vertex {
+          x: *x as f64,
+          y: *y as f64,
+          z: *z as f64,
+        })
+      }),
+      _ => {}
+    }
+  }
+
+  if let Some(value) = mesh.get_attributes(VertexAttribute::UV) {
+    match value {
+      VertexAttributeValues::Float2(arr) => arr.iter().for_each(|[u, v]| {
+        tex_vertices.push(TVertex {
+          u: *u as f64,
+          v: *v as f64,
+          w: 0.0,
+        })
+      }),
+      _ => {}
+    }
+  }
+
+  if let Some(values) = &mesh.indices {
+    match values {
+      Indices::U16(values) => {
+        for i in (0..values.len()).step_by(3) {
+          indices.push((
+            values[i] as usize,
+            values[i + 1] as usize,
+            values[i + 2] as usize,
+          ));
+        }
+      }
+      Indices::U32(values) => {
+        for i in (0..values.len()).step_by(3) {
+          indices.push((
+            values[i] as usize,
+            values[i + 1] as usize,
+            values[i + 2] as usize,
+          ));
+        }
+      }
+    }
   }
 
   Object {
     name: name.to_owned(),
-    vertices: vertices
-      .into_iter()
-      .map(|(x, y, z)| Vertex { x, y, z })
-      .collect(),
-    tex_vertices: mesh
-      .uv
-      .clone()
-      .into_iter()
-      .map(|Vector2 { x, y }| TVertex {
-        u: x as f64,
-        v: y as f64,
-        w: 0.0,
-      })
-      .collect(),
-    normals: mesh
-      .normals
-      .clone()
-      .into_iter()
-      .map(|Vector3 { x, y, z }| Vertex {
-        x: x as f64,
-        y: y as f64,
-        z: z as f64,
-      })
-      .collect(),
+    vertices,
+    tex_vertices,
+    normals,
     geometry: vec![Geometry {
       material_name: None,
       shapes: indices
         .into_iter()
         .map(|(x, y, z)| Shape {
           primitive: Primitive::Triangle(
-            (x as usize, Some(x as usize), Some(x as usize)),
-            (y as usize, Some(y as usize), Some(y as usize)),
-            (z as usize, Some(z as usize), Some(z as usize)),
+            (x, Some(x), Some(x)),
+            (y, Some(y), Some(y)),
+            (z, Some(z), Some(z)),
           ),
           groups: vec![],
           smoothing_groups: vec![],
@@ -64,11 +96,11 @@ pub fn to_obj(mesh: &Mesh, position: &Vector3<f32>, name: &str) -> Object {
   }
 }
 
-pub fn export(data: Vec<(Mesh, Vector3<f32>)>, name: &str) {
+pub fn export(data: Vec<(Mesh, [f32; 3])>, name: &str) {
   let mut objects = vec![];
 
   for (index, (mesh, position)) in data.iter().enumerate() {
-    let obj = to_obj(mesh, position, &format!("mesh_{}", index));
+    let obj = to_obj(mesh, *position, &format!("mesh_{}", index));
     objects.push(obj);
   }
 

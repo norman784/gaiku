@@ -53,7 +53,7 @@ pub struct Gaiku {
 }
 
 impl Gaiku {
-  pub fn new(data: Vec<Chunk>, size: Vector3<f32>) -> Self {
+  pub fn new(data: Vec<Chunk>, size: [f32; 3]) -> Self {
     let mut terrain = Octree::new(size, 8);
 
     for chunk in data {

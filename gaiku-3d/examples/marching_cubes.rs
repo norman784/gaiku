@@ -26,7 +26,7 @@ fn read(name: &str) -> Result<()> {
   for chunk in chunks.iter() {
     let mesh = MarchingCubesBaker::bake(chunk, textures.as_ref())?;
     if let Some(mesh) = mesh {
-      meshes.push((mesh, chunk.position()));
+      meshes.push((mesh, chunk.position().into()));
     }
   }
 

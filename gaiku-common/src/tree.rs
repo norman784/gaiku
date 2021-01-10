@@ -5,51 +5,41 @@ pub type Octree = Tree;
 
 #[derive(Clone, Debug)]
 pub struct Boundary {
-  center: Vector3<f32>,
-  size: Vector3<f32>,
+  pub center: Vector3<f32>,
+  pub size: Vector3<f32>,
+  start: Vector3<f32>,
+  end: Vector3<f32>,
 }
 
 impl Boundary {
-  fn contains(&self, point: &Vector3<f32>) -> bool {
-    self.start_x() > point.x
-      && self.start_y() > point.y
-      && self.start_z() > point.z
-      && self.end_x() < point.x
-      && self.end_y() < point.y
-      && self.end_z() < point.z
+  pub fn new(center: [f32; 3], size: [f32; 3]) -> Self {
+    let div = 1.9;
+    let [cx, cy, cz] = center;
+    let [sx, sy, sz] = [size[0] / div, size[1] / div, size[2] / div];
+    Self {
+      center: center.into(),
+      size: size.into(),
+      start: [cx - sx, cy - sy, cz - sz].into(),
+      end: [cx + sx, cy + sy, cz + sz].into(),
+    }
   }
 
-  fn intersects(&self, range: &Boundary) -> bool {
-    !(range.start_x() > self.start_x()
-      || range.start_y() > self.start_y()
-      || range.start_z() > self.start_z()
-      || range.end_x() < self.end_x()
-      || range.end_y() < self.end_y()
-      || range.end_z() < self.end_z())
+  pub fn contains(&self, point: &Vector3<f32>) -> bool {
+    self.start.x < point.x
+      && self.start.y < point.y
+      && self.start.z < point.z
+      && self.end.x > point.x
+      && self.end.y > point.y
+      && self.end.z > point.z
   }
 
-  fn start_x(&self) -> f32 {
-    self.center.x - self.size.x
-  }
-
-  fn start_y(&self) -> f32 {
-    self.center.y - self.size.y
-  }
-
-  fn start_z(&self) -> f32 {
-    self.center.z - self.size.z
-  }
-
-  fn end_x(&self) -> f32 {
-    self.center.x + self.size.x
-  }
-
-  fn end_y(&self) -> f32 {
-    self.center.y + self.size.y
-  }
-
-  fn end_z(&self) -> f32 {
-    self.center.z + self.size.z
+  pub fn intersects(&self, range: &Boundary) -> bool {
+    !(range.start.x > self.start.x
+      || range.start.y > self.start.y
+      || range.start.z > self.start.z
+      || range.end.x < self.end.x
+      || range.end.y < self.end.y
+      || range.end.z < self.end.z)
   }
 }
 
@@ -202,11 +192,8 @@ pub struct Tree {
 }
 
 impl Tree {
-  pub fn new(size: Vector3<f32>, bucket: usize) -> Self {
-    let boundary = Boundary {
-      center: [0.0, 0.0, 0.0].into(),
-      size,
-    };
+  pub fn new(size: [f32; 3], bucket: usize) -> Self {
+    let boundary = Boundary::new([0.0, 0.0, 0.0], size);
 
     Tree {
       nodes: subdivide(&boundary, bucket),
@@ -255,36 +242,30 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
-  let size: Vector3<f32> = [w, h, d].into();
-  let hw = size.x / 2.0;
-  let hh = size.y / 2.0;
-  let hd = size.z / 2.0;
+  let size: [f32; 3] = [w, h, d];
+  let hw = size[0] / 2.0;
+  let hh = size[1] / 2.0;
+  let hd = size[2] / 2.0;
 
   let x = w - boundary.center.x;
   let y = h - boundary.center.y;
   let z = d - boundary.center.z;
 
-  let coords: [Vector3<f32>; 8] = [
-    [x - hw, y + hh, z + hd].into(),
-    [x + hw, y + hh, z + hd].into(),
-    [x - hw, y + hh, z - hd].into(),
-    [x + hw, y + hh, z - hd].into(),
-    [x - hw, y - hh, z + hd].into(),
-    [x + hw, y - hh, z + hd].into(),
-    [x - hw, y - hh, z - hd].into(),
-    [x + hw, y - hh, z - hd].into(),
+  let coords: [[f32; 3]; 8] = [
+    [x - hw, y + hh, z + hd],
+    [x + hw, y + hh, z + hd],
+    [x - hw, y + hh, z - hd],
+    [x + hw, y + hh, z - hd],
+    [x - hw, y - hh, z + hd],
+    [x + hw, y - hh, z + hd],
+    [x - hw, y - hh, z - hd],
+    [x + hw, y - hh, z - hd],
   ];
 
   let mut result = vec![];
 
   for coord in coords.iter() {
-    result.push(Node::new(
-      Boundary {
-        center: *coord,
-        size,
-      },
-      bucket,
-    ));
+    result.push(Node::new(Boundary::new(*coord, size), bucket));
   }
 
   result

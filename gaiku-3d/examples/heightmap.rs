@@ -30,7 +30,7 @@ fn read(name: &str) -> Result<()> {
   for chunk in chunks.iter() {
     let mesh = HeightMapBaker::bake(chunk, &options)?;
     if let Some(mesh) = mesh {
-      meshes.push((mesh, chunk.position()));
+      meshes.push((mesh, chunk.position().into()));
     }
   }
 

@@ -16,6 +16,7 @@ serialization = ["serde", "mint/serde"]
 export = ["png"]
 
 [dependencies]
+ami = "*"
 anyhow = "^1.0.37"
 mint = "^0.5.6"
 png = { version = "^0.16.7", optional = true }

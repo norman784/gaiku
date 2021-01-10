@@ -24,22 +24,20 @@ fn read(name: &str) -> Result<()> {
   };
   let mut meshes = vec![];
 
-  let reader_elapsed = now.elapsed().as_secs();
+  let reader_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
 
   for chunk in chunks.iter() {
     let mesh = VoxelBaker::bake(chunk, &options)?;
     if let Some(mesh) = mesh {
-      meshes.push((mesh, chunk.position()));
+      meshes.push((mesh, chunk.position().into()));
     }
   }
 
-  let baker_elapsed = now.elapsed().as_secs();
+  let baker_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
 
   if let Some(texture) = options.texture {
-    println!("TEXTURE::::::");
-    println!("{:?}", texture.get_texture().get_data());
     texture.get_texture().write_to_file(&format!(
       "{}/examples/output/{}.png",
       env!["CARGO_MANIFEST_DIR"],
@@ -49,12 +47,12 @@ fn read(name: &str) -> Result<()> {
   export(meshes, &format!("{}_vx", name));
 
   println!(
-    "<<{}>> Chunks: {} Reader: {} Baker: {} secs Export: {} secs",
+    "<<{}>> Chunks: {} Reader: {} micros Baker: {} micros Export: {} micros",
     name,
     chunks.len(),
     reader_elapsed,
     baker_elapsed,
-    now.elapsed().as_secs()
+    now.elapsed().as_micros()
   );
 
   Ok(())
@@ -62,8 +60,8 @@ fn read(name: &str) -> Result<()> {
 
 fn main() -> Result<()> {
   let _ = read("small_tree");
-  //let _ = read("terrain");
-  //let _ = read("planet");
+  let _ = read("terrain");
+  let _ = read("planet");
 
   Ok(())
 }

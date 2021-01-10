@@ -5,7 +5,14 @@ pub struct VoxelBaker;
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
   fn bake(chunk: &Chunk, options: &BakerOptions) -> Result<Option<Mesh>> {
-    let mut builder = MeshBuilder::create();
+    let mut builder = MeshBuilder::create(
+      [
+        chunk.width() as f32 / 2.0,
+        chunk.height() as f32 / 2.0,
+        chunk.depth() as f32 / 2.0,
+      ],
+      chunk.width() as f32,
+    );
 
     let x_limit = chunk.width() - 1;
     let y_limit = chunk.height() - 1;
