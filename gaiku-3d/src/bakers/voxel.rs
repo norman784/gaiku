@@ -163,3 +163,27 @@ impl Baker for VoxelBaker {
     Ok(builder.build())
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn simple_test() {
+    let options = Default::default();
+    let mut chunk = Chunk::new([0.0, 0.0, 0.0], 1, 1, 1);
+
+    chunk.set(0, 0, 0, (0, 1));
+
+    let mesh = VoxelBaker::bake(&chunk, &options).unwrap().unwrap();
+
+    let positions = mesh
+      .get_attributes(gaiku_common::mesh::VertexAttribute::Position)
+      .unwrap();
+    let positions_count = positions.len();
+    let indices_count = mesh.indices.as_ref().unwrap().len();
+
+    assert_eq!(indices_count, 36);
+    assert_eq!(positions_count, 8);
+  }
+}
