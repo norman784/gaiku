@@ -1,199 +1,91 @@
-use std::{borrow::Cow, collections::HashMap};
-
 use crate::tree::Boundary;
 
-#[derive(Debug)]
-pub enum VertexAttributeValues {
-  Float(Vec<f32>),
-  Int(Vec<i32>),
-  Uint(Vec<u32>),
-  Float2(Vec<[f32; 2]>),
-  Int2(Vec<[i32; 2]>),
-  Uint2(Vec<[u32; 2]>),
-  Float3(Vec<[f32; 3]>),
-  Int3(Vec<[i32; 3]>),
-  Uint3(Vec<[u32; 3]>),
-  Float4(Vec<[f32; 4]>),
-  Int4(Vec<[i32; 4]>),
-  Uint4(Vec<[u32; 4]>),
-}
-
-impl VertexAttributeValues {
-  pub fn len(&self) -> usize {
-    match *self {
-      VertexAttributeValues::Float(ref values) => values.len(),
-      VertexAttributeValues::Int(ref values) => values.len(),
-      VertexAttributeValues::Uint(ref values) => values.len(),
-      VertexAttributeValues::Float2(ref values) => values.len(),
-      VertexAttributeValues::Int2(ref values) => values.len(),
-      VertexAttributeValues::Uint2(ref values) => values.len(),
-      VertexAttributeValues::Float3(ref values) => values.len(),
-      VertexAttributeValues::Int3(ref values) => values.len(),
-      VertexAttributeValues::Uint3(ref values) => values.len(),
-      VertexAttributeValues::Float4(ref values) => values.len(),
-      VertexAttributeValues::Int4(ref values) => values.len(),
-      VertexAttributeValues::Uint4(ref values) => values.len(),
-    }
-  }
-
-  pub fn is_empty(&self) -> bool {
-    self.len() == 0
-  }
-}
-
-impl From<Vec<f32>> for VertexAttributeValues {
-  fn from(vec: Vec<f32>) -> Self {
-    VertexAttributeValues::Float(vec)
-  }
-}
-
-impl From<Vec<i32>> for VertexAttributeValues {
-  fn from(vec: Vec<i32>) -> Self {
-    VertexAttributeValues::Int(vec)
-  }
-}
-
-impl From<Vec<u32>> for VertexAttributeValues {
-  fn from(vec: Vec<u32>) -> Self {
-    VertexAttributeValues::Uint(vec)
-  }
-}
-
-impl From<Vec<[f32; 2]>> for VertexAttributeValues {
-  fn from(vec: Vec<[f32; 2]>) -> Self {
-    VertexAttributeValues::Float2(vec)
-  }
-}
-
-impl From<Vec<[i32; 2]>> for VertexAttributeValues {
-  fn from(vec: Vec<[i32; 2]>) -> Self {
-    VertexAttributeValues::Int2(vec)
-  }
-}
-
-impl From<Vec<[u32; 2]>> for VertexAttributeValues {
-  fn from(vec: Vec<[u32; 2]>) -> Self {
-    VertexAttributeValues::Uint2(vec)
-  }
-}
-
-impl From<Vec<[f32; 3]>> for VertexAttributeValues {
-  fn from(vec: Vec<[f32; 3]>) -> Self {
-    VertexAttributeValues::Float3(vec)
-  }
-}
-
-impl From<Vec<[i32; 3]>> for VertexAttributeValues {
-  fn from(vec: Vec<[i32; 3]>) -> Self {
-    VertexAttributeValues::Int3(vec)
-  }
-}
-
-impl From<Vec<[u32; 3]>> for VertexAttributeValues {
-  fn from(vec: Vec<[u32; 3]>) -> Self {
-    VertexAttributeValues::Uint3(vec)
-  }
-}
-
-impl From<Vec<[f32; 4]>> for VertexAttributeValues {
-  fn from(vec: Vec<[f32; 4]>) -> Self {
-    VertexAttributeValues::Float4(vec)
-  }
-}
-
-impl From<Vec<[i32; 4]>> for VertexAttributeValues {
-  fn from(vec: Vec<[i32; 4]>) -> Self {
-    VertexAttributeValues::Int4(vec)
-  }
-}
-
-impl From<Vec<[u32; 4]>> for VertexAttributeValues {
-  fn from(vec: Vec<[u32; 4]>) -> Self {
-    VertexAttributeValues::Uint4(vec)
-  }
-}
-
-#[derive(Debug)]
-pub enum VertexAttribute {
-  Color,
-  Normal,
-  Position,
-  UV,
-}
-
-impl VertexAttribute {
-  const ATTRIBUTE_COLOR: &'static str = "color";
-  const ATTRIBUTE_NORMAL: &'static str = "normal";
-  const ATTRIBUTE_POSITION: &'static str = "position";
-  const ATTRIBUTE_UV: &'static str = "uv";
-}
-
-impl Into<&str> for VertexAttribute {
-  fn into(self) -> &'static str {
-    use VertexAttribute::*;
-
-    match self {
-      Color => VertexAttribute::ATTRIBUTE_COLOR,
-      Normal => VertexAttribute::ATTRIBUTE_NORMAL,
-      Position => VertexAttribute::ATTRIBUTE_POSITION,
-      UV => VertexAttribute::ATTRIBUTE_UV,
-    }
-  }
-}
-
-#[derive(Debug)]
-pub enum Indices {
-  U16(Vec<u16>),
-  U32(Vec<u32>),
-}
-
-impl Indices {
-  pub fn is_empty(&self) -> bool {
-    match self {
-      Indices::U16(arr) => arr.is_empty(),
-      Indices::U32(arr) => arr.is_empty(),
-    }
-  }
-
-  pub fn len(&self) -> usize {
-    match self {
-      Indices::U16(arr) => arr.len(),
-      Indices::U32(arr) => arr.len(),
-    }
-  }
+pub trait Meshify {
+  fn new() -> Self;
+  fn with(
+    indices: Vec<u32>,
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    uvs: Vec<[f32; 2]>,
+  ) -> Self;
+  fn get_indices(&mut self) -> Vec<u32>;
+  fn get_normals(&mut self) -> Vec<[f32; 3]>;
+  fn get_positions(&mut self) -> Vec<[f32; 3]>;
+  fn get_uvs(&self) -> Vec<[f32; 2]>;
+  fn set_indices(&mut self, indices: Vec<u32>);
+  fn set_normals(&mut self, normals: Vec<[f32; 3]>);
+  fn set_positions(&mut self, positions: Vec<[f32; 3]>);
+  fn set_uvs(&mut self, uvs: Vec<[f32; 2]>);
 }
 
 #[derive(Debug)]
 pub struct Mesh {
-  pub indices: Option<Indices>,
-  pub attributes: HashMap<Cow<'static, str>, VertexAttributeValues>,
+  indices: Vec<u32>,
+  normals: Vec<[f32; 3]>,
+  positions: Vec<[f32; 3]>,
+  uvs: Vec<[f32; 2]>,
 }
 
 impl Default for Mesh {
   fn default() -> Self {
     Self {
-      indices: None,
-      attributes: HashMap::new(),
+      indices: vec![],
+      normals: vec![],
+      positions: vec![],
+      uvs: vec![],
     }
   }
 }
 
-impl Mesh {
-  pub fn new() -> Self {
+impl Meshify for Mesh {
+  fn new() -> Self {
     Default::default()
   }
 
-  pub fn get_attributes(&self, attribute: VertexAttribute) -> Option<&VertexAttributeValues> {
-    self.attributes.get(attribute.into())
+  fn with(
+    indices: Vec<u32>,
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+    uvs: Vec<[f32; 2]>,
+  ) -> Self {
+    Mesh {
+      indices,
+      positions,
+      normals,
+      uvs,
+    }
   }
 
-  pub fn set_attributes(&mut self, attribute: VertexAttribute, values: VertexAttributeValues) {
-    let attribute: &str = attribute.into();
-    self.attributes.insert(attribute.into(), values);
+  fn get_indices(&mut self) -> Vec<u32> {
+    self.indices.clone()
   }
 
-  pub fn set_indices(&mut self, indices: Indices) {
-    self.indices = Some(indices);
+  fn get_normals(&mut self) -> Vec<[f32; 3]> {
+    self.normals.clone()
+  }
+
+  fn get_positions(&mut self) -> Vec<[f32; 3]> {
+    self.positions.clone()
+  }
+
+  fn get_uvs(&self) -> Vec<[f32; 2]> {
+    self.uvs.clone()
+  }
+
+  fn set_indices(&mut self, indices: Vec<u32>) {
+    self.indices = indices;
+  }
+
+  fn set_normals(&mut self, normals: Vec<[f32; 3]>) {
+    self.normals = normals;
+  }
+
+  fn set_positions(&mut self, positions: Vec<[f32; 3]>) {
+    self.positions = positions;
+  }
+
+  fn set_uvs(&mut self, uvs: Vec<[f32; 2]>) {
+    self.uvs = uvs;
   }
   /*
     /// This will generate a texture from the
@@ -523,12 +415,15 @@ impl MeshBuilder {
     if !self.indices.is_empty() {
       let mut data = self.cache.get_all();
       data.sort_by(|a, b| a.index.partial_cmp(&b.index).unwrap());
+
+      let indices = self.indices.clone();
       let mut positions = vec![];
       let mut normals = vec![];
       let mut uvs = vec![];
 
       for row in data.iter() {
         positions.push(row.position);
+
         if let Some(normal) = row.normal {
           normals.push(normal);
         }
@@ -538,18 +433,7 @@ impl MeshBuilder {
         }
       }
 
-      let mut mesh = Mesh::new();
-      mesh.set_indices(Indices::U32(self.indices.clone()));
-      mesh.set_attributes(VertexAttribute::Position, positions.into());
-
-      if !normals.is_empty() {
-        mesh.set_attributes(VertexAttribute::Normal, normals.into());
-      }
-      if !uvs.is_empty() {
-        mesh.set_attributes(VertexAttribute::UV, uvs.into());
-      }
-
-      Some(mesh)
+      Some(Mesh::with(indices, positions, normals, uvs))
     } else {
       None
     }

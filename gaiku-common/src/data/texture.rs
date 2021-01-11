@@ -22,6 +22,15 @@ fn xy_to_uv((x, y): (u8, u8)) -> (f32, f32) {
   )
 }
 
+pub trait Texturify2d {
+  fn new(width: u32, height: u32) -> Self;
+  fn get_data(&self) -> Vec<u8>;
+  fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]>;
+  fn height(&self) -> u32;
+  fn width(&self) -> u32;
+  fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]);
+}
+
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TextureAtlas2d {
@@ -73,50 +82,6 @@ pub struct Texture2d {
 }
 
 impl Texture2d {
-  pub fn new(width: u32, height: u32) -> Self {
-    Self {
-      width,
-      height,
-      data: vec![0; (width as usize * height as usize) * 4],
-    }
-  }
-
-  pub fn get_data(&self) -> Vec<u8> {
-    self.data.clone()
-  }
-
-  pub fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]> {
-    if x < self.width && y < self.height {
-      let index = (x + 4 + self.width * y + 4) as usize;
-      Some([
-        self.data[index],
-        self.data[index + 1],
-        self.data[index + 2],
-        self.data[index + 3],
-      ])
-    } else {
-      None
-    }
-  }
-
-  pub fn height(&self) -> u32 {
-    self.height
-  }
-
-  pub fn width(&self) -> u32 {
-    self.width
-  }
-
-  pub fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]) {
-    if x < self.width && y < self.height {
-      let index = (x * 4 + self.width * y * 4) as usize;
-
-      for (i, value) in data.iter().enumerate() {
-        self.data[index + i] = *value;
-      }
-    }
-  }
-
   #[cfg(feature = "png")]
   pub fn write_to_file(&self, file_path: &str) -> Result<()> {
     let path = Path::new(file_path);
@@ -131,6 +96,52 @@ impl Texture2d {
     writer.write_image_data(&self.data)?;
 
     Ok(())
+  }
+}
+
+impl Texturify2d for Texture2d {
+  fn new(width: u32, height: u32) -> Self {
+    Self {
+      width,
+      height,
+      data: vec![0; (width as usize * height as usize) * 4],
+    }
+  }
+
+  fn get_data(&self) -> Vec<u8> {
+    self.data.clone()
+  }
+
+  fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]> {
+    if x < self.width && y < self.height {
+      let index = (x + 4 + self.width * y + 4) as usize;
+      Some([
+        self.data[index],
+        self.data[index + 1],
+        self.data[index + 2],
+        self.data[index + 3],
+      ])
+    } else {
+      None
+    }
+  }
+
+  fn height(&self) -> u32 {
+    self.height
+  }
+
+  fn width(&self) -> u32 {
+    self.width
+  }
+
+  fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]) {
+    if x < self.width && y < self.height {
+      let index = (x * 4 + self.width * y * 4) as usize;
+
+      for (i, value) in data.iter().enumerate() {
+        self.data[index + i] = *value;
+      }
+    }
   }
 }
 
