@@ -1,1 +1,0 @@
-// TODO: Use Tiled file format documentation to build a solid format
