@@ -1,4 +1,4 @@
-use crate::tree::Boundary;
+use crate::boundary::Boundary;
 
 pub trait Meshify {
   fn new() -> Self;
@@ -411,7 +411,10 @@ impl MeshBuilder {
     });
   }
 
-  pub fn build(&self) -> Option<Mesh> {
+  pub fn build<M>(&self) -> Option<M>
+  where
+    M: Meshify,
+  {
     if !self.indices.is_empty() {
       let mut data = self.cache.get_all();
       data.sort_by(|a, b| a.index.partial_cmp(&b.index).unwrap());
@@ -433,7 +436,7 @@ impl MeshBuilder {
         }
       }
 
-      Some(Mesh::with(indices, positions, normals, uvs))
+      Some(M::with(indices, positions, normals, uvs))
     } else {
       None
     }

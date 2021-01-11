@@ -22,31 +22,39 @@ fn xy_to_uv((x, y): (u8, u8)) -> (f32, f32) {
   )
 }
 
-pub trait Texturify2d {
+pub trait Texturify2d: Clone + std::fmt::Debug {
   fn new(width: u32, height: u32) -> Self;
   fn get_data(&self) -> Vec<u8>;
   fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]>;
   fn height(&self) -> u32;
-  fn width(&self) -> u32;
+  fn len(&self) -> usize;
   fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]);
+  fn set_pixel_at_index(&mut self, index: usize, data: [u8; 4]);
+  fn width(&self) -> u32;
 }
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct TextureAtlas2d {
-  texture: Texture2d,
+pub struct TextureAtlas2d<T>
+where
+  T: Texturify2d,
+{
+  texture: T,
 }
 
-impl TextureAtlas2d {
+impl<T> TextureAtlas2d<T>
+where
+  T: Texturify2d,
+{
   pub fn new(tile_size: u32) -> Self {
-    Self::with_texture(Texture2d::new(COLS * tile_size, ROWS * tile_size))
+    Self::with_texture(T::new(COLS * tile_size, ROWS * tile_size))
   }
 
-  pub fn with_texture(texture: Texture2d) -> Self {
+  pub fn with_texture(texture: T) -> Self {
     Self { texture }
   }
 
-  pub fn get_texture(&self) -> Texture2d {
+  pub fn get_texture(&self) -> T {
     self.texture.clone()
   }
 
@@ -63,12 +71,11 @@ impl TextureAtlas2d {
   }
 
   pub fn set_at_index(&mut self, index: usize, pixels: Vec<[u8; 4]>) {
-    if index + (pixels.len() * 4) < self.texture.data.len() {
+    if index + (pixels.len() * 4) < self.texture.len() {
       pixels
         .iter()
-        .flat_map(|v| v.to_vec())
         .enumerate()
-        .for_each(|(i, v)| self.texture.data[(index * 4) + i] = v);
+        .for_each(|(i, v)| self.texture.set_pixel_at_index((index * 4) + i, *v));
     }
   }
 }
@@ -130,18 +137,26 @@ impl Texturify2d for Texture2d {
     self.height
   }
 
-  fn width(&self) -> u32 {
-    self.width
+  fn len(&self) -> usize {
+    self.data.len()
   }
 
   fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]) {
     if x < self.width && y < self.height {
-      let index = (x * 4 + self.width * y * 4) as usize;
+      self.set_pixel_at_index((x * 4 + self.width * y * 4) as usize, data);
+    }
+  }
 
+  fn set_pixel_at_index(&mut self, index: usize, data: [u8; 4]) {
+    if index < self.data.len() - 4 {
       for (i, value) in data.iter().enumerate() {
         self.data[index + i] = *value;
       }
     }
+  }
+
+  fn width(&self) -> u32 {
+    self.width
   }
 }
 
@@ -150,7 +165,7 @@ mod test {
   use super::*;
 
   fn get_uv_helper(
-    atlas: &TextureAtlas2d,
+    atlas: &TextureAtlas2d<Texture2d>,
     x: u32,
     y: u32,
   ) -> ([f32; 2], [f32; 2], [f32; 2], [f32; 2]) {
@@ -172,7 +187,7 @@ mod test {
   #[test]
   fn test_texture_size() {
     let tile_size = 16;
-    let atlas = TextureAtlas2d::new(tile_size);
+    let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
 
     assert_eq!(256, atlas.texture.width);
     assert_eq!(256, atlas.texture.height);
@@ -181,7 +196,7 @@ mod test {
   #[test]
   fn test_texture_atlas_index_to_uv() {
     let tile_size = 1;
-    let atlas = TextureAtlas2d::new(tile_size);
+    let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
 
     let uv = get_uv_helper(&atlas, 0, 0);
     assert_eq!(uv.0, [0.0000, 0.9375]);

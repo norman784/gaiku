@@ -1,4 +1,4 @@
-use gaiku_common::Mesh;
+use gaiku_common::mesh::Mesh;
 
 use amethyst::renderer::{
   palette::Srgba,

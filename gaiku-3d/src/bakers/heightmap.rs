@@ -1,9 +1,14 @@
-use crate::common::{prelude::*, Chunk, Result};
+use crate::common::{prelude::*, Result};
 
 pub struct HeightMapBaker;
 
 impl Baker for HeightMapBaker {
-  fn bake(chunk: &Chunk, _options: &BakerOptions) -> Result<Option<Mesh>> {
+  fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify,
+    T: Texturify2d,
+    M: Meshify,
+  {
     let height = 30;
     let mut builder = MeshBuilder::create(
       [
@@ -38,6 +43,6 @@ impl Baker for HeightMapBaker {
       }
     }
 
-    Ok(builder.build())
+    Ok(builder.build::<M>())
   }
 }

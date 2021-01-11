@@ -1,15 +1,19 @@
-use gaiku_common::{Chunk, Chunkify, FileFormat, Result, TextureAtlas2d};
+use gaiku_common::{prelude::*, Result};
 
 use image::load_from_memory;
 
 pub struct PNGReader;
 
 impl FileFormat for PNGReader {
-  fn load(bytes: Vec<u8>) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
+  fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
+  where
+    C: Chunkify,
+    T: Texturify2d,
+  {
     let mut result = vec![];
     let img = load_from_memory(&bytes)?.into_luma8();
 
-    let mut chunk = Chunk::new(
+    let mut chunk = C::new(
       [0.0, 0.0, 0.0],
       img.width().clamp(0, u16::MAX as u32) as u16,
       img.height().clamp(0, u16::MAX as u32) as u16,

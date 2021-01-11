@@ -3,29 +3,39 @@ use std::fs::read;
 pub use anyhow::Result;
 pub use mint;
 
-use mint::Vector3;
-
-mod data;
-mod tree;
-
-pub use crate::{
-  data::{mesh, texture, Chunk, Chunkify, Mesh, MeshBuilder, Texture2d, TextureAtlas2d},
-  tree::{Boundary, Octree},
+use crate::{
+  chunk::Chunkify,
+  mesh::Meshify,
+  texture::{TextureAtlas2d, Texturify2d},
 };
+
+mod boundary;
+pub mod chunk;
+pub mod mesh;
+pub mod texture;
+pub mod tree;
 
 pub mod prelude {
   pub use crate::{
-    data::{Chunkify, Mesh, MeshBuilder},
+    chunk::Chunkify,
+    mesh::{MeshBuilder, Meshify},
+    texture::{TextureAtlas2d, Texturify2d},
     Baker, BakerOptions, FileFormat,
   };
 }
 
-pub struct BakerOptions {
+pub struct BakerOptions<T>
+where
+  T: Texturify2d,
+{
   pub level_of_detail: usize,
-  pub texture: Option<TextureAtlas2d>,
+  pub texture: Option<TextureAtlas2d<T>>,
 }
 
-impl Default for BakerOptions {
+impl<T> Default for BakerOptions<T>
+where
+  T: Texturify2d,
+{
   fn default() -> Self {
     Self {
       level_of_detail: 1,
@@ -35,19 +45,31 @@ impl Default for BakerOptions {
 }
 
 pub trait Baker {
-  fn bake(chunk: &Chunk, options: &BakerOptions) -> Result<Option<Mesh>>;
+  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify,
+    M: Meshify,
+    T: Texturify2d;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
-  fn load(bytes: Vec<u8>) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)>;
+  fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
+  where
+    C: Chunkify,
+    T: Texturify2d;
 
-  fn read(file: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
+  fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
+  where
+    C: Chunkify,
+    T: Texturify2d,
+  {
     let bytes = read(file)?;
-    Self::load(bytes)
+    Self::load::<C, T>(bytes)
   }
 }
 
+/*
 pub struct Gaiku {
   terrain: Octree,
 }
@@ -75,3 +97,4 @@ impl Gaiku {
     self.terrain.set_leaf(chunk)
   }
 }
+*/

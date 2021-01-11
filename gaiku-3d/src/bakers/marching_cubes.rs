@@ -1,6 +1,4 @@
-use gaiku_common::{
-  mesh::MeshBuilder, mint::Vector3, Baker, BakerOptions, Chunk, Chunkify, Mesh, Result,
-};
+use gaiku_common::{mint::Vector3, prelude::*, Result};
 use glam::Vec3;
 
 mod tables;
@@ -139,7 +137,12 @@ impl MarchingCubesBaker {
 }
 
 impl Baker for MarchingCubesBaker {
-  fn bake(chunk: &Chunk, _options: &BakerOptions) -> Result<Option<Mesh>> {
+  fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify,
+    T: Texturify2d,
+    M: Meshify,
+  {
     let mut builder = MeshBuilder::create(
       [
         chunk.width() as f32 / 2.0,
@@ -194,6 +197,6 @@ impl Baker for MarchingCubesBaker {
       }
     }
 
-    Ok(builder.build())
+    Ok(builder.build::<M>())
   }
 }

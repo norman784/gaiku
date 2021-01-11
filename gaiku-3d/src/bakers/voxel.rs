@@ -1,10 +1,15 @@
-use gaiku_common::{mesh::MeshBuilder, prelude::*, Chunk, Result};
+use gaiku_common::{prelude::*, Result};
 
 pub struct VoxelBaker;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
-  fn bake(chunk: &Chunk, options: &BakerOptions) -> Result<Option<Mesh>> {
+  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify,
+    T: Texturify2d,
+    M: Meshify,
+  {
     let mut builder = MeshBuilder::create(
       [
         chunk.width() as f32 / 2.0,
@@ -164,13 +169,14 @@ impl Baker for VoxelBaker {
       }
     }
 
-    Ok(builder.build())
+    Ok(builder.build::<M>())
   }
 }
 
 #[cfg(test)]
 mod test {
   use super::*;
+  use gaiku_common::{chunk::Chunk, mesh::Mesh, texture::Texture2d};
 
   #[test]
   fn simple_test() {
@@ -179,13 +185,12 @@ mod test {
 
     chunk.set(0, 0, 0, (0, 1));
 
-    let mesh = VoxelBaker::bake(&chunk, &options).unwrap().unwrap();
-
-    let positions = mesh
-      .get_attributes(gaiku_common::mesh::VertexAttribute::Position)
+    let mesh = VoxelBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options)
+      .unwrap()
       .unwrap();
-    let positions_count = positions.len();
-    let indices_count = mesh.indices.as_ref().unwrap().len();
+
+    let positions_count = mesh.get_positions().len();
+    let indices_count = mesh.get_indices().len();
 
     assert_eq!(indices_count, 36);
     assert_eq!(positions_count, 8);
