@@ -1,14 +1,16 @@
 use gaiku_common::Mesh;
 
-use amethyst::{
-  renderer::palette::Srgba,
-  renderer::rendy::{
-    hal::image::{Filter, Kind, SamplerInfo, ViewKind, WrapMode},
-    hal::Primitive,
+use amethyst::renderer::{
+  palette::Srgba,
+  rendy::{
+    hal::{
+      image::{Filter, Kind, SamplerInfo, ViewKind, WrapMode},
+      Primitive,
+    },
     mesh::{Color, MeshBuilder, Normal, Position, TexCoord},
     texture::{pixel::Rgba8Srgb, TextureBuilder},
   },
-  renderer::types::{MeshData, TextureData},
+  types::{MeshData, TextureData},
 };
 
 /// Creates an ametheyst texture data which can be attached to
@@ -29,13 +31,8 @@ pub fn get_amethyst_texture(mesh: &mut Mesh, width: u32, height: u32) -> Texture
     .with_data_height(height as u32)
     .with_sampler_info(SamplerInfo::new(Filter::Linear, WrapMode::Clamp))
     .with_data(pixel_data);
-<<<<<<< HEAD
-
-  texture_builder.into()
-=======
   texture_builder.into()
 }
->>>>>>> master
 
 /// Creates an ametheyst mesh data which can be attached to
 /// entity to render the mesh

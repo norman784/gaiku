@@ -5,17 +5,16 @@
 
 use amethyst::{
   assets::{Handle, Loader},
-  controls::FlyControlBundle,
-  controls::FlyControlTag,
-  core::math::{Matrix4, Vector3, Vector4},
-  core::transform::Transform,
-  core::transform::TransformBundle,
+  controls::{FlyControlBundle, FlyControlTag},
+  core::{
+    math::{Matrix4, Vector3, Vector4},
+    transform::{Transform, TransformBundle},
+  },
   input::{InputBundle, StringBindings},
   prelude::*,
   renderer::{
     light::{DirectionalLight, Light},
-    palette::rgb::Rgb,
-    palette::Srgb,
+    palette::{rgb::Rgb, Srgb},
     plugins::{RenderShaded3D, RenderSkybox, RenderToWindow},
     types::DefaultBackend,
     ActiveCamera, Camera, Material, MaterialDefaults, Mesh, RenderingBundle,
