@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use mint::Vector3;
 
 pub trait Chunkify {
-  fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self;
+  fn new(position: [f32; 3], width: u16, height: u16, depth: u16) -> Self;
   fn depth(&self) -> u16;
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
   fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8);
@@ -30,7 +30,7 @@ pub struct Chunk {
 
 impl Chunk {
   fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    x + y * self.width as u16 + z * self.width as u16 * self.width as u16
+    x + y * self.width as usize + z * self.width as usize * self.width as usize
   }
 
   pub fn values(&self) -> Vec<(u8, u8)> {
@@ -44,13 +44,13 @@ impl Chunk {
 }
 
 impl Chunkify for Chunk {
-  fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self {
+  fn new(position: [f32; 3], width: u16, height: u16, depth: u16) -> Self {
     Chunk {
       position: position.into(),
       width,
       height,
       depth,
-      indices_values: vec![(0, 0); depth * height * width],
+      indices_values: vec![(0, 0); depth as usize * height as usize * width as usize],
     }
   }
 
@@ -59,10 +59,10 @@ impl Chunkify for Chunk {
   }
 
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
-    if x >= self.width || y >= self.height || z >= self.depth {
+    if x >= self.width as usize || y >= self.height as usize || z >= self.depth as usize {
       true
     } else {
-      self.get_value(x, y, z) == 0
+      self.get(x, y, z).1 == 0
     }
   }
 

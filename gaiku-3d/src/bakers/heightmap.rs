@@ -14,8 +14,8 @@ impl Baker for HeightMapBaker {
       [chunk.width() as f32, height as f32, chunk.height() as f32],
     );
 
-    for x in 0..chunk.width() - 1 {
-      for y in 0..chunk.height() - 1 {
+    for x in 0..chunk.width() as usize - 1 {
+      for y in 0..chunk.height() as usize - 1 {
         if chunk.is_air(x, y, 0) {
           continue;
         }

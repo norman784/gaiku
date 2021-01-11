@@ -11,13 +11,13 @@ impl FileFormat for PNGReader {
 
     let mut chunk = Chunk::new(
       [0.0, 0.0, 0.0],
-      img.width() as usize,
-      img.height() as usize,
+      img.width().clamp(0, u16::MAX as u32) as u16,
+      img.height().clamp(0, u16::MAX as u32) as u16,
       1,
     );
 
-    for x in 0..img.width() {
-      for y in 0..img.height() {
+    for x in 0..img.width() as u32 {
+      for y in 0..img.height() as u32 {
         let color = img.get_pixel(x, y).0[0];
         chunk.set(x as usize, y as usize, 0, (color, color));
       }

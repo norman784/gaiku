@@ -154,11 +154,11 @@ impl Baker for MarchingCubesBaker {
     );
 
     // TODO: Solve issue where data of next chunk is needed to bake the chunk
-    for x in 0..chunk.width() - 1 {
+    for x in 0..chunk.width() as usize - 1 {
       let fx = x as f32;
-      for y in 0..chunk.height() - 1 {
+      for y in 0..chunk.height() as usize - 1 {
         let fy = y as f32;
-        for z in 0..chunk.depth() - 1 {
+        for z in 0..chunk.depth() as usize - 1 {
           let fz = z as f32;
 
           let grid = GridCell {

@@ -18,18 +18,18 @@ impl Baker for VoxelBaker {
       ],
     );
 
-    let x_limit = chunk.width() - 1;
-    let y_limit = chunk.height() - 1;
-    let z_limit = chunk.depth() - 1;
+    let x_limit = chunk.width() as usize - 1;
+    let y_limit = chunk.height() as usize - 1;
+    let z_limit = chunk.depth() as usize - 1;
 
-    for x in 0..chunk.width() {
-      for y in 0..chunk.height() {
-        for z in 0..chunk.depth() {
+    for x in 0..chunk.width() as usize {
+      for y in 0..chunk.height() as usize {
+        for z in 0..chunk.depth() as usize {
           if chunk.is_air(x, y, z) {
             continue;
           }
 
-          let atlas_index = chunk.get_index(x, y, z);
+          let (atlas_index, _) = chunk.get(x, y, z);
           let uv = if let Some(texture) = &options.texture {
             Some(texture.get_uv(atlas_index))
           } else {
