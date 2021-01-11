@@ -5,32 +5,32 @@ use mint::Vector3;
 
 pub trait Chunkify {
   fn new(position: [f32; 3], width: usize, height: usize, depth: usize) -> Self;
-  fn depth(&self) -> usize;
+  fn depth(&self) -> u16;
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
   fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8);
-  fn get_index(&self, x: usize, y: usize, z: usize) -> u8;
-  fn get_value(&self, x: usize, y: usize, z: usize) -> u8;
-  fn height(&self) -> usize;
+  fn height(&self) -> u16;
   fn position(&self) -> Vector3<f32>;
   fn set(&mut self, x: usize, y: usize, z: usize, index_value: (u8, u8));
-  fn set_index(&mut self, x: usize, y: usize, z: usize, index: u8);
-  fn set_value(&mut self, x: usize, y: usize, z: usize, value: u8);
-  fn width(&self) -> usize;
+  fn width(&self) -> u16;
+}
+
+pub trait ChunkifyMut {
+  fn set(&mut self, x: usize, y: usize, z: usize, index_value: (u8, u8));
 }
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Chunk {
   position: Vector3<f32>,
-  width: usize,
-  height: usize,
-  depth: usize,
+  width: u16,
+  height: u16,
+  depth: u16,
   indices_values: Vec<(u8, u8)>,
 }
 
 impl Chunk {
   fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    x + y * self.width + z * self.width * self.width
+    x + y * self.width as u16 + z * self.width as u16 * self.width as u16
   }
 
   pub fn values(&self) -> Vec<(u8, u8)> {
@@ -54,7 +54,7 @@ impl Chunkify for Chunk {
     }
   }
 
-  fn depth(&self) -> usize {
+  fn depth(&self) -> u16 {
     self.depth
   }
 
@@ -70,15 +70,7 @@ impl Chunkify for Chunk {
     self.indices_values[self.index(x, y, z)]
   }
 
-  fn get_index(&self, x: usize, y: usize, z: usize) -> u8 {
-    self.get(x, y, z).0
-  }
-
-  fn get_value(&self, x: usize, y: usize, z: usize) -> u8 {
-    self.get(x, y, z).1
-  }
-
-  fn height(&self) -> usize {
+  fn height(&self) -> u16 {
     self.height
   }
 
@@ -91,17 +83,7 @@ impl Chunkify for Chunk {
     self.indices_values[index] = value;
   }
 
-  fn set_index(&mut self, x: usize, y: usize, z: usize, index: u8) {
-    let value = self.get_value(x, y, z);
-    self.set(x, y, z, (index, value));
-  }
-
-  fn set_value(&mut self, x: usize, y: usize, z: usize, value: u8) {
-    let index = self.get_index(x, y, z);
-    self.set(x, y, z, (index, value));
-  }
-
-  fn width(&self) -> usize {
+  fn width(&self) -> u16 {
     self.width
   }
 }
