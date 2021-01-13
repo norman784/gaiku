@@ -24,7 +24,7 @@ fn xy_to_uv((x, y): (u8, u8)) -> (f32, f32) {
 
 pub trait Texturify2d: Clone + std::fmt::Debug {
   fn new(width: u32, height: u32) -> Self;
-  fn get_data(&self) -> Vec<u8>;
+  fn get_data(&self) -> &Vec<u8>;
   fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]>;
   fn height(&self) -> u32;
   fn len(&self) -> usize;
@@ -115,8 +115,8 @@ impl Texturify2d for Texture2d {
     }
   }
 
-  fn get_data(&self) -> Vec<u8> {
-    self.data.clone()
+  fn get_data(&self) -> &Vec<u8> {
+    &self.data
   }
 
   fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]> {

@@ -1,18 +1,4 @@
-use gaiku_common::mesh::Mesh;
-
-use amethyst::renderer::{
-  palette::Srgba,
-  rendy::{
-    hal::{
-      image::{Filter, Kind, SamplerInfo, ViewKind, WrapMode},
-      Primitive,
-    },
-    mesh::{Color, MeshBuilder, Normal, Position, TexCoord},
-    texture::{pixel::Rgba8Srgb, TextureBuilder},
-  },
-  types::{MeshData, TextureData},
-};
-
+/*
 /// Creates an ametheyst texture data which can be attached to
 /// material to give the mesh color. Texture size is fixed at 1024x1024
 pub fn get_amethyst_texture(mesh: &mut Mesh, width: u32, height: u32) -> TextureData {
@@ -97,3 +83,4 @@ pub fn to_amethyst_mesh_ww_tex(
   let tex_data = get_amethyst_texture(mesh, width, height);
   (to_amethyst_mesh(mesh), tex_data)
 }
+*/

@@ -16,19 +16,16 @@ use amethyst::{
     light::{DirectionalLight, Light},
     palette::{rgb::Rgb, Srgb},
     plugins::{RenderShaded3D, RenderSkybox, RenderToWindow},
-    types::DefaultBackend,
+    types::{DefaultBackend, TextureData},
     ActiveCamera, Camera, Material, MaterialDefaults, Mesh, RenderingBundle,
   },
   ui::{RenderUi, UiBundle},
   utils::application_root_dir,
 };
 
-use gaiku_3d::{
-  bakers::VoxelBaker,
-  common::{Baker, Chunkify, FileFormat},
-  formats::GoxReader,
-};
-use gaiku_amethyst::mesher::to_amethyst_mesh_ww_tex;
+use gaiku_3d::{bakers::VoxelBaker, common::chunk::Chunk, formats::GoxReader};
+
+use gaiku_amethyst::prelude::*;
 
 fn main() -> amethyst::Result<()> {
   amethyst::start_logger(Default::default());
@@ -126,16 +123,21 @@ impl GameLoad {
       env!("CARGO_MANIFEST_DIR"),
       "terrain"
     );
-    let chunks = GoxReader::read(&file);
+    let (chunks, texture) = GoxReader::read::<Chunk, GaikuTexture2d>(&file).unwrap();
+    let options = BakerOptions {
+      texture,
+      ..Default::default()
+    };
     let mut meshes = vec![];
 
     for chunk in chunks.iter() {
-      let mesh = VoxelBaker::bake(chunk);
+      let mesh = VoxelBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &options).unwrap();
       if let Some(mesh) = mesh {
         meshes.push((mesh, chunk.position()));
       }
     }
 
+    let tex_data: TextureData = options.texture.unwrap().get_texture().into();
     let scale = Vector3::new(0.1, 0.1, 0.1);
     let swap_axes = true;
     let transform = if swap_axes {
@@ -147,26 +149,31 @@ impl GameLoad {
       let (mesh, mat) = {
         if swap_axes {
           // Swap y/z for amethyst coordinate system
-          for vert in &mut mesh_gox.vertices {
-            let v = Vector4::new(vert.x, vert.y, vert.z, 1.);
-            let vtran = transform * v;
-            vert.x = vtran[0];
-            vert.y = vtran[1];
-            vert.z = vtran[2];
-          }
-          for normal in &mut mesh_gox.normals {
-            let v = Vector4::new(normal.x, normal.y, normal.z, 1.);
-            let vtran = transform * v;
-            normal.x = vtran[0];
-            normal.y = vtran[1];
-            normal.z = vtran[2];
-          }
+          mesh_gox.positions = mesh_gox
+            .positions
+            .iter()
+            .map(|vert| {
+              let v = Vector4::new(vert[0], vert[1], vert[2], 1.);
+              let vtran = transform * v;
+              [vtran[0], vtran[1], vtran[2]]
+            })
+            .collect::<Vec<_>>();
+
+          mesh_gox.normals = mesh_gox
+            .normals
+            .iter()
+            .map(|normal| {
+              let v = Vector4::new(normal[0], normal[1], normal[2], 1.);
+              let vtran = transform * v;
+              [vtran[0], vtran[1], vtran[2]]
+            })
+            .collect::<Vec<_>>();
         }
         let loader = world.read_resource::<Loader>();
         let mat_default = world.read_resource::<MaterialDefaults>();
-        let (mesh_data, tex_data) = to_amethyst_mesh_ww_tex(&mut mesh_gox, 32, 32);
+        let mesh_data = mesh_gox.into();
         let mesh: Handle<Mesh> = loader.load_from_data(mesh_data, (), &world.read_resource());
-        let tex = loader.load_from_data(tex_data, (), &world.read_resource());
+        let tex = loader.load_from_data(tex_data.clone(), (), &world.read_resource());
         let mat: Handle<Material> = loader.load_from_data(
           Material {
             albedo: tex,

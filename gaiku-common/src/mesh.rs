@@ -8,10 +8,10 @@ pub trait Meshify {
     normals: Vec<[f32; 3]>,
     uvs: Vec<[f32; 2]>,
   ) -> Self;
-  fn get_indices(&mut self) -> Vec<u32>;
-  fn get_normals(&mut self) -> Vec<[f32; 3]>;
-  fn get_positions(&mut self) -> Vec<[f32; 3]>;
-  fn get_uvs(&self) -> Vec<[f32; 2]>;
+  fn get_indices(&self) -> &Vec<u32>;
+  fn get_normals(&self) -> &Vec<[f32; 3]>;
+  fn get_positions(&self) -> &Vec<[f32; 3]>;
+  fn get_uvs(&self) -> &Vec<[f32; 2]>;
   fn set_indices(&mut self, indices: Vec<u32>);
   fn set_normals(&mut self, normals: Vec<[f32; 3]>);
   fn set_positions(&mut self, positions: Vec<[f32; 3]>);
@@ -56,20 +56,20 @@ impl Meshify for Mesh {
     }
   }
 
-  fn get_indices(&mut self) -> Vec<u32> {
-    self.indices.clone()
+  fn get_indices(&self) -> &Vec<u32> {
+    &self.indices
   }
 
-  fn get_normals(&mut self) -> Vec<[f32; 3]> {
-    self.normals.clone()
+  fn get_normals(&self) -> &Vec<[f32; 3]> {
+    &self.normals
   }
 
-  fn get_positions(&mut self) -> Vec<[f32; 3]> {
-    self.positions.clone()
+  fn get_positions(&self) -> &Vec<[f32; 3]> {
+    &self.positions
   }
 
-  fn get_uvs(&self) -> Vec<[f32; 2]> {
-    self.uvs.clone()
+  fn get_uvs(&self) -> &Vec<[f32; 2]> {
+    &self.uvs
   }
 
   fn set_indices(&mut self, indices: Vec<u32>) {

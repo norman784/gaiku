@@ -13,12 +13,10 @@ impl FileFormat for PNGReader {
     let mut result = vec![];
     let img = load_from_memory(&bytes)?.into_luma8();
 
-    let mut chunk = C::new(
-      [0.0, 0.0, 0.0],
-      img.width().clamp(0, u16::MAX as u32) as u16,
-      img.height().clamp(0, u16::MAX as u32) as u16,
-      1,
-    );
+    assert!(img.width() <= u16::MAX as u32);
+    assert!(img.height() <= u16::MAX as u32);
+
+    let mut chunk = C::new([0.0, 0.0, 0.0], img.width() as u16, img.height() as u16, 1);
 
     for x in 0..img.width() as u32 {
       for y in 0..img.height() as u32 {
