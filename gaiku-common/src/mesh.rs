@@ -240,8 +240,22 @@ impl MeshBuilderOctree {
     if self.boundary.contains(&leaf.position.into()) {
       match &mut self.node {
         MeshBuilderOctreeNode::Leaf(leafs) => {
+          let leaf_normal = if let Some(normal) = leaf.normal {
+            Some(Boundary::new(normal, [0.000001, 0.000001, 0.000001]))
+          } else {
+            None
+          };
+
           for (data, position) in leafs.iter() {
-            if position.contains(&leaf.position.into()) {
+            if position.contains(&leaf.position.into())
+              && data.atlas_index == leaf.atlas_index
+              && if let (Some(leaf_normal), Some(data_normal)) = (leaf_normal.as_ref(), data.normal)
+              {
+                leaf_normal.contains(&data_normal.into())
+              } else {
+                false
+              }
+            {
               return InsertResult::AlreadyExists(data.index);
             }
           }
@@ -350,22 +364,8 @@ impl MeshBuilder {
         self.current_index += 1;
       }
       InsertResult::AlreadyExists(index) => self.indices.push(index),
-      InsertResult::FailedInsert => {
-        use std::io::prelude::*;
-        let contents = format!("{:#?} {:?}", self.cache, mesh_data);
-        let path = format!("{}/panic.log", env!["CARGO_MANIFEST_DIR"],);
-        let mut file = std::fs::File::create(&path).unwrap();
-        file.write_all(contents.as_bytes()).unwrap();
-        panic!("Failed to insert {:?}", mesh_data)
-      }
-      InsertResult::OutOfBounds => {
-        use std::io::prelude::*;
-        let contents = format!("{:#?} {:?}", self.cache, mesh_data);
-        let path = format!("{}/panic.log", env!["CARGO_MANIFEST_DIR"],);
-        let mut file = std::fs::File::create(&path).unwrap();
-        file.write_all(contents.as_bytes()).unwrap();
-        panic!("Out of bounds {:?}", mesh_data)
-      }
+      InsertResult::FailedInsert => panic!("Failed to insert {:?}", mesh_data),
+      InsertResult::OutOfBounds => panic!("Out of bounds {:?}", mesh_data),
     }
   }
 
