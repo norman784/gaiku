@@ -23,7 +23,7 @@ jobs:
       with:
         toolchain: nightly
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --features=empty -Zpackage-features
+        args: --features=empty
 
   check_fmt:
     name: Rust-fmt
