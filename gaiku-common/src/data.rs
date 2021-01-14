@@ -1,4 +1,9 @@
 mod chunk;
-mod mesh;
+pub mod mesh;
+pub mod texture;
 
-pub use self::{chunk::Chunk, chunk::Chunkify, chunk::ChunkifyMut, mesh::Mesh};
+pub use self::{
+  chunk::{Chunk, Chunkify},
+  mesh::{Mesh, MeshBuilder},
+  texture::{Texture2d, TextureAtlas2d},
+};

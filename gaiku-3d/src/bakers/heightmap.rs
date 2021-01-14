@@ -1,59 +1,50 @@
-use std::collections::HashMap;
-
-use crate::common::{Baker, Chunk, Chunkify, Mesh};
+use crate::common::{prelude::*, Result};
 
 pub struct HeightMapBaker;
 
 impl Baker for HeightMapBaker {
-  fn bake(chunk: &Chunk) -> Option<Mesh> {
-    let mut indices = vec![];
-    let mut vertices_cache = HashMap::new();
-    let colors = vec![];
-    let height = 30;
+  type Value = (u8, u8);
 
-    for x in 0..chunk.width() - 1 {
-      let fx = x as f32;
-      for y in 0..chunk.height() - 1 {
+  fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify<Self::Value> + Sizable,
+    T: Texturify2d,
+    M: Meshify,
+  {
+    let height = 30;
+    let mut builder = MeshBuilder::create(
+      [
+        chunk.width() as f32 / 2.0,
+        height as f32 / 2.0,
+        chunk.height() as f32 / 2.0,
+      ],
+      [chunk.width() as f32, height as f32, chunk.height() as f32],
+    );
+
+    for x in 0..chunk.width() as usize - 1 {
+      for y in 0..chunk.height() as usize - 1 {
         if chunk.is_air(x, y, 0) {
           continue;
         }
+
+        let fx = x as f32;
         let fz = y as f32;
-        let lb = (chunk.get(x, y, 0) as u32 * height) as f32 / 255.0;
-        let lf = (chunk.get(x, y + 1, 0) as u32 * height) as f32 / 255.0;
-        let rb = (chunk.get(x + 1, y, 0) as u32 * height) as f32 / 255.0;
-        let rf = (chunk.get(x + 1, y + 1, 0) as u32 * height) as f32 / 255.0;
 
-        let left_back = Self::index(&mut vertices_cache, [fx - 0.5, lb, fz - 0.5].into());
-        let right_back = Self::index(&mut vertices_cache, [fx + 0.5, rb, fz - 0.5].into());
-        let right_front = Self::index(&mut vertices_cache, [fx + 0.5, rf, fz + 0.5].into());
-        let left_front = Self::index(&mut vertices_cache, [fx - 0.5, lf, fz + 0.5].into());
+        let lb = (chunk.get(x, y, 0).0 as u32 * height) as f32 / 255.0;
+        let lf = (chunk.get(x, y + 1, 0).0 as u32 * height) as f32 / 255.0;
+        let rb = (chunk.get(x + 1, y, 0).0 as u32 * height) as f32 / 255.0;
+        let rf = (chunk.get(x + 1, y + 1, 0).0 as u32 * height) as f32 / 255.0;
 
-        indices.push(left_back);
-        indices.push(right_back);
-        indices.push(left_front);
+        let left_back = [fx, lb, fz];
+        let right_back = [fx + 1.0, rb, fz];
+        let right_front = [fx + 1.0, rf, fz + 1.0];
+        let left_front = [fx, lf, fz + 1.0];
 
-        indices.push(right_back);
-        indices.push(right_front);
-        indices.push(left_front);
+        builder.add_triangle([left_back, right_back, left_front], None, None, 0);
+        builder.add_triangle([right_back, right_front, left_front], None, None, 0);
       }
     }
 
-    let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
-    for (_, (vertex, index)) in vertices_cache {
-      vertices[index as usize] = vertex;
-    }
-
-    if !indices.is_empty() {
-      Some(Mesh {
-        indices,
-        vertices,
-        normals: vec![],
-        colors,
-        uv: vec![],
-        tangents: vec![],
-      })
-    } else {
-      None
-    }
+    Ok(builder.build::<M>())
   }
 }

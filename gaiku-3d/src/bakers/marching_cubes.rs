@@ -1,22 +1,22 @@
-use std::collections::HashMap;
-
-use gaiku_common::{glam::Vec3, mint::Vector3, Baker, Chunk, Chunkify, Mesh};
+use gaiku_common::{mint::Vector3, prelude::*, Result};
+use glam::Vec3;
 
 mod tables;
 
 use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
+#[derive(Debug)]
 struct GridCell {
   pub value: [u8; 8],
   pub point: [Vector3<f32>; 8],
 }
 
 impl GridCell {
-  fn lerp(&self, index1: usize, index2: usize, isolevel: u8) -> Vector3<f32> {
+  fn lerp(&self, index1: usize, index2: usize, isolevel: u8) -> [f32; 3] {
     let mut index1 = index1;
     let mut index2 = index2;
 
-    if self.point[index1] < self.point[index2] {
+    if self.point[index2] < self.point[index1] {
       std::mem::swap(&mut index1, &mut index2);
     }
 
@@ -24,13 +24,25 @@ impl GridCell {
 
     let point1: Vec3 = self.point[index1].into();
     let point2: Vec3 = self.point[index2].into();
-    let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
-    if (point1 - point2).abs() > [0.00001, 0.00001, 0.00001].into() {
-      #[allow(clippy::eq_op)]
-      (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
+    if (point1 - point2).abs() > [0.0001, 0.0001, 0.0001].into() {
+      let value1: Vec3 = [
+        self.value[index1] as f32 / 255.0,
+        self.value[index1] as f32 / 255.0,
+        self.value[index1] as f32 / 255.0,
+      ]
+      .into();
+      let value2: Vec3 = [
+        self.value[index2] as f32 / 255.0,
+        self.value[index2] as f32 / 255.0,
+        self.value[index2] as f32 / 255.0,
+      ]
+      .into();
+      let value: Vec3 = [isolevel, isolevel, isolevel].into();
+
+      (point1 + (point2 - point1) / (value2 - value1) * (value - value1)).into()
     } else {
-      self.point[index1]
+      self.point[index1].into()
     }
   }
 }
@@ -38,9 +50,9 @@ impl GridCell {
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
-  fn polygonize(grid: &GridCell, isolevel: u8, triangles: &mut Vec<[Vector3<f32>; 3]>) {
+  fn polygonize(grid: &GridCell, isolevel: u8, triangles: &mut Vec<[[f32; 3]; 3]>) {
     let mut cube_index = 0;
-    let mut vertex_list = [[0.0, 0.0, 0.0].into(); 12];
+    let mut vertex_list = [[0.0, 0.0, 0.0]; 12];
 
     if grid.value[0] < isolevel {
       cube_index |= 1;
@@ -138,28 +150,45 @@ impl MarchingCubesBaker {
 }
 
 impl Baker for MarchingCubesBaker {
-  fn bake(chunk: &Chunk) -> Option<Mesh> {
-    let mut vertices_cache = HashMap::new();
-    let mut indices = vec![];
+  type Value = (u8, u8);
+
+  fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify<Self::Value> + Sizable,
+    T: Texturify2d,
+    M: Meshify,
+  {
+    let mut builder = MeshBuilder::create(
+      [
+        chunk.width() as f32 / 2.0,
+        chunk.height() as f32 / 2.0,
+        chunk.depth() as f32 / 2.0,
+      ],
+      [
+        chunk.width() as f32,
+        chunk.height() as f32,
+        chunk.depth() as f32,
+      ],
+    );
 
     // TODO: Solve issue where data of next chunk is needed to bake the chunk
-    for x in 0..chunk.width() - 1 {
+    for x in 0..chunk.width() as usize - 1 {
       let fx = x as f32;
-      for y in 0..chunk.height() - 1 {
+      for y in 0..chunk.height() as usize - 1 {
         let fy = y as f32;
-        for z in 0..chunk.depth() - 1 {
+        for z in 0..chunk.depth() as usize - 1 {
           let fz = z as f32;
 
           let grid = GridCell {
             value: [
-              chunk.get(x, y, z),
-              chunk.get(x + 1, y, z),
-              chunk.get(x + 1, y + 1, z),
-              chunk.get(x, y + 1, z),
-              chunk.get(x, y, z + 1),
-              chunk.get(x + 1, y, z + 1),
-              chunk.get(x + 1, y + 1, z + 1),
-              chunk.get(x, y + 1, z + 1),
+              chunk.get(x, y, z).1,
+              chunk.get(x + 1, y, z).1,
+              chunk.get(x + 1, y + 1, z).1,
+              chunk.get(x, y + 1, z).1,
+              chunk.get(x, y, z + 1).1,
+              chunk.get(x + 1, y, z + 1).1,
+              chunk.get(x + 1, y + 1, z + 1).1,
+              chunk.get(x, y + 1, z + 1).1,
             ],
             point: [
               [fx + 0.0, fy + 0.0, fz + 0.0].into(),
@@ -177,30 +206,12 @@ impl Baker for MarchingCubesBaker {
           Self::polygonize(&grid, 1, &mut triangles);
 
           for vertex in triangles {
-            for v in &vertex {
-              indices.push(Self::index(&mut vertices_cache, *v));
-            }
+            builder.add_triangle(vertex, None, None, 0);
           }
         }
       }
     }
 
-    let mut vertices = vec![[0.0, 0.0, 0.0].into(); vertices_cache.len()];
-    for (_, (vertex, index)) in vertices_cache {
-      vertices[index as usize] = vertex;
-    }
-
-    if !indices.is_empty() {
-      Some(Mesh {
-        indices,
-        vertices,
-        normals: vec![],
-        colors: vec![],
-        uv: vec![],
-        tangents: vec![],
-      })
-    } else {
-      None
-    }
+    Ok(builder.build::<M>())
   }
 }

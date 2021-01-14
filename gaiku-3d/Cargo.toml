@@ -15,14 +15,26 @@ repository = "https://github.com/norman784/gaiku"
 readme = "Readme.md"
 license = "MIT/Apache-2.0"
 
+[features]
+default = ["gox", "voxel", "all"]
+all  = ["heightmap", "marching-cubes", "voxel", "gox", "serde", "export"]
+heightmap = ["png"]
+marching-cubes = ["glam"]
+png = ["image"]
+voxel = []
+serde = ["gaiku-common/serialization"]
+export = ["gaiku-common/export"]
+
 [dependencies]
-gaiku-common = { path = "../gaiku-common", version = "0.1.0" }
-gox = "0.3.0"
-png = "0.14.0"
+gaiku-common = { path = "../gaiku-common", version = "^0.1.0" }
+gox = { version = "^0.4.0", optional = true }
+glam = { version = "^0.11.3", features = ["mint"], optional = true }
+image = { version = "^0.23.12", features = ["png"], optional = true }
 
 [dev-dependencies]
-obj-exporter = "0.2.0"
 criterion = "0.3"
+obj-exporter = "0.2.0"
+gaiku-common = { path = "../gaiku-common", version = "^0.1.0", features = ["png"] }
 
 [[bench]]
 name = "main"

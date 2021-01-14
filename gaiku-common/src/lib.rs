@@ -1,42 +1,88 @@
-pub use glam;
+use std::fs::read;
+
+pub use anyhow::Result;
 pub use mint;
-use std::{collections::HashMap, fs::File};
 
-use mint::Vector3;
+use crate::{
+  boxify::*,
+  chunk::Chunkify,
+  mesh::Meshify,
+  texture::{TextureAtlas2d, Texturify2d},
+};
 
-mod data;
-mod tree;
+mod boundary;
+pub mod boxify;
+pub mod chunk;
+pub mod mesh;
+pub mod texture;
+pub mod tree;
 
-pub use crate::tree::{Boundary, Octree};
-pub use crate::{data::Chunk, data::Chunkify, data::ChunkifyMut, data::Mesh};
+pub mod prelude {
+  pub use crate::{
+    boxify::*,
+    chunk::Chunkify,
+    mesh::{MeshBuilder, Meshify},
+    texture::{TextureAtlas2d, Texturify2d},
+    Baker, BakerOptions, FileFormat,
+  };
+}
+
+pub struct BakerOptions<T>
+where
+  T: Texturify2d,
+{
+  pub level_of_detail: usize,
+  pub texture: Option<TextureAtlas2d<T>>,
+}
+
+impl<T> Default for BakerOptions<T>
+where
+  T: Texturify2d,
+{
+  fn default() -> Self {
+    Self {
+      level_of_detail: 1,
+      texture: None,
+    }
+  }
+}
 
 pub trait Baker {
-  fn bake(chunk: &Chunk) -> Option<Mesh>;
+  type Value;
 
-  // TODO: Creating a string key from the coordinates is not the best solution, enhance this
-  fn index(vertices: &mut HashMap<String, (Vector3<f32>, u16)>, vertex: Vector3<f32>) -> u16 {
-    let index = vertices.len();
-    let key = format!("{:?}", vertex);
-    vertices.entry(key).or_insert((vertex, index as u16)).1
-  }
+  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify<Self::Value> + Sizable,
+    T: Texturify2d,
+    M: Meshify;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
-  fn load(stream: &mut File) -> Vec<Chunk>;
+  type Value;
 
-  fn read(file: &str) -> Vec<Chunk> {
-    let mut stream = File::open(file).unwrap();
-    Self::load(&mut stream)
+  fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
+  where
+    C: Chunkify<Self::Value> + Boxify,
+    T: Texturify2d;
+
+  fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
+  where
+    C: Chunkify<Self::Value> + Boxify,
+    T: Texturify2d,
+  {
+    let bytes = read(file)?;
+    Self::load::<C, T>(bytes)
   }
 }
 
+/*
 pub struct Gaiku {
   terrain: Octree,
 }
 
 impl Gaiku {
-  pub fn new(data: Vec<Chunk>, size: Vector3<f32>) -> Self {
+  pub fn new(data: Vec<Chunk>, size: [f32; 3]) -> Self {
     let mut terrain = Octree::new(size, 8);
 
     for chunk in data {
@@ -58,3 +104,4 @@ impl Gaiku {
     self.terrain.set_leaf(chunk)
   }
 }
+*/

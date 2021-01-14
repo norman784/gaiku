@@ -10,8 +10,13 @@ documentation = "https://docs.rs/gaiku-common"
 homepage = "https://github.com/norman784/gaiku"
 repository = "https://github.com/norman784/gaiku"
 
+[features]
+default = []
+serialization = ["serde", "mint/serde"]
+export = ["png"]
+
 [dependencies]
-decorum = "0.3.1"
-glam = { version = "0.11.2", features = ["mint"] }
-mint = "0.5.6"
-num-traits = "0.2.14"
+anyhow = "^1.0.37"
+mint = "^0.5.6"
+png = { version = "^0.16.7", optional = true }
+serde = { version = "1.0", optional = true, features = ["derive"] }
