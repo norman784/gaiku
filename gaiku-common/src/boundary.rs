@@ -1,5 +1,7 @@
 use mint::Vector3;
 
+const EPSILON: f32 = 0.000001;
+
 #[derive(Clone, Debug)]
 pub struct Boundary {
   pub center: Vector3<f32>,
@@ -15,18 +17,8 @@ impl Boundary {
     Self {
       center: center.into(),
       size: size.into(),
-      start: [
-        cx - sx - f32::EPSILON,
-        cy - sy - f32::EPSILON,
-        cz - sz - f32::EPSILON,
-      ]
-      .into(),
-      end: [
-        cx + sx + f32::EPSILON,
-        cy + sy + f32::EPSILON,
-        cz + sz + f32::EPSILON,
-      ]
-      .into(),
+      start: [cx - sx - EPSILON, cy - sy - EPSILON, cz - sz - EPSILON].into(),
+      end: [cx + sx + EPSILON, cy + sy + EPSILON, cz + sz + EPSILON].into(),
     }
   }
 

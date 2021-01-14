@@ -562,15 +562,12 @@ mod test {
     let mut tree =
       MeshBuilderOctree::new(Boundary::new([8.0, 8.0, 8.0], [16.0, 16.0, 16.0]), 3, 25);
 
-    match tree.insert(&MeshBuilderData::new(
-      [3.5, 16.352942, 12.5],
-      None,
-      None,
-      0,
-      0,
-    )) {
+    match tree.insert(&MeshBuilderData::new([3.5, 16.0, 12.5], None, None, 0, 0)) {
       InsertResult::Inserted => assert!(true),
-      _ => assert!(false),
+      _ => {
+        println!("{:#?}", &tree);
+        assert!(false)
+      }
     }
 
     assert_eq!(tree.get_all().len(), 1);

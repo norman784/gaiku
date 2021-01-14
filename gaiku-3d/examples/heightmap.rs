@@ -2,7 +2,13 @@ use std::time::Instant;
 
 use gaiku_3d::{
   bakers::HeightMapBaker,
-  common::{prelude::*, Result},
+  common::{
+    chunk::Chunk,
+    mesh::Mesh,
+    prelude::*,
+    texture::{Texture2d, TextureAtlas2d},
+    Result,
+  },
   formats::PNGReader,
 };
 
@@ -17,12 +23,12 @@ fn read(name: &str) -> Result<()> {
     env!("CARGO_MANIFEST_DIR"),
     name
   );
-  let (chunks, texture) = PNGReader::read(&file)?;
+  let (chunks, texture): (Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>) = PNGReader::read(&file)?;
   let options = BakerOptions {
     texture,
     ..Default::default()
   };
-  let mut meshes = vec![];
+  let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
   let reader_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
@@ -30,7 +36,7 @@ fn read(name: &str) -> Result<()> {
   for chunk in chunks.iter() {
     let mesh = HeightMapBaker::bake(chunk, &options)?;
     if let Some(mesh) = mesh {
-      meshes.push((mesh, chunk.position().into()));
+      meshes.push((mesh, chunk.position()));
     }
   }
 

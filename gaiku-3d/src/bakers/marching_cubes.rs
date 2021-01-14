@@ -5,6 +5,7 @@ mod tables;
 
 use self::tables::{EDGE_TABLE, TRIANGLE_TABLE};
 
+#[derive(Debug)]
 struct GridCell {
   pub value: [u8; 8],
   pub point: [Vector3<f32>; 8],
@@ -15,7 +16,7 @@ impl GridCell {
     let mut index1 = index1;
     let mut index2 = index2;
 
-    if self.point[index1] < self.point[index2] {
+    if self.point[index2] < self.point[index1] {
       std::mem::swap(&mut index1, &mut index2);
     }
 
@@ -23,11 +24,23 @@ impl GridCell {
 
     let point1: Vec3 = self.point[index1].into();
     let point2: Vec3 = self.point[index2].into();
-    let iso: Vec3 = [isolevel, isolevel, isolevel].into();
 
-    if (point1 - point2).abs() > [0.00001, 0.00001, 0.00001].into() {
-      #[allow(clippy::eq_op)]
-      (point1 + (point2 - point1) / (point2 - point1) * (iso - point1)).into()
+    if (point1 - point2).abs() > [0.0001, 0.0001, 0.0001].into() {
+      let value1: Vec3 = [
+        self.value[index1] as f32 / 255.0,
+        self.value[index1] as f32 / 255.0,
+        self.value[index1] as f32 / 255.0,
+      ]
+      .into();
+      let value2: Vec3 = [
+        self.value[index2] as f32 / 255.0,
+        self.value[index2] as f32 / 255.0,
+        self.value[index2] as f32 / 255.0,
+      ]
+      .into();
+      let value: Vec3 = [isolevel, isolevel, isolevel].into();
+
+      (point1 + (point2 - point1) / (value2 - value1) * (value - value1)).into()
     } else {
       self.point[index1].into()
     }
