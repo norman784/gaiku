@@ -194,7 +194,9 @@ mod test {
     let positions_count = mesh.get_positions().len();
     let indices_count = mesh.get_indices().len();
 
+    println!("{:#?}", &mesh);
+
     assert_eq!(indices_count, 36);
-    assert_eq!(positions_count, 8);
+    assert_eq!(positions_count, 24);
   }
 }
