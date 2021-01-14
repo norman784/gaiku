@@ -187,7 +187,7 @@ impl GameLoad {
       let mut pos = Transform::default();
 
       let position_trans = {
-        let v = Vector4::new(position.x, position.y, position.z, 1.);
+        let v = Vector4::new(position[0], position[1], position[2], 1.);
         let vtrans = transform * v;
         Vector3::new(
           vtrans[0] * scale[0],
