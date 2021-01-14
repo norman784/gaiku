@@ -1,11 +1,17 @@
 use criterion::{criterion_group, Criterion};
 use gaiku_3d::{
   bakers::MarchingCubesBaker,
-  common::{prelude::*, Chunk, Result, TextureAtlas2d},
+  common::{
+    chunk::Chunk,
+    mesh::Mesh,
+    prelude::*,
+    texture::{Texture2d, TextureAtlas2d},
+    Result,
+  },
   formats::GoxReader,
 };
 
-fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d>)> {
+fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>)> {
   let file = format!(
     "{}/examples/assets/{}.gox",
     env!("CARGO_MANIFEST_DIR"),
@@ -25,7 +31,7 @@ fn marching_cubes_benchmark(c: &mut Criterion) {
 
   group.bench_function("Terrain", |b| {
     b.iter(|| {
-      let mut meshes = vec![];
+      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
       for chunk in chunks.iter() {
         let mesh = MarchingCubesBaker::bake(chunk, &options).unwrap();
@@ -44,7 +50,7 @@ fn marching_cubes_benchmark(c: &mut Criterion) {
 
   group.bench_function("Planet", |b| {
     b.iter(|| {
-      let mut meshes = vec![];
+      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
       for chunk in chunks.iter() {
         let mesh = MarchingCubesBaker::bake(chunk, &options).unwrap();
@@ -63,7 +69,7 @@ fn marching_cubes_benchmark(c: &mut Criterion) {
 
   group.bench_function("Small tree", |b| {
     b.iter(|| {
-      let mut meshes = vec![];
+      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
       for chunk in chunks.iter() {
         let mesh = MarchingCubesBaker::bake(chunk, &options).unwrap();

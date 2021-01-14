@@ -1,7 +1,4 @@
-use crate::{
-  boundary::Boundary,
-  chunk::{Chunk, Chunkify},
-};
+use crate::{boundary::Boundary, boxify::*, chunk::Chunk};
 use mint::Vector3;
 
 pub type Octree = Tree;
@@ -25,7 +22,7 @@ impl Node {
   }
 
   fn insert(&mut self, leaf: &Chunk) -> bool {
-    if !self.boundary.contains(&leaf.position()) {
+    if !self.boundary.contains(&leaf.position().into()) {
       return false;
     }
 
@@ -80,7 +77,7 @@ impl Node {
       None => {
         if let Some(leafs) = &self.leafs {
           for leaf in leafs {
-            if range.contains(&leaf.position()) {
+            if range.contains(&leaf.position().into()) {
               result.push(leaf.clone())
             }
           }
@@ -107,7 +104,8 @@ impl Node {
       None => {
         if let Some(leafs) = &self.leafs {
           for leaf in leafs {
-            if leaf.position() == *point {
+            let position: Vector3<f32> = leaf.position().into();
+            if position == *point {
               return Some(leaf.clone());
             }
           }
@@ -119,7 +117,7 @@ impl Node {
   }
 
   fn set_leaf(&mut self, leaf: &Chunk) -> bool {
-    if !self.boundary.contains(&leaf.position()) {
+    if !self.boundary.contains(&leaf.position().into()) {
       return false;
     }
 
@@ -134,7 +132,9 @@ impl Node {
       None => {
         if let Some(leafs) = self.leafs.as_mut() {
           for (i, old) in leafs.iter().enumerate() {
-            if old.position() == leaf.position() {
+            let old_position: Vector3<f32> = old.position().into();
+            let leaf_position: Vector3<f32> = leaf.position().into();
+            if old_position == leaf_position {
               leafs.insert(i, leaf.clone());
               update_neighbors(&self, leaf);
               return true;
@@ -235,9 +235,7 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
 }
 
 fn update_neighbors(node: &Node, leaf: &Chunk) {
-  let x = leaf.position().x;
-  let y = leaf.position().y;
-  let z = leaf.position().z;
+  let [x, y, z] = leaf.position();
 
   let coords: [Vector3<f32>; 6] = [
     [x - 1.0, y, z].into(),

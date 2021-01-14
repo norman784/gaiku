@@ -5,9 +5,11 @@ use image::load_from_memory;
 pub struct PNGReader;
 
 impl FileFormat for PNGReader {
+  type Value = (u8, u8);
+
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify,
+    C: Chunkify<Self::Value> + Boxify,
     T: Texturify2d,
   {
     let mut result = vec![];

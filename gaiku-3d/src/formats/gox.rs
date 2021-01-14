@@ -6,9 +6,11 @@ pub struct GoxReader;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom
 impl FileFormat for GoxReader {
+  type Value = (u8, u8);
+
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify,
+    C: Chunkify<Self::Value> + Boxify,
     T: Texturify2d,
   {
     let gox = Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);

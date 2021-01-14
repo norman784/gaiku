@@ -4,9 +4,11 @@ pub struct VoxelBaker;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
+  type Value = (u8, u8);
+
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify,
+    C: Chunkify<Self::Value> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {

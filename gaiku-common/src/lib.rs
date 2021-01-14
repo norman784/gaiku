@@ -4,12 +4,14 @@ pub use anyhow::Result;
 pub use mint;
 
 use crate::{
+  boxify::*,
   chunk::Chunkify,
   mesh::Meshify,
   texture::{TextureAtlas2d, Texturify2d},
 };
 
 mod boundary;
+pub mod boxify;
 pub mod chunk;
 pub mod mesh;
 pub mod texture;
@@ -17,6 +19,7 @@ pub mod tree;
 
 pub mod prelude {
   pub use crate::{
+    boxify::*,
     chunk::Chunkify,
     mesh::{MeshBuilder, Meshify},
     texture::{TextureAtlas2d, Texturify2d},
@@ -45,23 +48,27 @@ where
 }
 
 pub trait Baker {
+  type Value;
+
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify,
-    M: Meshify,
-    T: Texturify2d;
+    C: Chunkify<Self::Value> + Sizable,
+    T: Texturify2d,
+    M: Meshify;
 }
 
 // TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
 pub trait FileFormat {
+  type Value;
+
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify,
+    C: Chunkify<Self::Value> + Boxify,
     T: Texturify2d;
 
   fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify,
+    C: Chunkify<Self::Value> + Boxify,
     T: Texturify2d,
   {
     let bytes = read(file)?;

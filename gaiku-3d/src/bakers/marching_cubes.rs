@@ -137,9 +137,11 @@ impl MarchingCubesBaker {
 }
 
 impl Baker for MarchingCubesBaker {
+  type Value = (u8, u8);
+
   fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify,
+    C: Chunkify<Self::Value> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {
