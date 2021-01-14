@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
 pub struct Mesh {
-  pub indices: Vec<u16>,
+  pub indices: Vec<usize>,
   pub vertices: Vec<Vector3<f32>>,
   pub normals: Vec<Vector3<f32>>,
   pub colors: Vec<Vector4<u8>>,
@@ -19,7 +19,7 @@ impl Mesh {
   /// the RGBA color
   #[allow(clippy::many_single_char_names)]
   pub fn generate_texture(&mut self, width: usize, height: usize) -> Vec<u32> {
-    let mut colors: HashMap<(u8, u8, u8, u8), Vec<[u16; 3]>> = HashMap::new();
+    let mut colors: HashMap<(u8, u8, u8, u8), Vec<[usize; 3]>> = HashMap::new();
     self.uv = vec![Vector2 { x: 0., y: 0. }; self.vertices.len()];
 
     // Check the color of every face

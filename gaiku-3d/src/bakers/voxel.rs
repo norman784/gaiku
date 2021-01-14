@@ -12,7 +12,7 @@ struct VertexData {
   position: Vector3<usize>,
   normal: Vector3<i8>,
   color: Vector4<u8>,
-  index: u16,
+  index: usize,
 }
 
 impl VertexData {
@@ -216,7 +216,7 @@ fn get_or_insert<'a>(
     },
     normal,
     color,
-    index: next_index as u16,
+    index: next_index,
   };
   let verts = &mut cache.entry(position).or_insert_with(Vec::new);
   verts.push(new_vert);
@@ -225,7 +225,7 @@ fn get_or_insert<'a>(
 
 /// Create the face and insert the vertexes into the cache
 fn create_face(
-  indices: &mut Vec<u16>,
+  indices: &mut Vec<usize>,
   cache: &mut HashMap<(usize, usize, usize), Vec<VertexData>>,
   p1: (usize, usize, usize),
   p2: (usize, usize, usize),
