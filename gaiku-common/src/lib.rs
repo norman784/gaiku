@@ -7,11 +7,13 @@ use mint::Vector3;
 mod data;
 mod tree;
 
-pub use crate::tree::{Boundary, Octree};
-pub use crate::{data::Chunk, data::Chunkify, data::ChunkifyMut, data::Mesh};
+pub use crate::{
+  data::{Chunk, Chunkify, ChunkifyMut, ChunkifyNeighboured, Mesh},
+  tree::{Boundary, Octree},
+};
 
 pub trait Baker {
-  fn bake(chunk: &Chunk) -> Option<Mesh>;
+  fn bake<T: Chunkify>(chunk: &T) -> Option<Mesh>;
 
   // TODO: Creating a string key from the coordinates is not the best solution, enhance this
   fn index(vertices: &mut HashMap<String, (Vector3<f32>, u16)>, vertex: Vector3<f32>) -> u16 {
@@ -31,12 +33,15 @@ pub trait FileFormat {
   }
 }
 
-pub struct Gaiku {
-  terrain: Octree,
+pub struct Gaiku<T> {
+  terrain: Octree<T>,
 }
 
-impl Gaiku {
-  pub fn new(data: Vec<Chunk>, size: Vector3<f32>) -> Self {
+impl<T> Gaiku<T>
+where
+  T: Chunkify + ChunkifyNeighboured + Clone,
+{
+  pub fn new(data: Vec<T>, size: Vector3<f32>) -> Self {
     let mut terrain = Octree::new(size, 8);
 
     for chunk in data {
@@ -46,15 +51,15 @@ impl Gaiku {
     Self { terrain }
   }
 
-  pub fn query(&self, boundary: &Boundary) -> Vec<Chunk> {
+  pub fn query(&self, boundary: &Boundary) -> Vec<T> {
     self.terrain.query(boundary)
   }
 
-  pub fn get_chunk(&self, point: &Vector3<f32>) -> Option<Chunk> {
+  pub fn get_chunk(&self, point: &Vector3<f32>) -> Option<T> {
     self.terrain.get_leaf(point)
   }
 
-  pub fn set_chunk(&mut self, chunk: &Chunk) -> bool {
+  pub fn set_chunk(&mut self, chunk: &T) -> bool {
     self.terrain.set_leaf(chunk)
   }
 }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use gaiku_common::{
   mint::{Vector3, Vector4},
-  Baker, Chunk, Chunkify, Mesh,
+  Baker, Chunkify, Mesh,
 };
 
 pub struct VoxelBaker;
@@ -32,7 +32,7 @@ impl VertexData {
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
-  fn bake(chunk: &Chunk) -> Option<Mesh> {
+  fn bake<T: Chunkify>(chunk: &T) -> Option<Mesh> {
     let mut indices = vec![];
     // Hash map in x, y, z coordinates to a list of verts at that coordinates
     let mut vertices: HashMap<(usize, usize, usize), Vec<VertexData>> = HashMap::new();

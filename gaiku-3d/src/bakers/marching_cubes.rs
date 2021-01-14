@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gaiku_common::{glam::Vec3, mint::Vector3, Baker, Chunk, Chunkify, Mesh};
+use gaiku_common::{glam::Vec3, mint::Vector3, Baker, Chunkify, Mesh};
 
 mod tables;
 
@@ -138,7 +138,7 @@ impl MarchingCubesBaker {
 }
 
 impl Baker for MarchingCubesBaker {
-  fn bake(chunk: &Chunk) -> Option<Mesh> {
+  fn bake<T: Chunkify>(chunk: &T) -> Option<Mesh> {
     let mut vertices_cache = HashMap::new();
     let mut indices = vec![];
 

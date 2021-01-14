@@ -5,13 +5,26 @@ pub trait Chunkify {
   fn depth(&self) -> usize;
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
   fn get(&self, x: usize, y: usize, z: usize) -> u8;
+  fn get_color(&self, x: usize, y: usize, z: usize) -> Vector4<u8>;
   fn height(&self) -> usize;
   fn position(&self) -> Vector3<f32>;
   fn width(&self) -> usize;
+  fn get_with_color(&self, x: usize, y: usize, z: usize) -> (u8, Vector4<u8>) {
+    (self.get(x, y, z), self.get_color(x, y, z))
+  }
 }
 
 pub trait ChunkifyMut {
   fn set(&mut self, x: usize, y: usize, z: usize, value: u8);
+  fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>);
+  fn set_with_color(&mut self, x: usize, y: usize, z: usize, value: u8, color: Vector4<u8>) {
+    self.set(x, y, z, value);
+    self.set_color(x, y, z, color);
+  }
+}
+
+pub trait ChunkifyNeighboured {
+  fn update_neighbor_data<T: Chunkify + ChunkifyNeighboured + Clone>(&self, _neighbor: &T);
 }
 
 #[derive(Debug, Clone)]
@@ -25,34 +38,8 @@ pub struct Chunk {
 }
 
 impl Chunk {
-  pub fn get_with_color(&self, x: usize, y: usize, z: usize) -> (u8, Vector4<u8>) {
-    let color = if let Some(color) = self.colors.get(self.index(x, y, z)) {
-      color
-    } else {
-      &Vector4 {
-        x: 0,
-        y: 0,
-        z: 0,
-        w: 0,
-      }
-    };
-
-    (self.get(x, y, z), *color)
-  }
-
   fn index(&self, x: usize, y: usize, z: usize) -> usize {
     get_index_from(x, y, z, self.width, self.height, self.depth)
-  }
-
-  pub fn set_with_color(&mut self, x: usize, y: usize, z: usize, value: u8, color: Vector4<u8>) {
-    let index = self.index(x, y, z);
-    self.colors[index] = color;
-    self.values[index] = value;
-  }
-
-  // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
-  pub fn update_neighbor_data(&self, _neighbor: &Chunk) {
-    unimplemented!();
   }
 }
 
@@ -83,6 +70,20 @@ impl Chunkify for Chunk {
   fn get(&self, x: usize, y: usize, z: usize) -> u8 {
     self.values[self.index(x, y, z)]
   }
+  fn get_color(&self, x: usize, y: usize, z: usize) -> Vector4<u8> {
+    let color = if let Some(color) = self.colors.get(self.index(x, y, z)) {
+      *color
+    } else {
+      Vector4 {
+        x: 0,
+        y: 0,
+        z: 0,
+        w: 0,
+      }
+    };
+
+    color
+  }
   fn height(&self) -> usize {
     self.height
   }
@@ -108,8 +109,19 @@ impl ChunkifyMut for Chunk {
       }
       .into();
     }
+    self.set_color(x, y, z, color);
+  }
 
-    self.set_with_color(x, y, z, value, color);
+  fn set_color(&mut self, x: usize, y: usize, z: usize, color: Vector4<u8>) {
+    let index = self.index(x, y, z);
+    self.colors[index] = color;
+  }
+}
+
+impl ChunkifyNeighboured for Chunk {
+  // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
+  fn update_neighbor_data<T: Chunkify + ChunkifyNeighboured + Clone>(&self, _neighbor: &T) {
+    unimplemented!();
   }
 }
 

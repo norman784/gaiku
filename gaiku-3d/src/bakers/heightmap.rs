@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use crate::common::{Baker, Chunk, Chunkify, Mesh};
+use crate::common::{Baker, Chunkify, Mesh};
 
 pub struct HeightMapBaker;
 
 impl Baker for HeightMapBaker {
-  fn bake(chunk: &Chunk) -> Option<Mesh> {
+  fn bake<T: Chunkify>(chunk: &T) -> Option<Mesh> {
     let mut indices = vec![];
     let mut vertices_cache = HashMap::new();
     let colors = vec![];

@@ -1,4 +1,4 @@
-use gaiku_common::{Chunk, Chunkify, FileFormat};
+use gaiku_common::{Chunk, Chunkify, ChunkifyMut, FileFormat};
 
 use gox::{Block, Data, Gox, Only};
 

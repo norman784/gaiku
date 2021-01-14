@@ -1,7 +1,7 @@
-use crate::data::{Chunk, Chunkify};
+use crate::data::{Chunkify, ChunkifyNeighboured};
 use mint::Vector3;
 
-pub type Octree = Tree;
+pub type Octree<T> = Tree<T>;
 
 #[derive(Clone, Debug)]
 pub struct Boundary {
@@ -54,14 +54,17 @@ impl Boundary {
 }
 
 #[derive(Clone, Debug)]
-pub struct Node {
+pub struct Node<T> {
   boundary: Boundary,
   bucket: usize,
-  leafs: Option<Vec<Chunk>>,
-  nodes: Option<Vec<Node>>,
+  leafs: Option<Vec<T>>,
+  nodes: Option<Vec<Node<T>>>,
 }
 
-impl Node {
+impl<T> Node<T>
+where
+  T: Chunkify + ChunkifyNeighboured + Clone,
+{
   fn new(boundary: Boundary, bucket: usize) -> Self {
     Node {
       boundary,
@@ -71,7 +74,7 @@ impl Node {
     }
   }
 
-  fn insert(&mut self, leaf: &Chunk) -> bool {
+  fn insert(&mut self, leaf: &T) -> bool {
     if !self.boundary.contains(&leaf.position()) {
       return false;
     }
@@ -112,7 +115,7 @@ impl Node {
     true
   }
 
-  fn query(&self, range: &Boundary) -> Vec<Chunk> {
+  fn query(&self, range: &Boundary) -> Vec<T> {
     let mut result = vec![];
     if !range.intersects(&self.boundary) {
       return result;
@@ -138,7 +141,7 @@ impl Node {
     result
   }
 
-  fn get_leaf(&self, point: &Vector3<f32>) -> Option<Chunk> {
+  fn get_leaf(&self, point: &Vector3<f32>) -> Option<T> {
     if !self.boundary.contains(point) {
       return None;
     }
@@ -165,7 +168,7 @@ impl Node {
     None
   }
 
-  fn set_leaf(&mut self, leaf: &Chunk) -> bool {
+  fn set_leaf(&mut self, leaf: &T) -> bool {
     if !self.boundary.contains(&leaf.position()) {
       return false;
     }
@@ -197,11 +200,14 @@ impl Node {
 
 // TODO: In a near future I want to use the same class to manage Quadtree and Octree
 #[derive(Clone, Debug)]
-pub struct Tree {
-  nodes: Vec<Node>,
+pub struct Tree<T> {
+  nodes: Vec<Node<T>>,
 }
 
-impl Tree {
+impl<T> Tree<T>
+where
+  T: Chunkify + ChunkifyNeighboured + Clone,
+{
   pub fn new(size: Vector3<f32>, bucket: usize) -> Self {
     let boundary = Boundary {
       center: [0.0, 0.0, 0.0].into(),
@@ -213,13 +219,13 @@ impl Tree {
     }
   }
 
-  pub fn insert(&mut self, leaf: &Chunk) {
+  pub fn insert(&mut self, leaf: &T) {
     for node in self.nodes.iter_mut() {
       node.insert(leaf);
     }
   }
 
-  pub fn query(&self, boundary: &Boundary) -> Vec<Chunk> {
+  pub fn query(&self, boundary: &Boundary) -> Vec<T> {
     let mut result = vec![];
 
     for node in self.nodes.iter() {
@@ -229,7 +235,7 @@ impl Tree {
     result
   }
 
-  pub fn get_leaf(&self, point: &Vector3<f32>) -> Option<Chunk> {
+  pub fn get_leaf(&self, point: &Vector3<f32>) -> Option<T> {
     for node in self.nodes.iter() {
       if let Some(chunk) = node.get_leaf(point) {
         return Some(chunk);
@@ -239,7 +245,7 @@ impl Tree {
     None
   }
 
-  pub fn set_leaf(&mut self, leaf: &Chunk) -> bool {
+  pub fn set_leaf(&mut self, leaf: &T) -> bool {
     for node in self.nodes.iter_mut() {
       if node.set_leaf(leaf) {
         return true;
@@ -251,7 +257,10 @@ impl Tree {
 }
 
 #[allow(clippy::many_single_char_names)]
-fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
+fn subdivide<T: Chunkify + ChunkifyNeighboured + Clone>(
+  boundary: &Boundary,
+  bucket: usize,
+) -> Vec<Node<T>> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
@@ -290,7 +299,7 @@ fn subdivide(boundary: &Boundary, bucket: usize) -> Vec<Node> {
   result
 }
 
-fn update_neighbors(node: &Node, leaf: &Chunk) {
+fn update_neighbors<T: Chunkify + ChunkifyNeighboured + Clone>(node: &Node<T>, leaf: &T) {
   let x = leaf.position().x;
   let y = leaf.position().y;
   let z = leaf.position().z;
@@ -306,7 +315,7 @@ fn update_neighbors(node: &Node, leaf: &Chunk) {
 
   for coord in coords.iter() {
     if let Some(chunk) = node.get_leaf(coord) {
-      chunk.update_neighbor_data(&leaf);
+      chunk.update_neighbor_data(leaf);
     }
   }
 }
