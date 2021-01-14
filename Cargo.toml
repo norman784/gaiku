@@ -5,3 +5,6 @@ members = [
   "gaiku-common",
   "gaiku-amethyst",
 ]
+
+[profile.release]
+lto = true
