@@ -1,6 +1,6 @@
 use std::fs::read;
 
-pub use anyhow::Result;
+pub use anyhow::{self, Result};
 pub use mint;
 
 use crate::{
@@ -19,6 +19,7 @@ pub mod tree;
 
 pub mod prelude {
   pub use crate::{
+    anyhow,
     boxify::*,
     chunk::Chunkify,
     mesh::{MeshBuilder, Meshify},
