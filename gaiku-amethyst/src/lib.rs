@@ -1,6 +1,6 @@
 use gaiku_common::{mesh::Meshify, texture::Texturify2d};
 
-use amethyst::renderer::{
+use amethyst_rendy::{
   palette::Srgba,
   rendy::{
     hal::{
