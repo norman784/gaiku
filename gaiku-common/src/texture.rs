@@ -6,10 +6,10 @@ use std::{fs::File, io::BufWriter, path::Path};
 
 use anyhow::Result;
 
-pub const COLS: u32 = 16;
-pub const ROWS: u32 = 16;
-pub const COL_SIZE: f32 = 1.0 / COLS as f32;
-pub const ROW_SIZE: f32 = 1.0 / COLS as f32;
+pub(crate) const COLS: u32 = 16;
+pub(crate) const ROWS: u32 = 16;
+pub(crate) const COL_SIZE: f32 = 1.0 / COLS as f32;
+pub(crate) const ROW_SIZE: f32 = 1.0 / COLS as f32;
 
 fn index_to_xy(index: u8) -> (u8, u8) {
   (index % COLS as u8, index / COLS as u8)
@@ -22,6 +22,7 @@ fn xy_to_uv((x, y): (u8, u8)) -> (f32, f32) {
   )
 }
 
+/// Base common denominator across all the 2d texture implementations used.
 pub trait Texturify2d: Clone + std::fmt::Debug {
   fn new(width: u32, height: u32) -> Self;
   fn get_data(&self) -> &Vec<u8>;
@@ -33,6 +34,7 @@ pub trait Texturify2d: Clone + std::fmt::Debug {
   fn width(&self) -> u32;
 }
 
+/// A convenience component to work with tiled textures.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TextureAtlas2d<T>
@@ -80,6 +82,7 @@ where
   }
 }
 
+/// Provides a `Texturify2d` implementation based on an RGBA values.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Texture2d {

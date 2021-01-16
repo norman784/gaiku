@@ -2,6 +2,7 @@ use gaiku_common::{prelude::*, Result};
 
 use gox::{Block, Data, Gox, Only};
 
+/// Converts a `gox` file to 3d chunk data.
 pub struct GoxReader;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom

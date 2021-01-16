@@ -1,5 +1,6 @@
 use gaiku_common::{prelude::*, Result};
 
+/// Implementation of a naive cubical voxel terrain generation.
 pub struct VoxelBaker;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
@@ -58,10 +59,10 @@ impl Baker for VoxelBaker {
           if y == y_limit || chunk.is_air(x, y + 1, z) {
             builder.add_face(
               [
-                top_left_back,
                 top_right_back,
-                top_right_front,
+                top_left_back,
                 top_left_front,
+                top_right_front,
               ],
               Some([0.0, 1.0, 0.0]),
               if let Some(uv) = uv {
@@ -77,10 +78,10 @@ impl Baker for VoxelBaker {
           if y == 0 || (y > 0 && chunk.is_air(x, y - 1, z)) {
             builder.add_face(
               [
-                bottom_right_back,
                 bottom_left_back,
-                bottom_left_front,
+                bottom_right_back,
                 bottom_right_front,
+                bottom_left_front,
               ],
               Some([0.0, -1.0, 0.0]),
               if let Some(uv) = uv {
@@ -96,10 +97,10 @@ impl Baker for VoxelBaker {
           if x == 0 || (x > 0 && chunk.is_air(x - 1, y, z)) {
             builder.add_face(
               [
-                top_left_back,
                 top_left_front,
-                bottom_left_front,
+                top_left_back,
                 bottom_left_back,
+                bottom_left_front,
               ],
               Some([-1.0, 0.0, 0.0]),
               if let Some(uv) = uv {
@@ -115,10 +116,10 @@ impl Baker for VoxelBaker {
           if x == x_limit || chunk.is_air(x + 1, y, z) {
             builder.add_face(
               [
-                top_right_front,
                 top_right_back,
-                bottom_right_back,
+                top_right_front,
                 bottom_right_front,
+                bottom_right_back,
               ],
               Some([1.0, 0.0, 0.0]),
               if let Some(uv) = uv {
@@ -134,10 +135,10 @@ impl Baker for VoxelBaker {
           if z == z_limit || chunk.is_air(x, y, z + 1) {
             builder.add_face(
               [
-                top_left_front,
                 top_right_front,
-                bottom_right_front,
+                top_left_front,
                 bottom_left_front,
+                bottom_right_front,
               ],
               Some([0.0, 0.0, 1.0]),
               if let Some(uv) = uv {
@@ -153,10 +154,10 @@ impl Baker for VoxelBaker {
           if z == 0 || chunk.is_air(x, y, z - 1) {
             builder.add_face(
               [
-                top_right_back,
                 top_left_back,
-                bottom_left_back,
+                top_right_back,
                 bottom_right_back,
+                bottom_left_back,
               ],
               Some([0.0, 0.0, -1.0]),
               if let Some(uv) = uv {
