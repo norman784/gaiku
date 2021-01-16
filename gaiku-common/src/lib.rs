@@ -23,7 +23,7 @@ pub mod chunk;
 pub mod mesh;
 /// Texture related traits/implementation.
 pub mod texture;
-mod tree;
+//mod tree;
 
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
