@@ -13,11 +13,13 @@ use amethyst_rendy::{
   types::{MeshData, TextureData},
 };
 
+/// `use gaiku_amethyst::prelude::*;` to import common traits and utils.
 pub mod prelude {
   pub use crate::{GaikuMesh, GaikuTexture2d};
   pub use gaiku_common::prelude::*;
 }
 
+/// `Meshify` implementation with `Into<MeshData>` trait.
 pub struct GaikuMesh {
   pub indices: Vec<u32>,
   pub positions: Vec<[f32; 3]>,
@@ -108,6 +110,7 @@ impl Into<MeshData> for GaikuMesh {
   }
 }
 
+/// `Texturify2d` implementation with `Into<TextureData>` trait.
 #[derive(Debug, Clone)]
 pub struct GaikuTexture2d {
   width: u32,
