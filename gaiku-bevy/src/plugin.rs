@@ -1,4 +1,3 @@
-use anyhow;
 use bevy_app::{AppBuilder, Plugin};
 use bevy_asset::{AddAsset, AssetLoader, AssetPath, LoadContext, LoadedAsset};
 use bevy_ecs::prelude::{World, WorldBuilderSource};

@@ -74,7 +74,7 @@ impl Into<Texture> for GaikuTexture {
     Texture::new(
       Extent3d::new(self.width, self.height, 1),
       TextureDimension::D2,
-      self.data.clone(),
+      self.data,
       TextureFormat::Rgba8Uint,
     )
   }

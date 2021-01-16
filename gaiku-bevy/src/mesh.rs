@@ -87,7 +87,7 @@ impl Into<Mesh> for GaikuMesh {
     if !self.uvs.is_empty() {
       mesh.set_attribute(
         Mesh::ATTRIBUTE_UV_0,
-        VertexAttributeValues::Float2(self.uvs.clone()),
+        VertexAttributeValues::Float2(self.uvs),
       );
     }
 
