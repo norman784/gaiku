@@ -18,7 +18,7 @@ pub struct Chunk {
 
 impl Chunk {
   fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    x + y * self.width as usize + z * self.width as usize * self.width as usize
+    x + y * self.width as usize + z * self.width as usize * self.height as usize
   }
 
   pub fn values(&self) -> Vec<(u8, u8)> {
