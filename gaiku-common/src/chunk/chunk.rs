@@ -1,7 +1,10 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{boxify::*, chunk::Chunkify};
+use crate::{
+  boxify::*,
+  chunk::{Chunkify, ChunkifyMut},
+};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -52,7 +55,9 @@ impl Chunkify<(u8, u8)> for Chunk {
   fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8) {
     self.values[self.index(x, y, z)]
   }
+}
 
+impl ChunkifyMut<(u8, u8)> for Chunk {
   fn set(&mut self, x: usize, y: usize, z: usize, value: (u8, u8)) {
     let index = self.index(x, y, z);
     self.values[index] = value;

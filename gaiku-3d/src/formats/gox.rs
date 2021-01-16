@@ -10,7 +10,7 @@ impl FileFormat for GoxReader {
 
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
     T: Texturify2d,
   {
     let gox = Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);
