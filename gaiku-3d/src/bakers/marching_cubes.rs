@@ -140,9 +140,9 @@ impl MarchingCubesBaker {
       }
 
       triangles.push([
-        vertex_list[TRIANGLE_TABLE[cube_index][i] as usize],
-        vertex_list[TRIANGLE_TABLE[cube_index][i + 1] as usize],
         vertex_list[TRIANGLE_TABLE[cube_index][i + 2] as usize],
+        vertex_list[TRIANGLE_TABLE[cube_index][i + 1] as usize],
+        vertex_list[TRIANGLE_TABLE[cube_index][i] as usize],
       ]);
 
       i += 3;
