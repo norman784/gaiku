@@ -18,9 +18,9 @@ impl Boundary {
       center: center.into(),
       size: size.into(),
       start: [
-        cx - sx * (1. - EPSILON),
-        cy - sy * (1. - EPSILON),
-        cz - sz * (1. - EPSILON),
+        cx - sx * (1. + EPSILON),
+        cy - sy * (1. + EPSILON),
+        cz - sz * (1. + EPSILON),
       ]
       .into(),
       end: [
