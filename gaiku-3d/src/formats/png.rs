@@ -2,6 +2,7 @@ use gaiku_common::{prelude::*, Result};
 
 use image::load_from_memory;
 
+/// Converts a `png` file to 2d chunk data.
 pub struct PNGReader;
 
 impl FileFormat for PNGReader {

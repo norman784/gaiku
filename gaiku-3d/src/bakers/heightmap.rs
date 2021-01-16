@@ -1,5 +1,6 @@
 use crate::common::{prelude::*, Result};
 
+/// Implementation of a naive heightmap terrain generation.
 pub struct HeightMapBaker;
 
 impl Baker for HeightMapBaker {

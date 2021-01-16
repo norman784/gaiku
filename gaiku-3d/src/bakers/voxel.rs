@@ -1,5 +1,6 @@
 use gaiku_common::{prelude::*, Result};
 
+/// Implementation of a naive cubical voxel terrain generation.
 pub struct VoxelBaker;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel

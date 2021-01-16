@@ -47,6 +47,7 @@ impl GridCell {
   }
 }
 
+/// Implementation of the marching cubes terrain generation.
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
