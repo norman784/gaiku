@@ -1,5 +1,6 @@
 use crate::boundary::Boundary;
 
+/// Base common denominator across all the mesh implementations used.
 pub trait Meshify {
   fn new() -> Self;
   fn with(
@@ -18,6 +19,7 @@ pub trait Meshify {
   fn set_uvs(&mut self, uvs: Vec<[f32; 2]>);
 }
 
+/// Provides a `Meshify` implementation width indices, normals, positions and uvs.
 #[derive(Debug)]
 pub struct Mesh {
   indices: Vec<u32>,
@@ -334,6 +336,7 @@ impl From<[f32; 3]> for Position {
   }
 }
 
+/// Helper component that makes easy to build a triangle list mesh.
 #[derive(Debug)]
 pub struct MeshBuilder {
   current_index: u32,
@@ -342,6 +345,7 @@ pub struct MeshBuilder {
 }
 
 impl MeshBuilder {
+  /// Crates a new mesh centered at a position and size.
   pub fn create(center: [f32; 3], size: [f32; 3]) -> Self {
     Self {
       current_index: 0,
@@ -350,6 +354,9 @@ impl MeshBuilder {
     }
   }
 
+  /// Inserts the vertice (position, normal, uv and atlas_index) if doesn't exists
+  /// and create a new indice for the current data, otherwise retrieves the index of
+  /// the input data and inserts the existing index.
   pub fn add(
     &mut self,
     position: [f32; 3],
@@ -369,6 +376,8 @@ impl MeshBuilder {
     }
   }
 
+  /// Inserts the triangle and generate the index if needed, otherwise use an existing index.
+  /// The triangle data is expected to be counter-clockwise.
   pub fn add_triangle(
     &mut self,
     triangle: [[f32; 3]; 3],
@@ -386,7 +395,8 @@ impl MeshBuilder {
     }
   }
 
-  /// The face data is expected to be clockwise
+  /// Inserts the face (generates 2  triangles) and generate the index if needed,
+  /// otherwise use an existing index. The face data is expected to be counter-clockwise.
   pub fn add_face(
     &mut self,
 

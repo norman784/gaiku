@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use crate::{boxify::*, chunk::Chunkify};
 
+/// Provides a `Chunkify` implementation with a hashmap and `u8` position based on x, y and z axis with `u8` value.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SparseChunk {

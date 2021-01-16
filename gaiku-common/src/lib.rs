@@ -1,3 +1,7 @@
+//! `gaiku-common` contains the core componets used across all the gaiku crates.
+//!
+//! The idea behind this crate is to offer a common interop interface to
+//! work with different file formats and mesh generators, based on voxels.
 use std::fs::read;
 
 pub use anyhow::Result;
@@ -11,12 +15,17 @@ use crate::{
 };
 
 mod boundary;
+/// Trait to define position and size.
 pub mod boxify;
+/// Chunk implementation, also offers all traits used internally to build the chunk object.
 pub mod chunk;
+/// Mesh related traits/implementation, also offers some utils like MeshBuilder.
 pub mod mesh;
+/// Texture related traits/implementation.
 pub mod texture;
-pub mod tree;
+//mod tree;
 
+/// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
   pub use crate::{
     boxify::*,
@@ -27,6 +36,7 @@ pub mod prelude {
   };
 }
 
+/// Options to customize the `Baker` behaviour
 pub struct BakerOptions<T>
 where
   T: Texturify2d,
@@ -47,6 +57,7 @@ where
   }
 }
 
+/// Baker is a trait used to define a chunk to mesh converter
 pub trait Baker {
   type Value;
 
@@ -57,7 +68,7 @@ pub trait Baker {
     M: Meshify;
 }
 
-// TODO: Someone points me that is better to use BufReader instead of file or read, need to research about that https://www.reddit.com/r/rust/comments/achili/criticism_and_advices_on_how_to_improve_my_crate/edapxg8
+/// FileFormat is a trait used to define a {file extension} to chunk converter
 pub trait FileFormat {
   type Value;
 

@@ -1,5 +1,6 @@
 use crate::common::{prelude::*, Result};
 
+/// Implementation of a naive heightmap terrain generation.
 pub struct HeightMapBaker;
 
 impl Baker for HeightMapBaker {
@@ -40,8 +41,8 @@ impl Baker for HeightMapBaker {
         let right_front = [fx + 1.0, rf, fz + 1.0];
         let left_front = [fx, lf, fz + 1.0];
 
-        builder.add_triangle([left_back, right_back, left_front], None, None, 0);
-        builder.add_triangle([right_back, right_front, left_front], None, None, 0);
+        builder.add_triangle([left_front, right_back, left_back], None, None, 0);
+        builder.add_triangle([right_front, right_back, left_front], None, None, 0);
       }
     }
 
