@@ -91,3 +91,19 @@ impl Sizable for Chunk {
     self.width
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn check_index() {
+    let chunk = Chunk::new([0.0, 0.0, 0.0], 4, 4, 4);
+    let index = chunk.index(1, 2, 3);
+    assert_eq!(index, 57);
+
+    let chunk = Chunk::new([0.0, 0.0, 0.0], 4, 5, 6);
+    let index = chunk.index(1, 2, 3);
+    assert_eq!(index, 69);
+  }
+}
