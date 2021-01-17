@@ -1,29 +1,64 @@
+use std::marker::PhantomData;
+
 use bevy_app::{AppBuilder, Plugin};
 use bevy_asset::{AddAsset, AssetLoader, AssetPath, LoadContext, LoadedAsset};
-use bevy_ecs::prelude::{World, WorldBuilderSource};
+use bevy_ecs::prelude::World;
 use bevy_pbr::prelude::{PbrBundle, StandardMaterial};
 use bevy_render::prelude::{Color, Mesh, Texture};
 use bevy_scene::Scene;
-use bevy_transform::prelude::{BuildWorldChildren, GlobalTransform, Transform};
+use bevy_transform::prelude::Transform;
 use bevy_utils::BoxedFuture;
-use gaiku_3d::{bakers::VoxelBaker, formats::GoxReader};
-use gaiku_common::{chunk::Chunk, prelude::*};
+use gaiku_common::prelude::*;
 
 use crate::{GaikuMesh, GaikuTexture};
 
 #[derive(Default)]
-pub struct GaikuPlugin;
+pub struct GaikuPlugin<F, B, C, V>
+where
+  F: FileFormat<V> + Send + Sync + 'static + Default,
+  B: Baker<V> + Send + Sync + 'static + Default,
+  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  V: Send + Sync + 'static + Default,
+{
+  file_format: PhantomData<F>,
+  baker: PhantomData<B>,
+  chunk: PhantomData<C>,
+  value: PhantomData<V>,
+}
 
-impl Plugin for GaikuPlugin {
+impl<F, B, C, V> Plugin for GaikuPlugin<F, B, C, V>
+where
+  F: FileFormat<V> + Send + Sync + 'static + Default,
+  B: Baker<V> + Send + Sync + 'static + Default,
+  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  V: Send + Sync + 'static + Default,
+{
   fn build(&self, app: &mut AppBuilder) {
-    app.init_asset_loader::<GaikuAssetLoader>();
+    app.init_asset_loader::<GaikuAssetLoader<F, B, C, V>>();
   }
 }
 
 #[derive(Default)]
-pub struct GaikuAssetLoader;
+pub struct GaikuAssetLoader<F, B, C, V>
+where
+  F: FileFormat<V> + Send + Sync + 'static + Default,
+  B: Baker<V> + Send + Sync + 'static + Default,
+  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  V: Send + Sync + 'static + Default,
+{
+  file_format: PhantomData<F>,
+  baker: PhantomData<B>,
+  chunk: PhantomData<C>,
+  value: PhantomData<V>,
+}
 
-impl AssetLoader for GaikuAssetLoader {
+impl<F, B, C, V> AssetLoader for GaikuAssetLoader<F, B, C, V>
+where
+  F: FileFormat<V> + Send + Sync + 'static + Default,
+  B: Baker<V> + Send + Sync + 'static + Default,
+  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  V: Send + Sync + 'static + Default,
+{
   fn load<'a>(
     &'a self,
     bytes: &'a [u8],
@@ -31,10 +66,8 @@ impl AssetLoader for GaikuAssetLoader {
   ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
     Box::pin(async move {
       let mut world = World::default();
-      let world_builder = &mut world.build();
 
-      let (chunks, atlas): (Vec<Chunk>, Option<TextureAtlas2d<GaikuTexture>>) =
-        GoxReader::load(bytes.to_vec())?;
+      let (chunks, atlas) = F::load::<C, GaikuTexture>(bytes.to_vec())?;
 
       let texture_label = "test_texture.png";
 
@@ -52,10 +85,12 @@ impl AssetLoader for GaikuAssetLoader {
         material_label,
         LoadedAsset::new(StandardMaterial {
           albedo: Color::WHITE,
+          /*
           albedo_texture: Some(load_context.get_handle(AssetPath::new_ref(
             load_context.path(),
             Some(material_label),
           ))),
+          */
           ..Default::default()
         }),
       );
@@ -65,36 +100,27 @@ impl AssetLoader for GaikuAssetLoader {
         ..Default::default()
       };
 
-      for chunk in chunks.iter() {
-        let mesh: Option<GaikuMesh> = VoxelBaker::bake(chunk, &baker_options)?;
+      world.spawn_batch(chunks.iter().map(|chunk| {
+        let mesh = B::bake::<C, GaikuTexture, GaikuMesh>(chunk, &baker_options)
+          .expect("Expected mesh to be baked");
         if let Some(mesh) = mesh {
           let mesh: Mesh = mesh.into();
 
           let name = format!("Chunk{:?}", chunk.position());
           load_context.set_labeled_asset(&name, LoadedAsset::new(mesh));
         }
-      }
 
-      world_builder
-        .spawn((
-          //Transform::from_rotation(Quat::from_rotation_x(-90.0)),
-          Transform::default(),
-          GlobalTransform::default(),
-        ))
-        .with_children(|parent| {
-          for chunk in chunks.iter() {
-            let name = format!("Chunk[{:?}]", &chunk.position());
-            let mesh_asset_path = AssetPath::new_ref(load_context.path(), Some(&name));
-            let material_asset_path = AssetPath::new_ref(load_context.path(), Some(material_label));
+        let name = format!("Chunk{:?}", &chunk.position());
+        let mesh_asset_path = AssetPath::new_ref(load_context.path(), Some(&name));
+        let material_asset_path = AssetPath::new_ref(load_context.path(), Some(material_label));
 
-            parent.spawn(PbrBundle {
-              mesh: load_context.get_handle(mesh_asset_path),
-              material: load_context.get_handle(material_asset_path),
-              transform: Transform::from_translation(chunk.position().into()),
-              ..Default::default()
-            });
-          }
-        });
+        PbrBundle {
+          mesh: load_context.get_handle(mesh_asset_path),
+          material: load_context.get_handle(material_asset_path),
+          transform: Transform::from_translation(chunk.position().into()),
+          ..Default::default()
+        }
+      }));
 
       load_context.set_default_asset(LoadedAsset::new(Scene::new(world)));
 

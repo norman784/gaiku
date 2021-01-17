@@ -3,15 +3,14 @@ use gaiku_common::{prelude::*, Result};
 use gox::{Block, Data, Gox, Only};
 
 /// Converts a `gox` file to 3d chunk data.
+#[derive(Default)]
 pub struct GoxReader;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom
-impl FileFormat for GoxReader {
-  type Value = (u8, u8);
-
+impl FileFormat<(u8, u8)> for GoxReader {
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + Boxify,
+    C: Chunkify<(u8, u8)> + Boxify,
     T: Texturify2d,
   {
     let gox = Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);

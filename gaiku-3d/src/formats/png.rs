@@ -3,14 +3,13 @@ use gaiku_common::{prelude::*, Result};
 use image::load_from_memory;
 
 /// Converts a `png` file to 2d chunk data.
+#[derive(Default)]
 pub struct PNGReader;
 
-impl FileFormat for PNGReader {
-  type Value = (u8, u8);
-
+impl FileFormat<(u8, u8)> for PNGReader {
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + Boxify,
+    C: Chunkify<(u8, u8)> + Boxify,
     T: Texturify2d,
   {
     let mut result = vec![];

@@ -48,6 +48,7 @@ impl GridCell {
 }
 
 /// Implementation of the marching cubes terrain generation.
+#[derive(Default)]
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
@@ -150,12 +151,10 @@ impl MarchingCubesBaker {
   }
 }
 
-impl Baker for MarchingCubesBaker {
-  type Value = (u8, u8);
-
+impl Baker<(u8, u8)> for MarchingCubesBaker {
   fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<(u8, u8)> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {
