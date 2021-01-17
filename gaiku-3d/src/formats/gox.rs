@@ -73,7 +73,7 @@ impl FileFormat for GoxReader {
 
       for (index, color) in colors.iter().enumerate() {
         // colors should limited to 255 so (index.try_into().unwrap()) should fit into u8 for set_at_index
-        atlas.set_at_index(index.try_into().unwrap(), vec![*color]);
+        atlas.fill_at_index(index.try_into().unwrap(), *color);
       }
 
       Ok((result, Some(atlas)))

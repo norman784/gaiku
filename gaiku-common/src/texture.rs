@@ -41,6 +41,7 @@ pub struct TextureAtlas2d<T>
 where
   T: Texturify2d,
 {
+  tile_size: u32,
   texture: T,
 }
 
@@ -49,11 +50,20 @@ where
   T: Texturify2d,
 {
   pub fn new(tile_size: u32) -> Self {
-    Self::with_texture(T::new(COLS * tile_size, ROWS * tile_size))
+    Self::with_texture(T::new(COLS * tile_size, ROWS * tile_size), tile_size)
   }
 
-  pub fn with_texture(texture: T) -> Self {
-    Self { texture }
+  pub fn with_texture(texture: T, tile_size: u32) -> Self {
+    Self { tile_size, texture }
+  }
+
+  pub fn fill_at_index(&mut self, index: u8, color: [u8; 4]) {
+    self.set_at_index(
+      index,
+      (0..((self.tile_size * self.tile_size) as usize))
+        .map(|_| color)
+        .collect::<Vec<_>>(),
+    );
   }
 
   pub fn get_texture(&self) -> T {
@@ -79,14 +89,12 @@ where
 
     // Convert uv to tex xy for the origin of this blit
     let x_o = (uv.0 * self.texture.width() as f32).floor() as u32; // Convert uv to tex xy
-    let y_o = (uv.1 * self.texture.height() as f32).floor() as u32; // Convert uv to tex xy
-
-    // Get the width of the tile in texture coords so we can blit that area with the pixels
-    let tile_width = (COL_SIZE * self.texture.width() as f32).floor() as u32;
+    let y_o = ((1.0 - COL_SIZE - uv.1) * self.texture.height() as f32).floor() as u32; // Convert uv to tex xy and invert the Y axis, so it starts from top
+                                                                                       //let y_o = (uv.1 * self.texture.height() as f32).floor() as u32; // Convert uv to tex xy and invert the Y axis, so it starts from top
 
     // Blit the texture's tile
     pixels.iter().enumerate().for_each(|(i, v)| {
-      let (dx, dy) = (i as u32 % tile_width, i as u32 / tile_width);
+      let (dx, dy) = (i as u32 % self.tile_size, i as u32 / self.tile_size);
       let (x, y) = (x_o + dx, y_o + dy);
       self.texture.set_pixel(x, y, *v);
     });
