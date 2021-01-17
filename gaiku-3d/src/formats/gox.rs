@@ -1,4 +1,5 @@
 use gaiku_common::{prelude::*, Result};
+use std::convert::TryInto;
 
 use gox::{Block, Data, Gox, Only};
 
@@ -71,7 +72,8 @@ impl FileFormat for GoxReader {
       let mut atlas = TextureAtlas2d::new(1);
 
       for (index, color) in colors.iter().enumerate() {
-        atlas.set_at_index(index, vec![*color]);
+        // colors should limited to 255 so (index.try_into().unwrap()) should fit into u8 for set_at_index
+        atlas.set_at_index(index.try_into().unwrap(), vec![*color]);
       }
 
       Ok((result, Some(atlas)))
