@@ -17,7 +17,7 @@ pub struct GaikuPlugin<F, B, C, V>
 where
   F: FileFormat<V> + Send + Sync + 'static + Default,
   B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   file_format: PhantomData<F>,
@@ -30,7 +30,7 @@ impl<F, B, C, V> Plugin for GaikuPlugin<F, B, C, V>
 where
   F: FileFormat<V> + Send + Sync + 'static + Default,
   B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   fn build(&self, app: &mut AppBuilder) {
@@ -43,7 +43,7 @@ pub struct GaikuAssetLoader<F, B, C, V>
 where
   F: FileFormat<V> + Send + Sync + 'static + Default,
   B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   file_format: PhantomData<F>,
@@ -56,7 +56,7 @@ impl<F, B, C, V> AssetLoader for GaikuAssetLoader<F, B, C, V>
 where
   F: FileFormat<V> + Send + Sync + 'static + Default,
   B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + Boxify + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   fn load<'a>(
@@ -72,6 +72,9 @@ where
       let texture_label = "test_texture.png";
 
       let loaded_asset = if let Some(atlas) = &atlas {
+        atlas
+          .get_texture()
+          .write_to_file("output/terrain_texture.png")?;
         let texture: Texture = atlas.get_texture().into();
         LoadedAsset::new(texture)
       } else {
@@ -85,12 +88,9 @@ where
         material_label,
         LoadedAsset::new(StandardMaterial {
           albedo: Color::WHITE,
-          /*
-          albedo_texture: Some(load_context.get_handle(AssetPath::new_ref(
-            load_context.path(),
-            Some(material_label),
-          ))),
-          */
+          albedo_texture: Some(
+            load_context.get_handle(AssetPath::new_ref(load_context.path(), Some(texture_label))),
+          ),
           ..Default::default()
         }),
       );
@@ -103,6 +103,7 @@ where
       world.spawn_batch(chunks.iter().map(|chunk| {
         let mesh = B::bake::<C, GaikuTexture, GaikuMesh>(chunk, &baker_options)
           .expect("Expected mesh to be baked");
+
         if let Some(mesh) = mesh {
           let mesh: Mesh = mesh.into();
 

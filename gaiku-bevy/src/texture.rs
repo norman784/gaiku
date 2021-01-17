@@ -1,5 +1,7 @@
+use std::{fs::File, io::BufWriter, path::Path};
+
 use bevy_render::texture::{Extent3d, Texture, TextureDimension, TextureFormat};
-use gaiku_common::prelude::*;
+use gaiku_common::{prelude::*, Result};
 
 #[derive(Clone, Debug)]
 pub struct GaikuTexture {
@@ -11,6 +13,21 @@ pub struct GaikuTexture {
 impl GaikuTexture {
   fn index(&self, x: u32, y: u32) -> usize {
     (x + y * self.width) as usize
+  }
+
+  pub fn write_to_file(&self, file_path: &str) -> Result<()> {
+    let path = Path::new(file_path);
+    let file = File::create(path)?;
+    let w = &mut BufWriter::new(file);
+
+    let mut encoder = png::Encoder::new(w, self.width, self.height);
+    encoder.set_color(png::ColorType::RGBA);
+    //encoder.set_depth(png::BitDepth::Eight);
+    let writer = &mut encoder.write_header()?;
+
+    writer.write_image_data(&self.data)?;
+
+    Ok(())
   }
 }
 
@@ -51,8 +68,9 @@ impl Texturify2d for GaikuTexture {
   }
 
   fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]) {
-    let index = self.index(x, y);
-    self.set_pixel_at_index(index, data);
+    if x < self.width && y < self.height {
+      self.set_pixel_at_index((x * 4 + self.width * y * 4) as usize, data);
+    }
   }
 
   fn set_pixel_at_index(&mut self, index: usize, data: [u8; 4]) {
@@ -75,7 +93,7 @@ impl Into<Texture> for GaikuTexture {
       Extent3d::new(self.width, self.height, 1),
       TextureDimension::D2,
       self.data,
-      TextureFormat::Rgba8Uint,
+      TextureFormat::Rgba8Unorm,
     )
   }
 }

@@ -18,6 +18,7 @@ bevy_transform = "0.4.0"
 bevy_utils = "0.4.0"
 gaiku-3d = { path = "../gaiku-3d", version = "0.1.0", features=["all"] }
 gaiku-common = { path = "../gaiku-common", version = "0.1.0" }
+png = "0.16.8"
 
 [dev-dependencies]
 bevy = "0.4.0"
