@@ -290,7 +290,6 @@ mod test {
     atlas.set_at_index(index, test_pixels.to_vec());
     let tex = atlas.get_texture();
     let tex_data = tex.get_data();
-    tex.write_to_file("output/test_data.png").unwrap();
 
     // Convert some things to usize now to avoid multiple casts in the rest of the test
     let tile_size: usize = tile_size.try_into().unwrap();
