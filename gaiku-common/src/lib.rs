@@ -71,12 +71,12 @@ pub trait Baker<V> {
 pub trait FileFormat<V> {
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<(u8, u8)> + ChunkifyMut<(u8, u8)> + Boxify,
+    C: Chunkify<V> + ChunkifyMut<V> + Boxify,
     T: Texturify2d;
 
   fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<(u8, u8)> + ChunkifyMut<(u8, u8)> + Boxify,
+    C: Chunkify<V> + ChunkifyMut<V> + Boxify,
     T: Texturify2d,
   {
     let bytes = read(file)?;
