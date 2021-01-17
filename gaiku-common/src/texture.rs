@@ -10,6 +10,8 @@ pub(crate) const COLS: u32 = 16;
 pub(crate) const ROWS: u32 = 16;
 pub(crate) const COL_SIZE: f32 = 1.0 / COLS as f32;
 pub(crate) const ROW_SIZE: f32 = 1.0 / COLS as f32;
+pub(crate) const COL_PADDING: f32 = COL_SIZE * 1e-5;
+pub(crate) const ROW_PADDING: f32 = ROW_SIZE * 1e-5;
 
 fn index_to_xy(index: u8) -> (u8, u8) {
   (index % COLS as u8, index / COLS as u8)
@@ -63,12 +65,12 @@ where
   pub fn get_uv(&self, index: u8) -> ([f32; 2], [f32; 2], [f32; 2], [f32; 2]) {
     let xy = index_to_xy(index);
     let (x, y) = xy_to_uv(xy);
-
+    // add padding between the tile borders and the uv
     (
-      [x, y],
-      [x + COL_SIZE, y],
-      [x + COL_SIZE, y + ROW_SIZE],
-      [x, y + ROW_SIZE],
+      [x + COL_PADDING, y + ROW_PADDING],
+      [x + COL_SIZE - COL_PADDING, y + ROW_PADDING],
+      [x + COL_SIZE - COL_PADDING, y + ROW_SIZE - ROW_PADDING],
+      [x + COL_PADDING, y + ROW_SIZE - ROW_PADDING],
     )
   }
 
