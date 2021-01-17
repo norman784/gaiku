@@ -72,13 +72,24 @@ where
     )
   }
 
-  pub fn set_at_index(&mut self, index: usize, pixels: Vec<[u8; 4]>) {
-    if index + (pixels.len() * 4) < self.texture.len() {
-      pixels
-        .iter()
-        .enumerate()
-        .for_each(|(i, v)| self.texture.set_pixel_at_index((index * 4) + i, *v));
-    }
+  pub fn set_at_index(&mut self, index: u8, pixels: Vec<[u8; 4]>) {
+    // Get UV position on the tex for this index
+    let xy = index_to_xy(index);
+    let uv = xy_to_uv(xy);
+
+    // Convert uv to tex xy for the origin of this blit
+    let x_o = (uv.0 * self.texture.width() as f32).floor() as u32; // Convert uv to tex xy
+    let y_o = (uv.1 * self.texture.height() as f32).floor() as u32; // Convert uv to tex xy
+
+    // Get the width of the tile in texture coords so we can blit that area with the pixels
+    let tile_width = (COL_SIZE * self.texture.width() as f32).floor() as u32;
+
+    // Blit the texture's tile
+    pixels.iter().enumerate().for_each(|(i, v)| {
+      let (dx, dy) = (i as u32 % tile_width, i as u32 / tile_width);
+      let (x, y) = (x_o + dx, y_o + dy);
+      self.texture.set_pixel(x, y, *v);
+    });
   }
 }
 
