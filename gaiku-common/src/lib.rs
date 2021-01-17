@@ -9,7 +9,7 @@ pub use mint;
 
 use crate::{
   boxify::*,
-  chunk::Chunkify,
+  chunk::{Chunkify, ChunkifyMut},
   mesh::Meshify,
   texture::{TextureAtlas2d, Texturify2d},
 };
@@ -29,7 +29,7 @@ pub mod texture;
 pub mod prelude {
   pub use crate::{
     boxify::*,
-    chunk::Chunkify,
+    chunk::{Chunkify, ChunkifyMut},
     mesh::{MeshBuilder, Meshify},
     texture::{TextureAtlas2d, Texturify2d},
     Baker, BakerOptions, FileFormat,
@@ -74,12 +74,12 @@ pub trait FileFormat {
 
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
     T: Texturify2d;
 
   fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
     T: Texturify2d,
   {
     let bytes = read(file)?;
