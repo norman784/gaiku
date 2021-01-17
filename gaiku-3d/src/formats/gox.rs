@@ -1,4 +1,5 @@
 use gaiku_common::{prelude::*, Result};
+use std::convert::TryInto;
 
 use gox::{Block, Data, Gox, Only};
 
@@ -10,7 +11,7 @@ pub struct GoxReader;
 impl FileFormat<(u8, u8)> for GoxReader {
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<(u8, u8)> + Boxify,
+    C: Chunkify<(u8, u8)> + ChunkifyMut<(u8, u8)> + Boxify,
     T: Texturify2d,
   {
     let gox = Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);
@@ -70,7 +71,8 @@ impl FileFormat<(u8, u8)> for GoxReader {
       let mut atlas = TextureAtlas2d::new(1);
 
       for (index, color) in colors.iter().enumerate() {
-        atlas.set_at_index(index, vec![*color]);
+        // colors should limited to 255 so (index.try_into().unwrap()) should fit into u8 for set_at_index
+        atlas.set_at_index(index.try_into().unwrap(), vec![*color]);
       }
 
       Ok((result, Some(atlas)))

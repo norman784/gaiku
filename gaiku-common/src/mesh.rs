@@ -243,7 +243,7 @@ impl MeshBuilderOctree {
       match &mut self.node {
         MeshBuilderOctreeNode::Leaf(leafs) => {
           let leaf_normal = if let Some(normal) = leaf.normal {
-            Some(Boundary::new(normal, [0.000001, 0.000001, 0.000001]))
+            Some(Boundary::new(normal, [1e-5, 1e-5, 1e-5]))
           } else {
             None
           };
@@ -262,7 +262,7 @@ impl MeshBuilderOctree {
             }
           }
 
-          let boundary = Boundary::new(leaf.position, [0.0, 0.0, 0.0]);
+          let boundary = Boundary::new(leaf.position, [1e-5, 1e-5, 1e-5]);
           leafs.push((leaf.clone(), boundary));
 
           if leafs.len() > self.split_at && self.bucket > 0 {

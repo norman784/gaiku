@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{boxify::*, chunk::Chunkify};
+use crate::{
+  boxify::*,
+  chunk::{Chunkify, ChunkifyMut},
+};
 
 /// Provides a `Chunkify` implementation with a hashmap and `u8` position based on x, y and z axis with `u8` value.
 #[derive(Debug, Clone)]
@@ -22,9 +25,6 @@ impl Chunkify<u8> for SparseChunk {
 
   fn get(&self, x: usize, y: usize, z: usize) -> u8 {
     *self.data.get(&(x, y, z)).unwrap_or(&0)
-  }
-  fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
-    self.data.insert((x, y, z), value);
   }
 }
 
@@ -48,5 +48,11 @@ impl Sizable for SparseChunk {
 
   fn width(&self) -> u16 {
     self.width
+  }
+}
+
+impl ChunkifyMut<u8> for SparseChunk {
+  fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
+    self.data.insert((x, y, z), value);
   }
 }

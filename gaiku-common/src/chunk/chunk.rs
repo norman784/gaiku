@@ -1,7 +1,10 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{boxify::*, chunk::Chunkify};
+use crate::{
+  boxify::*,
+  chunk::{Chunkify, ChunkifyMut},
+};
 
 /// Provides a `Chunkify` implementation with index and value support `(u8, u8)`.
 #[derive(Clone, Debug, Default)]
@@ -16,7 +19,7 @@ pub struct Chunk {
 
 impl Chunk {
   fn index(&self, x: usize, y: usize, z: usize) -> usize {
-    x + y * self.width as usize + z * self.width as usize * self.width as usize
+    x + y * self.width as usize + z * self.width as usize * self.height as usize
   }
 
   pub fn values(&self) -> Vec<(u8, u8)> {
@@ -53,7 +56,9 @@ impl Chunkify<(u8, u8)> for Chunk {
   fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8) {
     self.values[self.index(x, y, z)]
   }
+}
 
+impl ChunkifyMut<(u8, u8)> for Chunk {
   fn set(&mut self, x: usize, y: usize, z: usize, value: (u8, u8)) {
     let index = self.index(x, y, z);
     self.values[index] = value;
@@ -85,5 +90,21 @@ impl Sizable for Chunk {
 
   fn width(&self) -> u16 {
     self.width
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn check_index() {
+    let chunk = Chunk::new([0.0, 0.0, 0.0], 4, 4, 4);
+    let index = chunk.index(1, 2, 3);
+    assert_eq!(index, 57);
+
+    let chunk = Chunk::new([0.0, 0.0, 0.0], 4, 5, 6);
+    let index = chunk.index(1, 2, 3);
+    assert_eq!(index, 69);
   }
 }

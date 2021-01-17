@@ -9,7 +9,7 @@ pub struct PNGReader;
 impl FileFormat<(u8, u8)> for PNGReader {
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<(u8, u8)> + Boxify,
+    C: Chunkify<(u8, u8)> + ChunkifyMut<(u8, u8)> + Boxify,
     T: Texturify2d,
   {
     let mut result = vec![];
