@@ -2,7 +2,10 @@ use crate::boundary::Boundary;
 use std::{
   collections::HashSet,
   convert::TryInto,
-  sync::{Arc, Mutex},
+  sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+  },
 };
 
 /// Base common denominator across all the mesh implementations used.
@@ -190,19 +193,19 @@ struct MeshBuilderOctree {
   bucket: usize,
   node: MeshBuilderOctreeNode,
   split_at: usize,
-  current_index: Arc<Mutex<usize>>,
+  current_index: Arc<AtomicUsize>,
 }
 
 impl MeshBuilderOctree {
   fn new(boundary: Boundary, bucket: usize, split_at: usize) -> Self {
-    Self::new_with_index(boundary, bucket, split_at, Arc::new(Mutex::new(0)))
+    Self::new_with_index(boundary, bucket, split_at, Arc::new(AtomicUsize::new(0)))
   }
 
   fn new_with_index(
     boundary: Boundary,
     bucket: usize,
     split_at: usize,
-    index: Arc<Mutex<usize>>,
+    index: Arc<AtomicUsize>,
   ) -> Self {
     Self {
       boundary,
@@ -224,10 +227,8 @@ impl MeshBuilderOctree {
           }
 
           let boundary = Boundary::new(leaf.clone(), [1e-5, 1e-5, 1e-5]);
-          let mut current_index = (*self.current_index).lock().unwrap();
-          let new_index = *current_index;
+          let new_index = (*self.current_index).fetch_add(1, Ordering::SeqCst);
           leafs.push((leaf.clone(), boundary, new_index));
-          *current_index += 1;
 
           if leafs.len() > self.split_at && self.bucket > 0 {
             let leafs = leafs.clone();
@@ -378,7 +379,7 @@ impl MeshBuilder {
       None
     };
     let uv_index = if let Some(uv) = uv {
-      match self.normal_cache.insert(&[uv[0], uv[1], 0.]) {
+      match self.uv_cache.insert(&[uv[0], uv[1], 0.]) {
         // Ignore w coordinate for now
         InsertResult::Inserted(index) => Some(index.try_into().unwrap()),
         InsertResult::AlreadyExists(index) => Some(index.try_into().unwrap()),
@@ -495,7 +496,7 @@ fn subdivide(
   boundary: &Boundary,
   bucket: usize,
   split_at: usize,
-  current_index: Arc<Mutex<usize>>,
+  current_index: Arc<AtomicUsize>,
 ) -> Box<[MeshBuilderOctree; 8]> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
