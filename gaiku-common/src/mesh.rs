@@ -1,6 +1,5 @@
 use crate::boundary::Boundary;
 use std::{
-  collections::HashSet,
   convert::TryInto,
   sync::{
     atomic::{AtomicUsize, Ordering},
@@ -216,7 +215,7 @@ impl MeshBuilderOctree {
     }
   }
 
-  fn insert(&mut self, leaf: &[f32; 3]) -> InsertResult {
+  fn insert_with_index(&mut self, leaf: &[f32; 3], next_index: usize) -> InsertResult {
     if self.boundary.contains(&leaf.clone().into()) {
       match &mut self.node {
         MeshBuilderOctreeNode::Leaf(leafs) => {
@@ -227,8 +226,7 @@ impl MeshBuilderOctree {
           }
 
           let boundary = Boundary::new(leaf.clone(), [1e-5, 1e-5, 1e-5]);
-          let new_index = (*self.current_index).fetch_add(1, Ordering::SeqCst);
-          leafs.push((leaf.clone(), boundary, new_index));
+          leafs.push((leaf.clone(), boundary, next_index));
 
           if leafs.len() > self.split_at && self.bucket > 0 {
             let leafs = leafs.clone();
@@ -238,9 +236,9 @@ impl MeshBuilderOctree {
               self.split_at,
               self.current_index.clone(),
             );
-            for (leaf, _, _) in leafs.iter() {
+            for (leaf, _, current_index) in leafs.iter() {
               for node in nodes.iter_mut() {
-                if let InsertResult::Inserted(_) = node.insert(leaf) {
+                if let InsertResult::Inserted(_) = node.insert_with_index(leaf, *current_index) {
                   break;
                 }
               }
@@ -249,11 +247,11 @@ impl MeshBuilderOctree {
             self.node = MeshBuilderOctreeNode::Subtree(nodes);
           }
 
-          InsertResult::Inserted(new_index.try_into().unwrap())
+          InsertResult::Inserted(next_index.try_into().unwrap())
         }
         MeshBuilderOctreeNode::Subtree(nodes) => {
           for node in nodes.iter_mut() {
-            match node.insert(leaf) {
+            match node.insert_with_index(leaf, next_index) {
               InsertResult::Inserted(index) => return InsertResult::Inserted(index),
               InsertResult::AlreadyExists(index) => return InsertResult::AlreadyExists(index),
               InsertResult::FailedInsert => return InsertResult::FailedInsert,
@@ -267,6 +265,14 @@ impl MeshBuilderOctree {
     } else {
       InsertResult::OutOfBounds
     }
+  }
+  fn insert(&mut self, leaf: &[f32; 3]) -> InsertResult {
+    let next_index = (*self.current_index).load(Ordering::SeqCst);
+    let result = self.insert_with_index(leaf, next_index);
+    if let InsertResult::Inserted(_) = result {
+      (*self.current_index).fetch_add(1, Ordering::SeqCst);
+    }
+    result
   }
 
   fn get_all_ww_index(&self) -> Vec<([f32; 3], usize)> {
@@ -327,7 +333,7 @@ impl From<[f32; 3]> for Position {
 /// Helper component that makes easy to build a triangle list mesh.
 #[derive(Debug)]
 pub struct MeshBuilder {
-  unique_nodes: HashSet<NodeIndices>,
+  nodes: Vec<NodeIndices>,
   vertex_cache: MeshBuilderOctree,
   normal_cache: MeshBuilderOctree,
   uv_cache: MeshBuilderOctree,
@@ -345,7 +351,7 @@ impl MeshBuilder {
   /// Crates a new mesh centered at a position and size.
   pub fn create(center: [f32; 3], size: [f32; 3]) -> Self {
     Self {
-      unique_nodes: HashSet::new(),
+      nodes: Default::default(),
       vertex_cache: MeshBuilderOctree::new(Boundary::new(center, size), 3, 25),
       normal_cache: MeshBuilderOctree::new(Boundary::new([0., 0., 0.], [2., 2., 2.]), 3, 25),
       uv_cache: MeshBuilderOctree::new(Boundary::new([0.5, 0.5, 0.5], [1., 1., 1.]), 3, 25),
@@ -390,7 +396,7 @@ impl MeshBuilder {
       None
     };
 
-    self.unique_nodes.insert(NodeIndices {
+    self.nodes.push(NodeIndices {
       vertex: vertex_index,
       normal: normal_index,
       uv: uv_index,
@@ -447,29 +453,30 @@ impl MeshBuilder {
   where
     M: Meshify,
   {
-    if !self.unique_nodes.is_empty() {
+    if !self.nodes.is_empty() {
       let vertex_table = self.vertex_cache.get_all();
       let normal_table = self.normal_cache.get_all();
       let uv_table = self.uv_cache.get_all();
 
-      // Iter of a hashset is in arbitary order so we collect to ensure order is fixed for rest of build
-      let unique_nodes: Vec<NodeIndices> = self.unique_nodes.iter().cloned().collect();
-
-      let indices = unique_nodes
+      let indices = self
+        .nodes
         .iter()
         .enumerate()
         .map(|(i, _)| i.try_into().unwrap())
         .collect();
-      let positions = unique_nodes
+      let positions = self
+        .nodes
         .iter()
         .map(|d| vertex_table[d.vertex].clone())
         .collect();
-      let normals = unique_nodes
+      let normals = self
+        .nodes
         .iter()
         .filter(|d| d.normal.is_some()) // Might be better to use a dud value like [0.,0.,0.] instead
         .map(|d| normal_table[d.normal.unwrap()].clone())
         .collect();
-      let uvs = unique_nodes
+      let uvs = self
+        .nodes
         .iter()
         .filter(|d| d.uv.is_some()) // Might be better to use a dud value like [0.,0.] instead
         .map(|d| {
