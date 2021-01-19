@@ -1,8 +1,9 @@
 use crate::boundary::Boundary;
 use std::{
+  collections::HashMap,
   convert::TryInto,
   sync::{
-    atomic::{AtomicUsize, Ordering},
+    atomic::{AtomicU32, AtomicUsize, Ordering},
     Arc,
   },
 };
@@ -333,10 +334,12 @@ impl From<[f32; 3]> for Position {
 /// Helper component that makes easy to build a triangle list mesh.
 #[derive(Debug)]
 pub struct MeshBuilder {
-  nodes: Vec<NodeIndices>,
+  unique_nodes: HashMap<NodeIndices, u32>,
+  indices: Vec<u32>,
+  current_index: Arc<AtomicU32>,
   vertex_cache: MeshBuilderOctree,
   normal_cache: MeshBuilderOctree,
-  uv_cache: MeshBuilderOctree,
+  uvw_cache: MeshBuilderOctree,
 }
 
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
@@ -351,10 +354,12 @@ impl MeshBuilder {
   /// Crates a new mesh centered at a position and size.
   pub fn create(center: [f32; 3], size: [f32; 3]) -> Self {
     Self {
-      nodes: Default::default(),
+      unique_nodes: Default::default(),
+      indices: Default::default(),
+      current_index: Arc::new(AtomicU32::new(0)),
       vertex_cache: MeshBuilderOctree::new(Boundary::new(center, size), 3, 25),
       normal_cache: MeshBuilderOctree::new(Boundary::new([0., 0., 0.], [2., 2., 2.]), 3, 25),
-      uv_cache: MeshBuilderOctree::new(Boundary::new([0.5, 0.5, 0.5], [1., 1., 1.]), 3, 25),
+      uvw_cache: MeshBuilderOctree::new(Boundary::new([0.5, 0.5, 0.5], [1., 1., 1.]), 3, 25),
     }
   }
 
@@ -385,7 +390,7 @@ impl MeshBuilder {
       None
     };
     let uv_index = if let Some(uv) = uv {
-      match self.uv_cache.insert(&[uv[0], uv[1], 0.]) {
+      match self.uvw_cache.insert(&[uv[0], uv[1], 0.]) {
         // Ignore w coordinate for now
         InsertResult::Inserted(index) => Some(index.try_into().unwrap()),
         InsertResult::AlreadyExists(index) => Some(index.try_into().unwrap()),
@@ -396,12 +401,18 @@ impl MeshBuilder {
       None
     };
 
-    self.nodes.push(NodeIndices {
-      vertex: vertex_index,
-      normal: normal_index,
-      uv: uv_index,
-      atlas: atlas_index,
-    });
+    let arc_ci = self.current_index.clone(); // to avoid borrowing issues inside the closure
+    let index = self
+      .unique_nodes
+      .entry(NodeIndices {
+        vertex: vertex_index,
+        normal: normal_index,
+        uv: uv_index,
+        atlas: atlas_index,
+      })
+      .or_insert_with(|| (*arc_ci).fetch_add(1, Ordering::SeqCst));
+
+    self.indices.push(*index);
   }
 
   /// Inserts the triangle and generate the index if needed, otherwise use an existing index.
@@ -453,37 +464,44 @@ impl MeshBuilder {
   where
     M: Meshify,
   {
-    if !self.nodes.is_empty() {
+    if !self.unique_nodes.is_empty() {
       let vertex_table = self.vertex_cache.get_all();
       let normal_table = self.normal_cache.get_all();
-      let uv_table = self.uv_cache.get_all();
+      let uvw_table = self.uvw_cache.get_all();
 
-      let indices = self
-        .nodes
-        .iter()
-        .enumerate()
-        .map(|(i, _)| i.try_into().unwrap())
-        .collect();
-      let positions = self
-        .nodes
+      // HashMaps have aribtary order so we fix that by converting to a vec before anything else
+      let unique_nodes: Vec<NodeIndices> = {
+        let mut temp: Vec<(usize, NodeIndices)> = self
+          .unique_nodes
+          .iter()
+          .map(|(d, i)| ((*i).try_into().unwrap(), d.clone()))
+          .collect();
+        // We sort by our index
+        temp.sort_by(|(a_index, _), (b_index, _)| a_index.partial_cmp(&b_index).unwrap());
+        temp.iter().map(|(_, d)| d.clone()).collect()
+      };
+
+      let indices = self.indices.clone();
+      let positions: Vec<[f32; 3]> = unique_nodes
         .iter()
         .map(|d| vertex_table[d.vertex].clone())
         .collect();
-      let normals = self
-        .nodes
+      let normals = unique_nodes
         .iter()
         .filter(|d| d.normal.is_some()) // Might be better to use a dud value like [0.,0.,0.] instead
         .map(|d| normal_table[d.normal.unwrap()].clone())
         .collect();
-      let uvs = self
-        .nodes
+      let uvs: Vec<[f32; 2]> = unique_nodes
         .iter()
         .filter(|d| d.uv.is_some()) // Might be better to use a dud value like [0.,0.] instead
         .map(|d| {
-          let uvw = uv_table[d.uv.unwrap()].clone();
+          let uvw = uvw_table[d.uv.unwrap()].clone();
           [uvw[0], uvw[2]]
         })
         .collect();
+
+      println!("position: {}, uvs: {}", positions.len(), uvs.len());
+      println!("uvs[0]: {:?}, uvs[1]: {:?}", uvs.get(0), uvs.get(1));
 
       Some(M::with(indices, positions, normals, uvs))
     } else {
