@@ -44,6 +44,8 @@ where
   T: Texturify2d,
 {
   texture: T,
+  tile_size: u32,
+  pad_size: u32,
 }
 
 impl<T> TextureAtlas2d<T>
@@ -51,11 +53,24 @@ where
   T: Texturify2d,
 {
   pub fn new(tile_size: u32) -> Self {
-    Self::with_texture(T::new(COLS * tile_size, ROWS * tile_size))
+    Self::with_texture_and_size(
+      T::new(COLS * (tile_size + 2), ROWS * (tile_size + 2)),
+      tile_size,
+      1,
+    )
   }
 
   pub fn with_texture(texture: T) -> Self {
-    Self { texture }
+    let tile_width = texture.width() / COLS;
+    let tile_pad = 0;
+    Self::with_texture_and_size(texture, tile_width, tile_pad)
+  }
+  pub fn with_texture_and_size(texture: T, tile_size: u32, pad_size: u32) -> Self {
+    Self {
+      texture,
+      tile_size,
+      pad_size,
+    }
   }
 
   pub fn get_texture(&self) -> T {
@@ -64,33 +79,73 @@ where
 
   pub fn get_uv(&self, index: u8) -> ([f32; 2], [f32; 2], [f32; 2], [f32; 2]) {
     let xy = index_to_xy(index);
-    let (x, y) = xy_to_uv(xy);
+    let (u, v) = xy_to_uv(xy);
+
+    // Adjust u and v by the padding
+    let tex_width = self.texture.width() as f32;
+    let u = u + self.pad_size as f32 / tex_width;
+    let v = v + self.pad_size as f32 / tex_width;
+
+    // Adjust col and row size by padding
+    let padded_col_size =
+      COL_SIZE * (self.tile_size as f32) / ((self.tile_size + self.pad_size * 2) as f32);
+    let padded_row_size =
+      ROW_SIZE * (self.tile_size as f32) / ((self.tile_size + self.pad_size * 2) as f32);
+
     // add padding between the tile borders and the uv
     (
-      [x + COL_PADDING, y + ROW_PADDING],
-      [x + COL_SIZE - COL_PADDING, y + ROW_PADDING],
-      [x + COL_SIZE - COL_PADDING, y + ROW_SIZE - ROW_PADDING],
-      [x + COL_PADDING, y + ROW_SIZE - ROW_PADDING],
+      [u + COL_PADDING, v + ROW_PADDING],
+      [u + padded_col_size - COL_PADDING, v + ROW_PADDING],
+      [
+        u + padded_col_size - COL_PADDING,
+        v + padded_row_size - ROW_PADDING,
+      ],
+      [u + COL_PADDING, v + padded_row_size - ROW_PADDING],
     )
   }
 
   pub fn set_at_index(&mut self, index: u8, pixels: Vec<[u8; 4]>) {
     // Get UV position on the tex for this index
-    let xy = index_to_xy(index);
-    let uv = xy_to_uv(xy);
+    let uv = self.get_uv(index).0;
 
     // Convert uv to tex xy for the origin of this blit
-    let x_o = (uv.0 * self.texture.width() as f32).floor() as u32; // Convert uv to tex xy
-    let y_o = (uv.1 * self.texture.height() as f32).floor() as u32; // Convert uv to tex xy
+    let x_o = (uv[0] * self.texture.width() as f32).floor() as u32; // Convert uv to tex xy
+    let y_o = (uv[1] * self.texture.height() as f32).floor() as u32; // Convert uv to tex xy
 
     // Get the width of the tile in texture coords so we can blit that area with the pixels
-    let tile_width = (COL_SIZE * self.texture.width() as f32).floor() as u32;
+    let tile_width = self.tile_size;
 
     // Blit the texture's tile
     pixels.iter().enumerate().for_each(|(i, v)| {
       let (dx, dy) = (i as u32 % tile_width, i as u32 / tile_width);
       let (x, y) = (x_o + dx, y_o + dy);
       self.texture.set_pixel(x, y, *v);
+
+      // blit the padding
+      if self.pad_size > 0 {
+        if dx == 0 {
+          self.texture.set_pixel(x_o - 1, y, *v);
+        }
+        if dy == 0 {
+          self.texture.set_pixel(x, y_o - 1, *v);
+        }
+        if dy == 0 && dx == 0 {
+          // the corner
+          self.texture.set_pixel(x_o - 1, y_o - 1, *v);
+        }
+        if dx == tile_width - 1 {
+          self.texture.set_pixel(x_o + tile_width, y, *v);
+        }
+        if dy == tile_width - 1 {
+          self.texture.set_pixel(x, y_o + tile_width, *v);
+        }
+        if dx == tile_width - 1 && dy == tile_width - 1 {
+          // the corner
+          self
+            .texture
+            .set_pixel(x_o + tile_width, y_o + tile_width, *v);
+        }
+      }
     });
   }
 }
