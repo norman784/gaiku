@@ -496,12 +496,9 @@ impl MeshBuilder {
         .filter(|d| d.uv.is_some()) // Might be better to use a dud value like [0.,0.] instead
         .map(|d| {
           let uvw = uvw_table[d.uv.unwrap()].clone();
-          [uvw[0], uvw[2]]
+          [uvw[0], uvw[1]]
         })
         .collect();
-
-      println!("position: {}, uvs: {}", positions.len(), uvs.len());
-      println!("uvs[0]: {:?}, uvs[1]: {:?}", uvs.get(0), uvs.get(1));
 
       Some(M::with(indices, positions, normals, uvs))
     } else {
@@ -600,7 +597,7 @@ mod test {
     for x in 0..4 {
       for y in 0..4 {
         for z in 0..4 {
-          tree.insert([x as f32, y as f32, z as f32]);
+          tree.insert(&[x as f32, y as f32, z as f32]);
         }
       }
     }
@@ -618,7 +615,7 @@ mod test {
       MeshBuilderOctree::new(Boundary::new([0.0, 0.0, 0.0], [16.0, 16.0, 16.0]), 3, 25);
 
     match tree.insert(&[0.0, 0.0, 0.0]) {
-      InsertResult::Inserted => assert!(true),
+      InsertResult::Inserted(_) => assert!(true),
       _ => assert!(false),
     }
 
@@ -631,7 +628,7 @@ mod test {
       MeshBuilderOctree::new(Boundary::new([8.0, 8.0, 8.0], [16.0, 16.0, 16.0]), 3, 25);
 
     match tree.insert(&[3.5, 16.0, 12.5]) {
-      InsertResult::Inserted => assert!(true),
+      InsertResult::Inserted(_) => assert!(true),
       _ => {
         println!("{:#?}", &tree);
         assert!(false)
