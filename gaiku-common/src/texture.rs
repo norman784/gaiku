@@ -10,6 +10,8 @@ pub(crate) const COLS: u32 = 16;
 pub(crate) const ROWS: u32 = 16;
 pub(crate) const COL_SIZE: f32 = 1.0 / COLS as f32;
 pub(crate) const ROW_SIZE: f32 = 1.0 / COLS as f32;
+pub(crate) const COL_PADDING: f32 = COL_SIZE * 1e-5;
+pub(crate) const ROW_PADDING: f32 = ROW_SIZE * 1e-5;
 
 fn index_to_xy(index: u8) -> (u8, u8) {
   (index % COLS as u8, index / COLS as u8)
@@ -73,12 +75,12 @@ where
   pub fn get_uv(&self, index: u8) -> ([f32; 2], [f32; 2], [f32; 2], [f32; 2]) {
     let xy = index_to_xy(index);
     let (x, y) = xy_to_uv(xy);
-
+    // add padding between the tile borders and the uv
     (
-      [x, y],
-      [x + COL_SIZE, y],
-      [x + COL_SIZE, y + ROW_SIZE],
-      [x, y + ROW_SIZE],
+      [x + COL_PADDING, y + ROW_PADDING],
+      [x + COL_SIZE - COL_PADDING, y + ROW_PADDING],
+      [x + COL_SIZE - COL_PADDING, y + ROW_SIZE - ROW_PADDING],
+      [x + COL_PADDING, y + ROW_SIZE - ROW_PADDING],
     )
   }
 
@@ -221,28 +223,28 @@ mod test {
     let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
 
     let uv = get_uv_helper(&atlas, 0, 0);
-    assert_eq!(uv.0, [0.0000, 0.9375]);
-    assert_eq!(uv.1, [0.0625, 0.9375]);
-    assert_eq!(uv.2, [0.0625, 1.0]);
-    assert_eq!(uv.3, [0.0000, 1.0]);
+    assert_eq!(uv.0, [0.0000 + COL_PADDING, 0.9375 + ROW_PADDING]);
+    assert_eq!(uv.1, [0.0625 - COL_PADDING, 0.9375 + ROW_PADDING]);
+    assert_eq!(uv.2, [0.0625 - COL_PADDING, 1.0000 - ROW_PADDING]);
+    assert_eq!(uv.3, [0.0000 + COL_PADDING, 1.0000 - ROW_PADDING]);
 
     let uv = get_uv_helper(&atlas, 15, 0);
-    assert_eq!(uv.0, [0.9375, 0.9375]);
-    assert_eq!(uv.1, [1.0000, 0.9375]);
-    assert_eq!(uv.2, [1.0000, 1.0000]);
-    assert_eq!(uv.3, [0.9375, 1.0000]);
+    assert_eq!(uv.0, [0.9375 + COL_PADDING, 0.9375 + ROW_PADDING]);
+    assert_eq!(uv.1, [1.0000 - COL_PADDING, 0.9375 + ROW_PADDING]);
+    assert_eq!(uv.2, [1.0000 - COL_PADDING, 1.0000 - ROW_PADDING]);
+    assert_eq!(uv.3, [0.9375 + COL_PADDING, 1.0000 - ROW_PADDING]);
 
     let uv = get_uv_helper(&atlas, 1, 0);
-    assert_eq!(uv.0, [0.0625, 0.9375]);
-    assert_eq!(uv.1, [0.1250, 0.9375]);
-    assert_eq!(uv.2, [0.1250, 1.0000]);
-    assert_eq!(uv.3, [0.0625, 1.0000]);
+    assert_eq!(uv.0, [0.0625 + COL_PADDING, 0.9375 + ROW_PADDING]);
+    assert_eq!(uv.1, [0.1250 - COL_PADDING, 0.9375 + ROW_PADDING]);
+    assert_eq!(uv.2, [0.1250 - COL_PADDING, 1.0000 - ROW_PADDING]);
+    assert_eq!(uv.3, [0.0625 + COL_PADDING, 1.0000 - ROW_PADDING]);
 
     let uv = get_uv_helper(&atlas, 15, 15);
-    assert_eq!(uv.0, [0.9375, 0.0000]);
-    assert_eq!(uv.1, [1.0000, 0.0000]);
-    assert_eq!(uv.2, [1.0000, 0.0625]);
-    assert_eq!(uv.3, [0.9375, 0.0625]);
+    assert_eq!(uv.0, [0.9375 + COL_PADDING, 0.0000 + ROW_PADDING]);
+    assert_eq!(uv.1, [1.0000 - COL_PADDING, 0.0000 + ROW_PADDING]);
+    assert_eq!(uv.2, [1.0000 - COL_PADDING, 0.0625 - ROW_PADDING]);
+    assert_eq!(uv.3, [0.9375 + COL_PADDING, 0.0625 - ROW_PADDING]);
   }
 
   #[test]
