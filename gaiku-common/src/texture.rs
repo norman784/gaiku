@@ -235,7 +235,7 @@ impl Texturify2d for Texture2d {
   }
 
   fn set_pixel_at_index(&mut self, index: usize, data: [u8; 4]) {
-    if index < self.data.len() - 4 {
+    if index <= self.data.len() - 4 {
       for (i, value) in data.iter().enumerate() {
         self.data[index + i] = *value;
       }
