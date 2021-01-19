@@ -1,12 +1,12 @@
 [package]
-name = "gaiku-common"
+name = "gaiku_common"
 version = "0.1.0"
 authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
 edition = "2018"
-description = "Common library used by gaiku"
+description = "Common library used by Gaiku"
 license = "MIT/Apache-2.0"
 
-documentation = "https://docs.rs/gaiku-common"
+documentation = "https://docs.rs/gaiku_common"
 homepage = "https://github.com/norman784/gaiku"
 repository = "https://github.com/norman784/gaiku"
 

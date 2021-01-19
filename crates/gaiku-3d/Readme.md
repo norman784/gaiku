@@ -1,5 +1,7 @@
 # Gaiku 3d
 
+## DEPRECATED IN FAVOR OF `gaiku` CRATE
+
 Implementation of the 3d terrain engine.
 
 ## File formats
