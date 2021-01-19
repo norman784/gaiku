@@ -60,6 +60,14 @@ where
     )
   }
 
+  pub fn new_with_padding(tile_size: u32, padding: u32) -> Self {
+    Self::with_texture_and_size(
+      T::new(COLS * (tile_size + padding), ROWS * (tile_size + padding)),
+      tile_size,
+      padding,
+    )
+  }
+
   pub fn with_texture(texture: T) -> Self {
     let tile_width = texture.width() / COLS;
     let tile_pad = 0;
@@ -259,7 +267,7 @@ mod test {
   #[test]
   fn test_texture_size() {
     let tile_size = 16;
-    let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
+    let atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size, 0);
 
     assert_eq!(256, atlas.texture.width);
     assert_eq!(256, atlas.texture.height);
@@ -268,7 +276,7 @@ mod test {
   #[test]
   fn test_texture_atlas_index_to_uv() {
     let tile_size = 1;
-    let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
+    let atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size, 0);
 
     let uv = get_uv_helper(&atlas, 0, 0);
     assert_eq!(uv.0, [0.0000 + COL_PADDING, 0.9375 + ROW_PADDING]);
@@ -298,7 +306,7 @@ mod test {
   #[test]
   fn test_texture_atlas_created_tex_size() {
     let tile_size = 3;
-    let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
+    let atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size, 0);
     let data_size = atlas.texture.data.len();
     assert_eq!(
       data_size,
@@ -323,7 +331,7 @@ mod test {
     let tile_size = 3;
     let index = 1;
 
-    let mut atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
+    let mut atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size, 0);
 
     let test_pixels: [[u8; 4]; 9] = [
       [10, 20, 30, 40], // Row 1
