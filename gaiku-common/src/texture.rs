@@ -137,9 +137,13 @@ where
         if dy == 0 {
           self.texture.set_pixel(x, y_o - 1, *v);
         }
-        if dy == 0 && dx == 0 {
+        if dx == 0 && dy == 0 {
           // the corner
           self.texture.set_pixel(x_o - 1, y_o - 1, *v);
+        }
+        if dx == 0 && dy == tile_width - 1 {
+          // the corner
+          self.texture.set_pixel(x_o - 1, y_o + tile_width, *v);
         }
         if dx == tile_width - 1 {
           self.texture.set_pixel(x_o + tile_width, y, *v);
@@ -152,6 +156,10 @@ where
           self
             .texture
             .set_pixel(x_o + tile_width, y_o + tile_width, *v);
+        }
+        if dx == tile_width - 1 && dy == 0 {
+          // the corner
+          self.texture.set_pixel(x_o + tile_width, y_o - 1, *v);
         }
       }
     });
@@ -316,7 +324,7 @@ mod test {
     );
 
     let tile_size = 2;
-    let atlas = TextureAtlas2d::<Texture2d>::new(tile_size);
+    let atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size);
     let data_size = atlas.texture.get_data().len();
     assert_eq!(
       data_size,
