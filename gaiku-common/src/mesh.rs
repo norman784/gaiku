@@ -1,4 +1,12 @@
 use crate::boundary::Boundary;
+use std::{
+  collections::HashMap,
+  convert::TryInto,
+  sync::{
+    atomic::{AtomicU32, AtomicUsize, Ordering},
+    Arc,
+  },
+};
 
 /// Base common denominator across all the mesh implementations used.
 pub trait Meshify {
@@ -167,57 +175,16 @@ impl Meshify for Mesh {
   */
 }
 
-#[derive(Clone, Debug)]
-struct MeshBuilderData {
-  position: [f32; 3],
-  normal: Option<[f32; 3]>,
-  uv: Option<[f32; 2]>,
-  atlas_index: u16,
-  index: u32,
-}
-
-impl MeshBuilderData {
-  fn new(
-    position: [f32; 3],
-    normal: Option<[f32; 3]>,
-    uv: Option<[f32; 2]>,
-    atlas_index: u16,
-    index: u32,
-  ) -> Self {
-    MeshBuilderData {
-      position,
-      normal,
-      uv,
-      atlas_index,
-      index,
-    }
-  }
-}
-
-impl From<([f32; 3], Option<[f32; 3]>, Option<[f32; 2]>, u16, u32)> for MeshBuilderData {
-  fn from(
-    (position, normal, uv, atlas_index, index): (
-      [f32; 3],
-      Option<[f32; 3]>,
-      Option<[f32; 2]>,
-      u16,
-      u32,
-    ),
-  ) -> Self {
-    MeshBuilderData::new(position, normal, uv, atlas_index, index)
-  }
-}
-
 #[derive(Debug)]
 enum MeshBuilderOctreeNode {
-  Leaf(Vec<(MeshBuilderData, Boundary)>),
+  Leaf(Vec<([f32; 3], Boundary, usize)>),
   Subtree(Box<[MeshBuilderOctree; 8]>),
 }
 
 enum InsertResult {
   AlreadyExists(u32),
   FailedInsert,
-  Inserted,
+  Inserted(u32),
   OutOfBounds,
 }
 
@@ -226,51 +193,53 @@ struct MeshBuilderOctree {
   bucket: usize,
   node: MeshBuilderOctreeNode,
   split_at: usize,
+  current_index: Arc<AtomicUsize>,
 }
 
 impl MeshBuilderOctree {
   fn new(boundary: Boundary, bucket: usize, split_at: usize) -> Self {
+    Self::new_with_index(boundary, bucket, split_at, Arc::new(AtomicUsize::new(0)))
+  }
+
+  fn new_with_index(
+    boundary: Boundary,
+    bucket: usize,
+    split_at: usize,
+    index: Arc<AtomicUsize>,
+  ) -> Self {
     Self {
       boundary,
       bucket,
       node: MeshBuilderOctreeNode::Leaf(vec![]),
       split_at,
+      current_index: index,
     }
   }
 
-  fn insert(&mut self, leaf: &MeshBuilderData) -> InsertResult {
-    if self.boundary.contains(&leaf.position.into()) {
+  fn insert_with_index(&mut self, leaf: &[f32; 3], next_index: usize) -> InsertResult {
+    if self.boundary.contains(&leaf.clone().into()) {
       match &mut self.node {
         MeshBuilderOctreeNode::Leaf(leafs) => {
-          let leaf_normal = if let Some(normal) = leaf.normal {
-            Some(Boundary::new(normal, [1e-5, 1e-5, 1e-5]))
-          } else {
-            None
-          };
-
-          for (data, position) in leafs.iter() {
-            if position.contains(&leaf.position.into())
-              && data.atlas_index == leaf.atlas_index
-              && if let (Some(leaf_normal), Some(data_normal)) = (leaf_normal.as_ref(), data.normal)
-              {
-                leaf_normal.contains(&data_normal.into())
-              } else {
-                false
-              }
-            {
-              return InsertResult::AlreadyExists(data.index);
+          for (_, position, index) in leafs.iter() {
+            if position.contains(&leaf.clone().into()) {
+              return InsertResult::AlreadyExists((*index).try_into().unwrap());
             }
           }
 
-          let boundary = Boundary::new(leaf.position, [1e-5, 1e-5, 1e-5]);
-          leafs.push((leaf.clone(), boundary));
+          let boundary = Boundary::new(leaf.clone(), [1e-5, 1e-5, 1e-5]);
+          leafs.push((leaf.clone(), boundary, next_index));
 
           if leafs.len() > self.split_at && self.bucket > 0 {
             let leafs = leafs.clone();
-            let mut nodes = subdivide(&self.boundary, self.bucket, self.split_at);
-            for (leaf, _) in leafs.iter() {
+            let mut nodes = subdivide(
+              &self.boundary,
+              self.bucket,
+              self.split_at,
+              self.current_index.clone(),
+            );
+            for (leaf, _, current_index) in leafs.iter() {
               for node in nodes.iter_mut() {
-                if let InsertResult::Inserted = node.insert(leaf) {
+                if let InsertResult::Inserted(_) = node.insert_with_index(leaf, *current_index) {
                   break;
                 }
               }
@@ -279,12 +248,12 @@ impl MeshBuilderOctree {
             self.node = MeshBuilderOctreeNode::Subtree(nodes);
           }
 
-          InsertResult::Inserted
+          InsertResult::Inserted(next_index.try_into().unwrap())
         }
         MeshBuilderOctreeNode::Subtree(nodes) => {
           for node in nodes.iter_mut() {
-            match node.insert(leaf) {
-              InsertResult::Inserted => return InsertResult::Inserted,
+            match node.insert_with_index(leaf, next_index) {
+              InsertResult::Inserted(index) => return InsertResult::Inserted(index),
               InsertResult::AlreadyExists(index) => return InsertResult::AlreadyExists(index),
               InsertResult::FailedInsert => return InsertResult::FailedInsert,
               _ => {}
@@ -298,18 +267,44 @@ impl MeshBuilderOctree {
       InsertResult::OutOfBounds
     }
   }
+  fn insert(&mut self, leaf: &[f32; 3]) -> InsertResult {
+    let next_index = (*self.current_index).load(Ordering::SeqCst);
+    let result = self.insert_with_index(leaf, next_index);
+    if let InsertResult::Inserted(_) = result {
+      (*self.current_index).fetch_add(1, Ordering::SeqCst);
+    }
+    result
+  }
 
-  fn get_all(&self) -> Vec<MeshBuilderData> {
+  fn get_all_ww_index(&self) -> Vec<([f32; 3], usize)> {
+    // Unlike get_all this returns unsorted but with the index included
     match &self.node {
       MeshBuilderOctreeNode::Leaf(leafs) => {
-        leafs.iter().map(|(d, _)| d.clone()).collect::<Vec<_>>()
+        // Get data + index to sort by
+        leafs
+          .iter()
+          .map(|(d, _, index)| (d.clone(), *index))
+          .collect::<Vec<_>>()
       }
       MeshBuilderOctreeNode::Subtree(nodes) => nodes
         .iter()
-        .map(|n| n.get_all())
+        .map(|n| n.get_all_ww_index())
         .flatten()
         .collect::<Vec<_>>(),
     }
+  }
+
+  fn get_all(&self) -> Vec<[f32; 3]> {
+    // This gets all data sorted by index
+
+    // Get all data with the index
+    let mut raw_table = self.get_all_ww_index();
+
+    // sort it by that index
+    raw_table.sort_by(|(_, a_index), (_, b_index)| a_index.partial_cmp(&b_index).unwrap());
+
+    // return the sorted data only not the index
+    raw_table.iter().map(|(d, _)| d.clone()).collect::<Vec<_>>()
   }
 }
 
@@ -339,18 +334,32 @@ impl From<[f32; 3]> for Position {
 /// Helper component that makes easy to build a triangle list mesh.
 #[derive(Debug)]
 pub struct MeshBuilder {
-  current_index: u32,
+  unique_nodes: HashMap<NodeIndices, u32>,
   indices: Vec<u32>,
-  cache: MeshBuilderOctree,
+  current_index: Arc<AtomicU32>,
+  vertex_cache: MeshBuilderOctree,
+  normal_cache: MeshBuilderOctree,
+  uvw_cache: MeshBuilderOctree,
+}
+
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
+struct NodeIndices {
+  vertex: usize,
+  normal: Option<usize>,
+  uv: Option<usize>,
+  atlas: u16,
 }
 
 impl MeshBuilder {
   /// Crates a new mesh centered at a position and size.
   pub fn create(center: [f32; 3], size: [f32; 3]) -> Self {
     Self {
-      current_index: 0,
-      indices: vec![],
-      cache: MeshBuilderOctree::new(Boundary::new(center, size), 3, 25),
+      unique_nodes: Default::default(),
+      indices: Default::default(),
+      current_index: Arc::new(AtomicU32::new(0)),
+      vertex_cache: MeshBuilderOctree::new(Boundary::new(center, size), 3, 25),
+      normal_cache: MeshBuilderOctree::new(Boundary::new([0., 0., 0.], [2., 2., 2.]), 3, 25),
+      uvw_cache: MeshBuilderOctree::new(Boundary::new([0.5, 0.5, 0.5], [1., 1., 1.]), 3, 25),
     }
   }
 
@@ -364,16 +373,46 @@ impl MeshBuilder {
     uv: Option<[f32; 2]>,
     atlas_index: u16,
   ) {
-    let mesh_data = MeshBuilderData::new(position, normal, uv, atlas_index, self.current_index);
-    match self.cache.insert(&mesh_data) {
-      InsertResult::Inserted => {
-        self.indices.push(self.current_index);
-        self.current_index += 1;
+    let vertex_index = match self.vertex_cache.insert(&position) {
+      InsertResult::Inserted(index) => index.try_into().unwrap(),
+      InsertResult::AlreadyExists(index) => index.try_into().unwrap(),
+      InsertResult::FailedInsert => panic!("Failed to insert position {:?}", position),
+      InsertResult::OutOfBounds => panic!("Out of bounds position {:?}", position),
+    };
+    let normal_index = if let Some(normal) = normal {
+      match self.normal_cache.insert(&normal) {
+        InsertResult::Inserted(index) => Some(index.try_into().unwrap()),
+        InsertResult::AlreadyExists(index) => Some(index.try_into().unwrap()),
+        InsertResult::FailedInsert => panic!("Failed to insert normal {:?}", normal),
+        InsertResult::OutOfBounds => panic!("Out of bounds normal {:?}", normal),
       }
-      InsertResult::AlreadyExists(index) => self.indices.push(index),
-      InsertResult::FailedInsert => panic!("Failed to insert {:?}", mesh_data),
-      InsertResult::OutOfBounds => panic!("Out of bounds {:?}", mesh_data),
-    }
+    } else {
+      None
+    };
+    let uv_index = if let Some(uv) = uv {
+      match self.uvw_cache.insert(&[uv[0], uv[1], 0.]) {
+        // Ignore w coordinate for now
+        InsertResult::Inserted(index) => Some(index.try_into().unwrap()),
+        InsertResult::AlreadyExists(index) => Some(index.try_into().unwrap()),
+        InsertResult::FailedInsert => panic!("Failed to insert uv {:?}", uv),
+        InsertResult::OutOfBounds => panic!("Out of bounds uv {:?}", uv),
+      }
+    } else {
+      None
+    };
+
+    let arc_ci = self.current_index.clone(); // to avoid borrowing issues inside the closure
+    let index = self
+      .unique_nodes
+      .entry(NodeIndices {
+        vertex: vertex_index,
+        normal: normal_index,
+        uv: uv_index,
+        atlas: atlas_index,
+      })
+      .or_insert_with(|| (*arc_ci).fetch_add(1, Ordering::SeqCst));
+
+    self.indices.push(*index);
   }
 
   /// Inserts the triangle and generate the index if needed, otherwise use an existing index.
@@ -425,26 +464,41 @@ impl MeshBuilder {
   where
     M: Meshify,
   {
-    if !self.indices.is_empty() {
-      let mut data = self.cache.get_all();
-      data.sort_by(|a, b| a.index.partial_cmp(&b.index).unwrap());
+    if !self.unique_nodes.is_empty() {
+      let vertex_table = self.vertex_cache.get_all();
+      let normal_table = self.normal_cache.get_all();
+      let uvw_table = self.uvw_cache.get_all();
+
+      // HashMaps have aribtary order so we fix that by converting to a vec before anything else
+      let unique_nodes: Vec<NodeIndices> = {
+        let mut temp: Vec<(usize, NodeIndices)> = self
+          .unique_nodes
+          .iter()
+          .map(|(d, i)| ((*i).try_into().unwrap(), d.clone()))
+          .collect();
+        // We sort by our index
+        temp.sort_by(|(a_index, _), (b_index, _)| a_index.partial_cmp(&b_index).unwrap());
+        temp.iter().map(|(_, d)| d.clone()).collect()
+      };
 
       let indices = self.indices.clone();
-      let mut positions = vec![];
-      let mut normals = vec![];
-      let mut uvs = vec![];
-
-      for row in data.iter() {
-        positions.push(row.position);
-
-        if let Some(normal) = row.normal {
-          normals.push(normal);
-        }
-
-        if let Some(uv) = row.uv {
-          uvs.push(uv);
-        }
-      }
+      let positions: Vec<[f32; 3]> = unique_nodes
+        .iter()
+        .map(|d| vertex_table[d.vertex].clone())
+        .collect();
+      let normals = unique_nodes
+        .iter()
+        .filter(|d| d.normal.is_some()) // Might be better to use a dud value like [0.,0.,0.] instead
+        .map(|d| normal_table[d.normal.unwrap()].clone())
+        .collect();
+      let uvs: Vec<[f32; 2]> = unique_nodes
+        .iter()
+        .filter(|d| d.uv.is_some()) // Might be better to use a dud value like [0.,0.] instead
+        .map(|d| {
+          let uvw = uvw_table[d.uv.unwrap()].clone();
+          [uvw[0], uvw[1]]
+        })
+        .collect();
 
       Some(M::with(indices, positions, normals, uvs))
     } else {
@@ -460,7 +514,12 @@ impl Default for MeshBuilder {
 }
 
 #[allow(clippy::many_single_char_names)]
-fn subdivide(boundary: &Boundary, bucket: usize, split_at: usize) -> Box<[MeshBuilderOctree; 8]> {
+fn subdivide(
+  boundary: &Boundary,
+  bucket: usize,
+  split_at: usize,
+  current_index: Arc<AtomicUsize>,
+) -> Box<[MeshBuilderOctree; 8]> {
   let w = boundary.size.x / 2.0;
   let h = boundary.size.y / 2.0;
   let d = boundary.size.z / 2.0;
@@ -476,45 +535,53 @@ fn subdivide(boundary: &Boundary, bucket: usize, split_at: usize) -> Box<[MeshBu
   let new_bucket = bucket - 1;
 
   Box::new([
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x - hw, y + hh, z + hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x + hw, y + hh, z + hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x - hw, y + hh, z - hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x + hw, y + hh, z - hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x - hw, y - hh, z + hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x + hw, y - hh, z + hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x - hw, y - hh, z - hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
-    MeshBuilderOctree::new(
+    MeshBuilderOctree::new_with_index(
       Boundary::new([x + hw, y - hh, z - hd], size),
       new_bucket,
       split_at,
+      current_index.clone(),
     ),
   ])
 }
@@ -530,13 +597,7 @@ mod test {
     for x in 0..4 {
       for y in 0..4 {
         for z in 0..4 {
-          tree.insert(&MeshBuilderData::new(
-            [x as f32, y as f32, z as f32],
-            None,
-            None,
-            0,
-            0,
-          ));
+          tree.insert(&[x as f32, y as f32, z as f32]);
         }
       }
     }
@@ -553,14 +614,8 @@ mod test {
     let mut tree =
       MeshBuilderOctree::new(Boundary::new([0.0, 0.0, 0.0], [16.0, 16.0, 16.0]), 3, 25);
 
-    match tree.insert(&MeshBuilderData::new(
-      [0.0, 0.0, 0.0],
-      Some([0.0, 0.0, 0.0]),
-      Some([0.0, 0.0]),
-      0,
-      0,
-    )) {
-      InsertResult::Inserted => assert!(true),
+    match tree.insert(&[0.0, 0.0, 0.0]) {
+      InsertResult::Inserted(_) => assert!(true),
       _ => assert!(false),
     }
 
@@ -572,8 +627,8 @@ mod test {
     let mut tree =
       MeshBuilderOctree::new(Boundary::new([8.0, 8.0, 8.0], [16.0, 16.0, 16.0]), 3, 25);
 
-    match tree.insert(&MeshBuilderData::new([3.5, 16.0, 12.5], None, None, 0, 0)) {
-      InsertResult::Inserted => assert!(true),
+    match tree.insert(&[3.5, 16.0, 12.5]) {
+      InsertResult::Inserted(_) => assert!(true),
       _ => {
         println!("{:#?}", &tree);
         assert!(false)
