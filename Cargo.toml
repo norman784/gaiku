@@ -1,9 +1,12 @@
 [workspace]
 
 members = [
+  # Core
   "gaiku-3d",
   "gaiku-common",
+  # Official supported engines
   "gaiku-amethyst",
+  "gaiku-bevy",
 ]
 
 [profile.release]

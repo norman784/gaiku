@@ -1,14 +1,13 @@
 use crate::common::{prelude::*, Result};
 
 /// Implementation of a naive heightmap terrain generation.
+#[derive(Default)]
 pub struct HeightMapBaker;
 
-impl Baker for HeightMapBaker {
-  type Value = (u8, u8);
-
+impl Baker<(u8, u8)> for HeightMapBaker {
   fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<(u8, u8)> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {

@@ -1,15 +1,14 @@
 use gaiku_common::{prelude::*, Result};
 
 /// Implementation of a naive cubical voxel terrain generation.
+#[derive(Default)]
 pub struct VoxelBaker;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
-impl Baker for VoxelBaker {
-  type Value = (u8, u8);
-
+impl Baker<(u8, u8)> for VoxelBaker {
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<(u8, u8)> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {

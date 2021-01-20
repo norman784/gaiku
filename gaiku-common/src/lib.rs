@@ -4,7 +4,7 @@
 //! work with different file formats and mesh generators, based on voxels.
 use std::fs::read;
 
-pub use anyhow::Result;
+pub use anyhow::{self, Result};
 pub use mint;
 
 use crate::{
@@ -28,6 +28,7 @@ pub mod texture;
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
   pub use crate::{
+    anyhow,
     boxify::*,
     chunk::{Chunkify, ChunkifyMut},
     mesh::{MeshBuilder, Meshify},
@@ -58,28 +59,24 @@ where
 }
 
 /// Baker is a trait used to define a chunk to mesh converter
-pub trait Baker {
-  type Value;
-
+pub trait Baker<V> {
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<V> + Sizable,
     T: Texturify2d,
     M: Meshify;
 }
 
 /// FileFormat is a trait used to define a {file extension} to chunk converter
-pub trait FileFormat {
-  type Value;
-
+pub trait FileFormat<V> {
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<V> + ChunkifyMut<V> + Boxify,
     T: Texturify2d;
 
   fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<V> + ChunkifyMut<V> + Boxify,
     T: Texturify2d,
   {
     let bytes = read(file)?;
