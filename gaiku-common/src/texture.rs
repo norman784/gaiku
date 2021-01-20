@@ -54,16 +54,15 @@ where
   T: Texturify2d,
 {
   pub fn new(tile_size: u32) -> Self {
-    Self::with_texture_and_size(
-      T::new(COLS * (tile_size + 2), ROWS * (tile_size + 2)),
-      tile_size,
-      1,
-    )
+    Self::new_with_padding(tile_size, 1)
   }
 
   pub fn new_with_padding(tile_size: u32, padding: u32) -> Self {
     Self::with_texture_and_size(
-      T::new(COLS * (tile_size + padding), ROWS * (tile_size + padding)),
+      T::new(
+        COLS * (tile_size + padding * 2),
+        ROWS * (tile_size + padding * 2),
+      ),
       tile_size,
       padding,
     )
@@ -347,11 +346,12 @@ mod test {
 
     let tile_size = 5;
     let tile_pad = 3;
+    let tile_patch_size = tile_size + tile_pad * 2;
     let atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size, tile_pad);
     let data_size = atlas.texture.get_data().len();
     assert_eq!(
       data_size,
-      ((tile_size + tile_pad) * COLS * (tile_size + tile_pad) * ROWS * 4)
+      ((tile_patch_size) * COLS * (tile_patch_size) * ROWS * 4)
         .try_into()
         .unwrap()
     );
@@ -457,6 +457,7 @@ mod test {
     // Convert some things to usize now to avoid multiple casts in the rest of the test
     let tile_size: usize = tile_size.try_into().unwrap();
     let tile_pad: usize = tile_pad.try_into().unwrap();
+    let tile_patch_size: usize = tile_size + tile_pad * 2;
     let cols: usize = COLS.try_into().unwrap();
     let rows: usize = ROWS.try_into().unwrap();
 
@@ -465,75 +466,147 @@ mod test {
     // Fill with zeros until row that first tile starts
     test_data.append(
       &mut std::iter::repeat(0)
-        .take((tile_size + tile_pad) * cols * (rows - 1) * (tile_size + tile_pad) * 4)
+        .take((tile_patch_size) * cols * (tile_patch_size) * (rows - 1) * 4)
         .collect::<Vec<_>>(),
     );
-    // Fill with zeros the top pads
-    for _ in 0..tile_pad {
-      test_data.append(
-        &mut std::iter::repeat(0)
-          .take((tile_size + tile_pad) * cols * 4)
-          .collect::<Vec<_>>(),
-      );
-    }
+    // Fill the top pads
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_patch_size) * cols * (tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_patch_size) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(&mut test_pixels[0].to_vec());
+    test_data.append(&mut test_pixels[0].to_vec());
+    test_data.append(&mut test_pixels[1].to_vec());
+    test_data.append(&mut test_pixels[2].to_vec());
+    test_data.append(&mut test_pixels[2].to_vec());
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take(tile_patch_size * (cols - 2) * 4)
+        .collect::<Vec<_>>(),
+    );
     // Fill with zeros until the first tile
     test_data.append(
       &mut std::iter::repeat(0)
-        .take((tile_size + tile_pad) * 4)
+        .take((tile_patch_size) * 4)
         .collect::<Vec<_>>(),
     );
     // Fill with zeros the left pad
-    for _ in 0..tile_pad {
-      test_data.append(&mut std::iter::repeat(0).take(4).collect::<Vec<_>>());
-    }
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(&mut test_pixels[0].to_vec());
     // Append first row of the tile
     test_data.append(&mut test_pixels[0].to_vec());
     test_data.append(&mut test_pixels[1].to_vec());
     test_data.append(&mut test_pixels[2].to_vec());
     // Fill with zeros the right pad
-    for _ in 0..tile_pad {
-      test_data.append(&mut std::iter::repeat(0).take(4).collect::<Vec<_>>());
-    }
+    test_data.append(&mut test_pixels[2].to_vec());
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
     // Fill with zeros until the next row
     test_data.append(
       &mut std::iter::repeat(0)
-        .take((tile_size + tile_pad) * (cols - 1) * 4)
+        .take((tile_patch_size) * (cols - 1) * 4)
         .collect::<Vec<_>>(),
     );
     // Fill with zeros the left pad
-    for _ in 0..tile_pad {
-      test_data.append(&mut std::iter::repeat(0).take(4).collect::<Vec<_>>());
-    }
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(&mut test_pixels[3].to_vec());
     // Append the second row of pixels to the tile
     test_data.append(&mut test_pixels[3].to_vec());
     test_data.append(&mut test_pixels[4].to_vec());
     test_data.append(&mut test_pixels[5].to_vec());
     // Fill with zeros the right pad
-    for _ in 0..tile_pad {
-      test_data.append(&mut std::iter::repeat(0).take(4).collect::<Vec<_>>());
-    }
+    test_data.append(&mut test_pixels[5].to_vec());
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
     // Fill with zeros until the next row
     test_data.append(
       &mut std::iter::repeat(0)
-        .take((tile_size + tile_pad) * (cols - 1) * 4)
+        .take((tile_patch_size) * (cols - 1) * 4)
         .collect::<Vec<_>>(),
     );
     // Fill with zeros the left pad
-    for _ in 0..tile_pad {
-      test_data.append(&mut std::iter::repeat(0).take(4).collect::<Vec<_>>());
-    }
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(&mut test_pixels[6].to_vec());
     // Append the third row of pixels to the tile
     test_data.append(&mut test_pixels[6].to_vec());
     test_data.append(&mut test_pixels[7].to_vec());
     test_data.append(&mut test_pixels[8].to_vec());
     // Fill with zeros the right pad
-    for _ in 0..tile_pad {
-      test_data.append(&mut std::iter::repeat(0).take(4).collect::<Vec<_>>());
-    }
+    test_data.append(&mut test_pixels[8].to_vec());
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
     // pad remaining bytes with zeros
     test_data.append(
       &mut std::iter::repeat(0)
-        .take((tile_size + tile_pad) * (cols - 2) * 4)
+        .take((tile_patch_size) * (cols - 2) * 4)
+        .collect::<Vec<_>>(),
+    );
+    // Fill the bottom pad
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_patch_size) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(&mut test_pixels[6].to_vec());
+    test_data.append(&mut test_pixels[6].to_vec());
+    test_data.append(&mut test_pixels[7].to_vec());
+    test_data.append(&mut test_pixels[8].to_vec());
+    test_data.append(&mut test_pixels[8].to_vec());
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_pad - 1) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take(tile_patch_size * (cols - 2) * 4)
+        .collect::<Vec<_>>(),
+    );
+    test_data.append(
+      &mut std::iter::repeat(0)
+        .take((tile_patch_size) * cols * (tile_pad - 1) * 4)
         .collect::<Vec<_>>(),
     );
 
@@ -547,8 +620,10 @@ mod test {
     let tile_pad = 1;
     let index = 1;
 
+    let tile_patch_size = tile_size + tile_pad;
+
     let test_pixels: Vec<[u8; 4]> = std::iter::repeat([255, 255, 255, 255])
-      .take(tile_size * tile_pad)
+      .take(tile_patch_size * tile_patch_size)
       .collect();
 
     let mut atlas = TextureAtlas2d::<Texture2d>::new_with_padding(
@@ -561,6 +636,7 @@ mod test {
 
     let tex = atlas.get_texture();
     let tex_data = tex.get_data();
+    println!("{:?}", tex_data);
     assert!(!tex_data.iter().any(|v| *v != 255));
   }
 }
