@@ -141,7 +141,7 @@ impl GameLoad {
     let scale = Vector3::new(0.1, 0.1, 0.1);
     let swap_axes = true;
     let transform = if swap_axes {
-      Matrix4::from_euler_angles(-90., 0., 0.)
+      Matrix4::from_euler_angles(0., 0., 0.)
     } else {
       Matrix4::identity()
     };
