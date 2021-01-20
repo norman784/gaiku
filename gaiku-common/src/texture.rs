@@ -31,6 +31,9 @@ pub trait Texturify2d: Clone + std::fmt::Debug {
   fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]>;
   fn height(&self) -> u32;
   fn len(&self) -> usize;
+  fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
   fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]);
   fn set_pixel_at_index(&mut self, index: usize, data: [u8; 4]);
   fn width(&self) -> u32;
