@@ -79,6 +79,7 @@ impl Meshify for GaikuMesh {
   }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<MeshData> for GaikuMesh {
   fn into(self) -> MeshData {
     let ame = MeshBuilder::new()
@@ -172,6 +173,7 @@ impl Texturify2d for GaikuTexture2d {
   }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<TextureData> for GaikuTexture2d {
   fn into(self) -> TextureData {
     let texture_builder = TextureBuilder::new()

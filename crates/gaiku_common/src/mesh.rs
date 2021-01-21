@@ -194,6 +194,7 @@ impl MeshBuilderData {
   }
 }
 
+#[allow(clippy::type_complexity)]
 impl From<([f32; 3], Option<[f32; 3]>, Option<[f32; 2]>, u16, u32)> for MeshBuilderData {
   fn from(
     (position, normal, uv, atlas_index, index): (

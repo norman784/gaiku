@@ -41,6 +41,7 @@ impl Boundary {
       && self.end.z > point.z
   }
 
+  #[allow(dead_code)]
   pub fn intersects(&self, range: &Boundary) -> bool {
     !(range.start.x > self.start.x
       || range.start.y > self.start.y
