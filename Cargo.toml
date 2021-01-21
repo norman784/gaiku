@@ -9,12 +9,12 @@ keywords = ["3d", "terrain", "engine", "gaiku"]
 categories = ["game-engines"]
 
 [features]
-default = [
-  "gaiku_baker_heightmap",
-  "gaiku_baker_marching_cubes",
-  "gaiku_baker_voxel",
-  "gaiku_format_gox",
-  "gaiku_format_png",
+default = ["voxel"]
+
+all_features = [
+  "export", "serialization",
+  "heightmap", "marching_cubes", "voxel",
+  "gox", "png",
 ]
 
 heightmap = ["gaiku_baker_heightmap"]
@@ -24,9 +24,11 @@ voxel = ["gaiku_baker_voxel"]
 gox = ["gaiku_format_gox"]
 png = ["gaiku_format_png"]
 
-amethyst = ["gaiku_amethyst"]
+export = ["gaiku_common/export"]
+serialization = ["gaiku_common/serialization"]
 
 [dependencies]
+gaiku_common = { path = "crates/gaiku_common", version = "0.1.0" }
 # Bakers
 gaiku_baker_heightmap = { path = "crates/gaiku_baker_heightmap", version = "0.1.0", optional = true }
 gaiku_baker_marching_cubes = { path = "crates/gaiku_baker_marching_cubes", version = "0.1.0", optional = true }
@@ -36,8 +38,8 @@ gaiku_baker_voxel = { path = "crates/gaiku_baker_voxel", version = "0.1.0", opti
 gaiku_format_gox = { path = "crates/gaiku_format_gox", version = "0.1.0", optional = true }
 gaiku_format_png = { path = "crates/gaiku_format_png", version = "0.1.0", optional = true }
 
-# Game engines
-gaiku_amethyst = { path = "integrations/gaiku_amethyst", version = "0.1.0", optional = true }
+[dev-dependencies]
+obj-exporter = "0.2.0"
 
 [workspace]
 
