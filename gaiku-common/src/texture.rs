@@ -25,15 +25,13 @@ fn xy_to_uv((x, y): (u8, u8)) -> (f32, f32) {
 }
 
 /// Base common denominator across all the 2d texture implementations used.
+#[allow(clippy::len_without_is_empty)]
 pub trait Texturify2d: Clone + std::fmt::Debug {
   fn new(width: u32, height: u32) -> Self;
   fn get_data(&self) -> &Vec<u8>;
   fn get_pixel(&self, x: u32, y: u32) -> Option<[u8; 4]>;
   fn height(&self) -> u32;
   fn len(&self) -> usize;
-  fn is_empty(&self) -> bool {
-    self.len() == 0
-  }
   fn set_pixel(&mut self, x: u32, y: u32, data: [u8; 4]);
   fn set_pixel_at_index(&mut self, index: usize, data: [u8; 4]);
   fn width(&self) -> u32;
