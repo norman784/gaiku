@@ -619,7 +619,6 @@ mod test {
   fn test_texture_atlas_pixel_set_all_pixels() {
     let tile_size = 3;
     let tile_pad = 1;
-    let index = 1;
 
     let tile_patch_size = tile_size + tile_pad;
 
