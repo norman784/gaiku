@@ -1,6 +1,6 @@
 use obj_exporter::{Geometry, ObjSet, Object, Primitive, Shape, TVertex, Vertex};
 
-use gaiku_3d::common::prelude::*;
+use gaiku_common::prelude::*;
 
 pub fn to_obj(mesh: &impl Meshify, [pos_x, pos_y, pos_z]: [f32; 3], name: &str) -> Object {
   let mut vertices = vec![];

@@ -1,16 +1,14 @@
 use std::time::Instant;
 
-use gaiku_3d::{
-  bakers::HeightMapBaker,
-  common::{
-    chunk::Chunk,
-    mesh::Mesh,
-    prelude::*,
-    texture::{Texture2d, TextureAtlas2d},
-    Result,
-  },
-  formats::PNGReader,
+use gaiku_baker_heightmap::HeightMapBaker;
+use gaiku_common::{
+  chunk::Chunk,
+  mesh::Mesh,
+  prelude::*,
+  texture::{Texture2d, TextureAtlas2d},
+  Result,
 };
+use gaiku_format_png::PNGReader;
 
 mod common;
 

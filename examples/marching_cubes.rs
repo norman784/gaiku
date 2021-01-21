@@ -1,16 +1,14 @@
 use std::time::Instant;
 
-use gaiku_3d::{
-  bakers::MarchingCubesBaker,
-  common::{
-    chunk::Chunk,
-    mesh::Mesh,
-    prelude::*,
-    texture::{Texture2d, TextureAtlas2d},
-    Result,
-  },
-  formats::GoxReader,
+use gaiku_baker_marching_cubes::MarchingCubesBaker;
+use gaiku_common::{
+  chunk::Chunk,
+  mesh::Mesh,
+  prelude::*,
+  texture::{Texture2d, TextureAtlas2d},
+  Result,
 };
+use gaiku_format_gox::GoxReader;
 
 mod common;
 

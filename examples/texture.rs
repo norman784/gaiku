@@ -1,4 +1,4 @@
-use gaiku_3d::common::texture::{Texture2d, Texturify2d};
+use gaiku_common::texture::{Texture2d, Texturify2d};
 
 fn main() {
   let mut texture = Texture2d::new(8, 8);

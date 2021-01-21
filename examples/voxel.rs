@@ -1,16 +1,14 @@
 use std::time::Instant;
 
-use gaiku_3d::{
-  bakers::VoxelBaker,
-  common::{
-    chunk::Chunk,
-    mesh::Mesh,
-    prelude::*,
-    texture::{Texture2d, TextureAtlas2d},
-    Result,
-  },
-  formats::GoxReader,
+use gaiku_baker_voxel::VoxelBaker;
+use gaiku_common::{
+  chunk::Chunk,
+  mesh::Mesh,
+  prelude::*,
+  texture::{Texture2d, TextureAtlas2d},
+  Result,
 };
+use gaiku_format_gox::GoxReader;
 
 mod common;
 
@@ -42,14 +40,6 @@ fn read(name: &str) -> Result<()> {
 
   let baker_elapsed = now.elapsed().as_micros();
   let now = Instant::now();
-
-  if let Some(texture) = options.texture {
-    texture.get_texture().write_to_file(&format!(
-      "{}/examples/output/{}.png",
-      env!["CARGO_MANIFEST_DIR"],
-      name
-    ))?;
-  }
 
   export(meshes, &format!("{}_vx", name));
 
