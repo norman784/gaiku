@@ -352,7 +352,7 @@ mod test {
     let data_size = atlas.texture.get_data().len();
     assert_eq!(
       data_size,
-      ((tile_patch_size) * COLS * (tile_patch_size) * ROWS * 4)
+      (tile_patch_size * COLS * tile_patch_size * ROWS * 4)
         .try_into()
         .unwrap()
     );
