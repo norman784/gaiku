@@ -639,7 +639,6 @@ mod test {
 
     let tex = atlas.get_texture();
     let tex_data = tex.get_data();
-    println!("{:?}", tex_data);
     assert!(!tex_data.iter().any(|v| *v != 255));
   }
 }
