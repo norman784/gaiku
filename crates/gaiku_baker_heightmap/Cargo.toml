@@ -1,0 +1,16 @@
+[package]
+name = "gaiku_baker_heightmap"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+description = "Adds Heightmap mesh generation support to Gaiku"
+keywords = ["3d", "terrain", "engine", "gaiku"]
+categories = ["game-engines"]
+license = "MIT/Apache-2.0"
+
+documentation = "https://docs.rs/gaiku_baker_heightmap"
+homepage = "https://github.com/norman784/gaiku"
+repository = "https://github.com/norman784/gaiku"
+
+[dependencies]
+gaiku_common = { path = "../gaiku_common", version = "^0.1.0" }

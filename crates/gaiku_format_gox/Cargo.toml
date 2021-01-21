@@ -1,0 +1,17 @@
+[package]
+name = "gaiku_format_gox"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+description = "Adds GOX file format support to Gaiku"
+keywords = ["3d", "terrain", "engine", "gaiku"]
+categories = ["game-engines"]
+license = "MIT/Apache-2.0"
+
+documentation = "https://docs.rs/gaiku_format_gox"
+homepage = "https://github.com/norman784/gaiku"
+repository = "https://github.com/norman784/gaiku"
+
+[dependencies]
+gaiku_common = { path = "../gaiku_common", version = "^0.1.0" }
+gox = { version = "^0.4.0" }

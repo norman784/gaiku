@@ -1,9 +1,51 @@
+[package]
+name = "gaiku"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+description = "3d agnostic framework (game engine) terrain engine."
+exclude = ["gaiku-3d/examples/*"]
+keywords = ["3d", "terrain", "engine", "gaiku"]
+categories = ["game-engines"]
+
+[features]
+default = ["voxel"]
+
+all_features = [
+  "export", "serialization",
+  "heightmap", "marching_cubes", "voxel",
+  "gox", "png",
+]
+
+heightmap = ["gaiku_baker_heightmap"]
+marching_cubes = ["gaiku_baker_marching_cubes"]
+voxel = ["gaiku_baker_voxel"]
+
+gox = ["gaiku_format_gox"]
+png = ["gaiku_format_png"]
+
+export = ["gaiku_common/export"]
+serialization = ["gaiku_common/serialization"]
+
+[dependencies]
+gaiku_common = { path = "crates/gaiku_common", version = "0.1.0" }
+# Bakers
+gaiku_baker_heightmap = { path = "crates/gaiku_baker_heightmap", version = "0.1.0", optional = true }
+gaiku_baker_marching_cubes = { path = "crates/gaiku_baker_marching_cubes", version = "0.1.0", optional = true }
+gaiku_baker_voxel = { path = "crates/gaiku_baker_voxel", version = "0.1.0", optional = true }
+
+# File formats
+gaiku_format_gox = { path = "crates/gaiku_format_gox", version = "0.1.0", optional = true }
+gaiku_format_png = { path = "crates/gaiku_format_png", version = "0.1.0", optional = true }
+
+[dev-dependencies]
+obj-exporter = "0.2.0"
+
 [workspace]
 
 members = [
-  "gaiku-3d",
-  "gaiku-common",
-  "gaiku-amethyst",
+  "crates/*",
+  "integrations/*",
 ]
 
 [profile.release]

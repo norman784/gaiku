@@ -1,0 +1,23 @@
+[package]
+name = "gaiku_amethyst"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+amethyst_rendy = "0.15.3"
+gaiku_common = { path = "../../crates/gaiku_common", version = "0.1.0" }
+
+[features]
+empty = ["amethyst/empty"]
+metal = ["amethyst/metal"]
+vulkan = ["amethyst/vulkan"]
+
+[[example]]
+name = "terrain"
+path =  "examples/terrain.rs"
+
+[dev-dependencies]
+amethyst = "0.15.3"
+gaiku_baker_voxel = { path = "../../crates/gaiku_baker_voxel", version = "0.1.0" }
+gaiku_format_gox = { path = "../../crates/gaiku_format_gox", version = "0.1.0" }
