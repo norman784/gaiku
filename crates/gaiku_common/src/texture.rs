@@ -2,9 +2,9 @@
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "png")]
+use crate::Result;
+#[cfg(feature = "png")]
 use std::{fs::File, io::BufWriter, path::Path};
-
-use anyhow::Result;
 
 pub(crate) const COLS: u32 = 16;
 pub(crate) const ROWS: u32 = 16;
