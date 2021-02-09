@@ -11,12 +11,6 @@ categories = ["game-engines"]
 [features]
 default = ["voxel"]
 
-all_features = [
-  "export", "serialization",
-  "heightmap", "marching_cubes", "voxel",
-  "gox", "png",
-]
-
 heightmap = ["gaiku_baker_heightmap"]
 marching_cubes = ["gaiku_baker_marching_cubes"]
 voxel = ["gaiku_baker_voxel"]
