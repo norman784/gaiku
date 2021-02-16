@@ -1,6 +1,5 @@
 use criterion::{criterion_group, Criterion};
-use gaiku_3d::{
-  bakers::VoxelBaker,
+use gaiku::{
   common::{
     chunk::Chunk,
     mesh::Mesh,
@@ -8,7 +7,7 @@ use gaiku_3d::{
     texture::{Texture2d, TextureAtlas2d},
     Result,
   },
-  formats::GoxReader,
+  GoxReader, VoxelBaker,
 };
 
 fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>)> {
