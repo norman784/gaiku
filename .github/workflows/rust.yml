@@ -38,3 +38,9 @@ jobs:
           command: test
           toolchain: nightly
           args:    --verbose --all-features --all
+      - name:        Bench
+        uses:        actions-rs/cargo@v1
+        with:
+          command: bench
+          toolchain: nightly
+          args:    --verbose --all-features --all
