@@ -62,3 +62,18 @@ name = "voxel"
 harness = false
 required-features = ["voxel", "gox"]
 
+[[example]]
+name = "heightmap"
+required-features = ["heightmap", "gox"]
+
+[[example]]
+name = "marching_cubes"
+required-features = ["marching_cubes", "gox"]
+
+[[example]]
+name = "voxel"
+required-features = ["voxel", "gox"]
+
+[[example]]
+name = "texture"
+required-features = ["png"]
