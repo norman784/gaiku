@@ -1,6 +1,5 @@
-use criterion::{criterion_group, Criterion};
-use gaiku_3d::{
-  bakers::HeightMapBaker,
+use criterion::{criterion_group, criterion_main, Criterion};
+use gaiku::{
   common::{
     chunk::Chunk,
     mesh::Mesh,
@@ -8,7 +7,7 @@ use gaiku_3d::{
     texture::{Texture2d, TextureAtlas2d},
     Result,
   },
-  formats::GoxReader,
+  GoxReader, MarchingCubesBaker,
 };
 
 fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>)> {
@@ -21,8 +20,8 @@ fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d
   GoxReader::read(&file)
 }
 
-fn heightmap_benchmark(c: &mut Criterion) {
-  let mut group = c.benchmark_group("HeightMap");
+fn marching_cubes_benchmark(c: &mut Criterion) {
+  let mut group = c.benchmark_group("Marching cubes");
   let (chunks, texture) = get_chunks("terrain").unwrap();
   let options = BakerOptions {
     texture,
@@ -34,7 +33,7 @@ fn heightmap_benchmark(c: &mut Criterion) {
       let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
       for chunk in chunks.iter() {
-        let mesh = HeightMapBaker::bake(chunk, &options).unwrap();
+        let mesh = MarchingCubesBaker::bake(chunk, &options).unwrap();
         if let Some(mesh) = mesh {
           meshes.push((mesh, chunk.position()));
         }
@@ -53,7 +52,7 @@ fn heightmap_benchmark(c: &mut Criterion) {
       let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
       for chunk in chunks.iter() {
-        let mesh = HeightMapBaker::bake(chunk, &options).unwrap();
+        let mesh = MarchingCubesBaker::bake(chunk, &options).unwrap();
         if let Some(mesh) = mesh {
           meshes.push((mesh, chunk.position()));
         }
@@ -72,7 +71,7 @@ fn heightmap_benchmark(c: &mut Criterion) {
       let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
       for chunk in chunks.iter() {
-        let mesh = HeightMapBaker::bake(chunk, &options).unwrap();
+        let mesh = MarchingCubesBaker::bake(chunk, &options).unwrap();
         if let Some(mesh) = mesh {
           meshes.push((mesh, chunk.position()));
         }
@@ -83,4 +82,8 @@ fn heightmap_benchmark(c: &mut Criterion) {
   group.finish();
 }
 
-criterion_group!(benches, heightmap_benchmark);
+criterion_group!(benches, marching_cubes_benchmark);
+
+criterion_main! {
+    benches,
+}

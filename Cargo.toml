@@ -4,9 +4,10 @@ version = "0.1.0"
 authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
 edition = "2018"
 description = "3d agnostic framework (game engine) terrain engine."
-exclude = ["gaiku-3d/examples/*"]
+exclude = ["examples/*", "integrations/*/examples/*"]
 keywords = ["3d", "terrain", "engine", "gaiku"]
 categories = ["game-engines"]
+resolver = "2"
 
 [features]
 default = ["voxel"]
@@ -33,6 +34,7 @@ gaiku_format_gox = { path = "crates/gaiku_format_gox", version = "0.1.0", option
 gaiku_format_png = { path = "crates/gaiku_format_png", version = "0.1.0", optional = true }
 
 [dev-dependencies]
+criterion = "0.3.4"
 obj-exporter = "0.2.0"
 
 [workspace]
@@ -44,3 +46,34 @@ members = [
 
 [profile.release]
 lto = true
+
+[[bench]]
+name = "heightmap"
+harness = false
+required-features = ["heightmap", "gox"]
+
+[[bench]]
+name = "marching_cubes"
+harness = false
+required-features = ["marching_cubes", "gox"]
+
+[[bench]]
+name = "voxel"
+harness = false
+required-features = ["voxel", "gox"]
+
+[[example]]
+name = "heightmap"
+required-features = ["heightmap", "gox"]
+
+[[example]]
+name = "marching_cubes"
+required-features = ["marching_cubes", "gox"]
+
+[[example]]
+name = "voxel"
+required-features = ["voxel", "gox"]
+
+[[example]]
+name = "texture"
+required-features = ["png"]

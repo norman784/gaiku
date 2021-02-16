@@ -8,10 +8,21 @@ edition = "2018"
 amethyst_rendy = "0.15.3"
 gaiku_common = { path = "../../crates/gaiku_common", version = "0.1.0" }
 
-[features]
-empty = ["amethyst/empty"]
-metal = ["amethyst/metal"]
-vulkan = ["amethyst/vulkan"]
+[target.'cfg(not(target_os = "macos"))'.dependencies.amethyst_rendy]
+version = "0.15.3"
+features = ["vulkan"]
+
+[target.'cfg(target_os = "macos")'.dependencies.amethyst_rendy]
+version = "0.15.3"
+features = ["metal"]
+
+[target.'cfg(not(target_os = "macos"))'.dev_dependencies.amethyst]
+version = "0.15.3"
+features = ["vulkan"]
+
+[target.'cfg(target_os = "macos")'.dev_dependencies.amethyst]
+version = "0.15.3"
+features = ["metal"]
 
 [[example]]
 name = "terrain"

@@ -1,6 +1,5 @@
-use criterion::{criterion_group, Criterion};
-use gaiku_3d::{
-  bakers::VoxelBaker,
+use criterion::{criterion_group, criterion_main, Criterion};
+use gaiku::{
   common::{
     chunk::Chunk,
     mesh::Mesh,
@@ -8,7 +7,7 @@ use gaiku_3d::{
     texture::{Texture2d, TextureAtlas2d},
     Result,
   },
-  formats::GoxReader,
+  GoxReader, VoxelBaker,
 };
 
 fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>)> {
@@ -84,3 +83,7 @@ fn voxel_benchmark(c: &mut Criterion) {
 }
 
 criterion_group!(benches, voxel_benchmark);
+
+criterion_main! {
+    benches,
+}

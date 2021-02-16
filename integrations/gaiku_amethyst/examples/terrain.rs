@@ -23,7 +23,9 @@ use amethyst::{
   utils::application_root_dir,
 };
 
-use gaiku_3d::{bakers::VoxelBaker, common::chunk::Chunk, formats::GoxReader};
+use gaiku_baker_voxel::VoxelBaker;
+use gaiku_common::chunk::Chunk;
+use gaiku_format_gox::GoxReader;
 
 use gaiku_amethyst::prelude::*;
 
