@@ -79,6 +79,90 @@ fn heightmap_benchmark(c: &mut Criterion) {
     })
   });
 
+  let width: usize = 3;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, (1, 1));
+        }
+      }
+    }
+  }
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+  group.bench_function("Small Checkerboard", |b| {
+    b.iter(|| {
+      HeightMapBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+    })
+  });
+
+  let width: usize = 10;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, (1, 1));
+        }
+      }
+    }
+  }
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+  group.bench_function("Medium Checkerboard", |b| {
+    b.iter(|| {
+      HeightMapBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+    })
+  });
+
+  let width: usize = 30;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, (1, 1));
+        }
+      }
+    }
+  }
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+  group.bench_function("Large Checkerboard", |b| {
+    b.iter(|| {
+      HeightMapBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+    })
+  });
+
   group.finish();
 }
 
