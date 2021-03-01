@@ -7,6 +7,7 @@ jobs:
   bench:
     name: Run benchmarks on Linux
     runs-on: ubuntu-latest
+    #if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -17,18 +18,17 @@ jobs:
       - name: Run cargo bench
         run: cargo +nightly bench --all-features | tee output.txt
       - name: Fetch gh-pages for avoiding conflict
-        run: git fetch 'https://norman784:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/norman784/gaiku.git' gh-pages:gh-pages
+        run: git fetch 'https://norman784:${{ secrets.GITHUB_TOKEN }}@github.com/norman784/gaiku.git' gh-pages:gh-pages
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Rust Benchmark
           tool: 'cargo'
           output-file-path: output.txt
-          github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           comment-on-alert: true
           fail-on-alert: true
           alert-comment-cc-users: '@norman784'
       - name: Push benchmark result
-        # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
-        run: git push --no-verify 'https://norman784:${{ secrets.PERSONAL_GITHUB_TOKEN }}@github.com/norman784/gaiku.git' gh-pages:gh-pages
+        run: git push --no-verify 'https://norman784:${{ secrets.GITHUB_TOKEN }}@github.com/norman784/gaiku.git' gh-pages:gh-pages
