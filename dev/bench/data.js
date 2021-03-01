@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614624861281,
+  "lastUpdate": 1614625045793,
   "repoUrl": "https://github.com/norman784/gaiku",
   "entries": {
     "Rust Benchmark": [
@@ -263,6 +263,138 @@ window.BENCHMARK_DATA = {
             "name": "voxel_terrain",
             "value": 132819966,
             "range": "± 3435673",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "normanpaniagua@gmail.com",
+            "name": "Norman Paniagua",
+            "username": "norman784"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a4f14a8050f782859965470568e0cf7102bb82f0",
+          "message": "Added benchmarks link to the Readme",
+          "timestamp": "2021-03-01T19:50:29+01:00",
+          "tree_id": "a35ff8fbb097d7e2dc490319cd187b30c569a3ba",
+          "url": "https://github.com/norman784/gaiku/commit/a4f14a8050f782859965470568e0cf7102bb82f0"
+        },
+        "date": 1614625045412,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "heightmap_large_checkerboard",
+            "value": 721046,
+            "range": "± 125537",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_medium_checkerboard",
+            "value": 52823,
+            "range": "± 7485",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_planet",
+            "value": 6083334,
+            "range": "± 750246",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_small_checkerboard",
+            "value": 996,
+            "range": "± 142",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_small_tree",
+            "value": 16086,
+            "range": "± 2837",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_terrain",
+            "value": 9317954,
+            "range": "± 751418",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_large_checkerboard",
+            "value": 87186619,
+            "range": "± 11088282",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_medium_checkerboard",
+            "value": 2551709,
+            "range": "± 272484",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_planet",
+            "value": 24330083,
+            "range": "± 1223931",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_small_checkerboard",
+            "value": 18674,
+            "range": "± 1426",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_small_tree",
+            "value": 820114,
+            "range": "± 65036",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_terrain",
+            "value": 86431047,
+            "range": "± 2476316",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_large_checkerboard",
+            "value": 362780104,
+            "range": "± 20019289",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_medium_checkerboard",
+            "value": 5062221,
+            "range": "± 221585",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_planet",
+            "value": 56606130,
+            "range": "± 6749076",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_small_checkerboard",
+            "value": 122461,
+            "range": "± 22329",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_small_tree",
+            "value": 506210,
+            "range": "± 90298",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_terrain",
+            "value": 136097014,
+            "range": "± 10126534",
             "unit": "ns/iter"
           }
         ]
