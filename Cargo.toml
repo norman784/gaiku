@@ -34,7 +34,6 @@ gaiku_format_gox = { path = "crates/gaiku_format_gox", version = "0.1.0", option
 gaiku_format_png = { path = "crates/gaiku_format_png", version = "0.1.0", optional = true }
 
 [dev-dependencies]
-criterion = "0.3.4"
 obj-exporter = "0.2.0"
 
 [workspace]
@@ -46,21 +45,6 @@ members = [
 
 [profile.release]
 lto = true
-
-[[bench]]
-name = "heightmap"
-harness = false
-required-features = ["heightmap", "gox"]
-
-[[bench]]
-name = "marching_cubes"
-harness = false
-required-features = ["marching_cubes", "gox"]
-
-[[bench]]
-name = "voxel"
-harness = false
-required-features = ["voxel", "gox"]
 
 [[example]]
 name = "heightmap"
