@@ -21,7 +21,8 @@ pub struct SparseChunk {
 
 impl Chunkify<f32> for SparseChunk {
   fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
-    (self.get(x, y, z) - 0.).abs() < 1e-4
+    let isovaue = 0.0;
+    self.get(x, y, z) - isovaue < 1e-4
   }
 
   fn get(&self, x: usize, y: usize, z: usize) -> f32 {
