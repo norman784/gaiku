@@ -1,0 +1,28 @@
+[package]
+name = "gaiku_baker_modified_marching_cubes"
+version = "0.1.0"
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+edition = "2018"
+description = """Adds Marching Cubes mesh generation support to Gaiku
+This uses an algorithm that has been modifed to supports atlas textures."""
+keywords = ["3d", "terrain", "engine", "gaiku"]
+categories = ["game-engines"]
+license = "MIT/Apache-2.0"
+
+documentation = "https://docs.rs/gaiku_baker_marching_cubes"
+homepage = "https://github.com/norman784/gaiku"
+repository = "https://github.com/norman784/gaiku"
+
+[dependencies]
+gaiku_common = { path = "../gaiku_common", version = "^0.1.0" }
+glam = { version = "^0.12.0 ", features = ["mint"] }
+
+[[example]]
+name = "table_gen_mod_marching"
+path = "src/table_gen.rs"
+test = false
+bench = false
+
+[dev-dependencies]
+itertools = "0.10.0"
+nalgebra = "0.27.1"
