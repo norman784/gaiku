@@ -8,12 +8,16 @@ pub use anyhow::Result;
 pub use mint;
 
 use crate::{
+  atlas::{Atlasify, AtlasifyMut},
   boxify::*,
   chunk::{Chunkify, ChunkifyMut},
   mesh::Meshify,
   texture::{TextureAtlas2d, Texturify2d},
 };
 
+// Traits involving the atlas
+mod atlas;
+// Boundary structure for octree
 mod boundary;
 /// Trait to define position and size.
 pub mod boxify;
@@ -28,6 +32,7 @@ pub mod texture;
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
   pub use crate::{
+    atlas::{Atlasify, AtlasifyMut},
     boxify::*,
     chunk::{Chunkify, ChunkifyMut},
     mesh::{MeshBuilder, Meshify},
@@ -41,6 +46,7 @@ pub struct BakerOptions<T>
 where
   T: Texturify2d,
 {
+  pub isovalue: f32,
   pub level_of_detail: usize,
   pub texture: Option<TextureAtlas2d<T>>,
 }
@@ -51,6 +57,7 @@ where
 {
   fn default() -> Self {
     Self {
+      isovalue: 0.,
       level_of_detail: 1,
       texture: None,
     }
@@ -60,10 +67,11 @@ where
 /// Baker is a trait used to define a chunk to mesh converter
 pub trait Baker {
   type Value;
+  type AtlasValue;
 
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify;
 }
@@ -71,15 +79,16 @@ pub trait Baker {
 /// FileFormat is a trait used to define a {file extension} to chunk converter
 pub trait FileFormat {
   type Value;
+  type AtlasValue;
 
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + AtlasifyMut<Self::AtlasValue> + Boxify,
     T: Texturify2d;
 
   fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + AtlasifyMut<Self::AtlasValue> + Boxify,
     T: Texturify2d,
   {
     let bytes = read(file)?;

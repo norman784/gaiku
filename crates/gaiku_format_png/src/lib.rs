@@ -6,11 +6,12 @@ use image::load_from_memory;
 pub struct PNGReader;
 
 impl FileFormat for PNGReader {
-  type Value = (u8, u8);
+  type Value = f32;
+  type AtlasValue = u8;
 
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + AtlasifyMut<Self::AtlasValue> + Boxify,
     T: Texturify2d,
   {
     let mut result = vec![];
@@ -24,7 +25,8 @@ impl FileFormat for PNGReader {
     for x in 0..img.width() as u32 {
       for y in 0..img.height() as u32 {
         let color = img.get_pixel(x, y).0[0];
-        chunk.set(x as usize, y as usize, 0, (color, color));
+        chunk.set(x as usize, y as usize, 0, color as f32);
+        chunk.set_atlas(x as usize, y as usize, 0, color);
       }
     }
 

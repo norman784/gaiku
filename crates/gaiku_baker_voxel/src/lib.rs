@@ -5,11 +5,12 @@ pub struct VoxelBaker;
 
 // TODO: Optimize, don't create faces between chunks if there's a non empty voxel
 impl Baker for VoxelBaker {
-  type Value = (u8, u8);
+  type Value = f32;
+  type AtlasValue = u8;
 
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {
@@ -37,7 +38,7 @@ impl Baker for VoxelBaker {
             continue;
           }
 
-          let (atlas_index, _) = chunk.get(x, y, z);
+          let atlas_index = chunk.get_atlas(x, y, z);
           let uv = if let Some(texture) = &options.texture {
             Some(texture.get_uv(atlas_index))
           } else {
@@ -186,7 +187,7 @@ mod test {
     let options = Default::default();
     let mut chunk = Chunk::new([0.0, 0.0, 0.0], 1, 1, 1);
 
-    chunk.set(0, 0, 0, (0, 1));
+    chunk.set(0, 0, 0, 1.);
 
     let mesh = VoxelBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options)
       .unwrap()

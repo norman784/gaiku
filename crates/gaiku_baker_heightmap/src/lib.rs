@@ -4,15 +4,16 @@ use gaiku_common::{prelude::*, Result};
 pub struct HeightMapBaker;
 
 impl Baker for HeightMapBaker {
-  type Value = (u8, u8);
+  type Value = f32;
+  type AtlasValue = u8;
 
   fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify,
   {
-    let height = 30;
+    let height = 30.;
     let mut builder = MeshBuilder::create(
       [
         chunk.width() as f32 / 2.0,
@@ -31,10 +32,10 @@ impl Baker for HeightMapBaker {
         let fx = x as f32;
         let fz = y as f32;
 
-        let lb = (chunk.get(x, y, 0).0 as u32 * height) as f32 / 255.0;
-        let lf = (chunk.get(x, y + 1, 0).0 as u32 * height) as f32 / 255.0;
-        let rb = (chunk.get(x + 1, y, 0).0 as u32 * height) as f32 / 255.0;
-        let rf = (chunk.get(x + 1, y + 1, 0).0 as u32 * height) as f32 / 255.0;
+        let lb = chunk.get(x, y, 0) * height / 255.0;
+        let lf = chunk.get(x, y + 1, 0) * height / 255.0;
+        let rb = chunk.get(x + 1, y, 0) * height / 255.0;
+        let rf = chunk.get(x + 1, y + 1, 0) * height / 255.0;
 
         let left_back = [fx, lb, fz];
         let right_back = [fx + 1.0, rb, fz];
