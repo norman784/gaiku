@@ -10,6 +10,7 @@ use amethyst::{
     math::{Matrix4, Vector3, Vector4},
     transform::{Transform, TransformBundle},
   },
+  ecs::prelude::*,
   input::{InputBundle, StringBindings},
   prelude::*,
   renderer::{
@@ -17,17 +18,26 @@ use amethyst::{
     palette::{rgb::Rgb, Srgb},
     plugins::{RenderShaded3D, RenderSkybox, RenderToWindow},
     types::{DefaultBackend, TextureData},
+    visibility::BoundingSphere,
     ActiveCamera, Camera, Material, MaterialDefaults, Mesh, RenderingBundle,
   },
   ui::{RenderUi, UiBundle},
   utils::application_root_dir,
 };
 
+use gaiku_baker_marching_cubes::MarchingCubesBaker;
+use gaiku_baker_modified_marching_cubes::ModMarchingCubesBaker;
 use gaiku_baker_voxel::VoxelBaker;
-use gaiku_common::chunk::Chunk;
+use gaiku_common::{chunk::Chunk, Baker};
 use gaiku_format_gox::GoxReader;
 
 use gaiku_amethyst::prelude::*;
+
+enum BakerSelect {
+  Voxel,
+  Marching,
+  ModMarching,
+}
 
 fn main() -> amethyst::Result<()> {
   amethyst::start_logger(Default::default());
@@ -78,8 +88,26 @@ impl SimpleState for GameLoad {
 
     self.initialise_camera(world);
     self.add_light(world);
-    self.build_terrain(world);
+    self.build_terrain(world, BakerSelect::Voxel, [-12., 0., 0.]);
+    self.build_terrain(world, BakerSelect::Marching, [0., 0., 0.]);
+    self.build_terrain(world, BakerSelect::ModMarching, [12., 0., 0.]);
   }
+
+  // Uncomment this to print the camera position.
+  // Useful to find where you might want to save the camera position
+  //
+  // fn fixed_update(&mut self, data: StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+  //   let world = data.world;
+  //   type SystemData<'s> = (Read<'s, ActiveCamera>, ReadStorage<'s, Transform>);
+  //   world.exec(|(act_cam, transforms): SystemData| {
+  //     if let Some(act_cam_ent) = act_cam.entity {
+  //       if let Some(cam_trans) = transforms.get(act_cam_ent) {
+  //         println!("Cam Location: {:?}", cam_trans.translation());
+  //       }
+  //     }
+  //   });
+  //   SimpleTrans::None
+  // }
 }
 
 impl Default for GameLoad {
@@ -95,8 +123,8 @@ impl GameLoad {
 
   fn initialise_camera(&self, world: &mut World) {
     let mut transform = Transform::default();
-    transform.set_translation_xyz(0., 2., -10.0);
-    transform.face_towards(Vector3::new(0., 0., 0.), Vector3::new(0., 1., 0.));
+    transform.set_translation_xyz(0., 10., 22.0);
+    transform.face_towards(Vector3::new(0., 5., 0.), Vector3::new(0., 1., 0.));
 
     let cam_ent = world
       .create_entity()
@@ -119,12 +147,30 @@ impl GameLoad {
       .build();
   }
 
-  fn build_terrain(&self, world: &mut World) {
+  fn build_terrain(&self, world: &mut World, baker: BakerSelect, location: [f32; 3]) {
     let file = format!(
       "{}/examples/assets/{}.gox",
       env!("CARGO_MANIFEST_DIR"),
       "terrain"
     );
+    let text_file = match baker {
+      BakerSelect::Voxel => format!(
+        "{}/examples/assets/{}.gox",
+        env!("CARGO_MANIFEST_DIR"),
+        "voxel_text"
+      ),
+      BakerSelect::Marching => format!(
+        "{}/examples/assets/{}.gox",
+        env!("CARGO_MANIFEST_DIR"),
+        "marching_text"
+      ),
+      BakerSelect::ModMarching => format!(
+        "{}/examples/assets/{}.gox",
+        env!("CARGO_MANIFEST_DIR"),
+        "mod_marching_text"
+      ),
+    };
+
     let (chunks, texture) = GoxReader::read::<Chunk, GaikuTexture2d>(&file).unwrap();
     let options = BakerOptions {
       texture,
@@ -133,13 +179,59 @@ impl GameLoad {
     let mut meshes = vec![];
 
     for chunk in chunks.iter() {
-      let mesh = VoxelBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &options).unwrap();
+      let mesh = match baker {
+        BakerSelect::Voxel => {
+          VoxelBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &options).unwrap()
+        }
+        BakerSelect::Marching => {
+          MarchingCubesBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &options).unwrap()
+        }
+        BakerSelect::ModMarching => {
+          ModMarchingCubesBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &options).unwrap()
+        }
+      };
+      let dimension = [
+        chunk.width() as f32,
+        chunk.height() as f32,
+        chunk.depth() as f32,
+      ];
       if let Some(mesh) = mesh {
-        meshes.push((mesh, chunk.position()));
+        meshes.push((mesh, chunk.position(), dimension, &options));
       }
     }
 
-    let tex_data: TextureData = options.texture.unwrap().get_texture().into();
+    let (text_chunks, text_texture) = GoxReader::read::<Chunk, GaikuTexture2d>(&text_file).unwrap();
+    let text_options = BakerOptions {
+      texture: text_texture,
+      ..Default::default()
+    };
+
+    for chunk in text_chunks.iter() {
+      let mesh = match baker {
+        BakerSelect::Voxel => {
+          VoxelBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &text_options).unwrap()
+        }
+        BakerSelect::Marching => {
+          MarchingCubesBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &text_options)
+            .unwrap()
+        }
+        BakerSelect::ModMarching => {
+          ModMarchingCubesBaker::bake::<Chunk, GaikuTexture2d, GaikuMesh>(chunk, &text_options)
+            .unwrap()
+        }
+      };
+      let dimension = [
+        chunk.width() as f32,
+        chunk.height() as f32,
+        chunk.depth() as f32,
+      ];
+      let mut text_pos = chunk.position();
+      text_pos[1] += 100.;
+      if let Some(mesh) = mesh {
+        meshes.push((mesh, text_pos, dimension, &text_options));
+      }
+    }
+
     let scale = Vector3::new(0.1, 0.1, 0.1);
     let swap_axes = true;
     let transform = if swap_axes {
@@ -147,7 +239,8 @@ impl GameLoad {
     } else {
       Matrix4::identity()
     };
-    for (mut mesh_gox, position) in meshes {
+    for (mut mesh_gox, position, dimension, options) in meshes {
+      let tex_data: TextureData = options.texture.as_ref().unwrap().get_texture().into();
       let (mesh, mat) = {
         if swap_axes {
           // Swap y/z for amethyst coordinate system
@@ -192,15 +285,28 @@ impl GameLoad {
         let v = Vector4::new(position[0], position[1], position[2], 1.);
         let vtrans = transform * v;
         Vector3::new(
-          vtrans[0] * scale[0],
-          vtrans[1] * scale[1],
-          vtrans[2] * scale[2],
+          vtrans[0] * scale[0] + location[0],
+          vtrans[1] * scale[1] + location[1],
+          vtrans[2] * scale[2] + location[2],
         )
       };
       pos.set_translation(position_trans);
       pos.set_scale(scale);
 
-      let _voxel = world.create_entity().with(mesh).with(mat).with(pos).build();
+      let radius =
+        (dimension[0].powi(2) + dimension[1].powi(2) + dimension[2].powi(2)).sqrt() * 1.5;
+      let bounding = BoundingSphere {
+        center: [dimension[0] / 2., dimension[1] / 2., dimension[2] / 2.].into(),
+        radius,
+      };
+
+      let _voxel = world
+        .create_entity()
+        .with(mesh)
+        .with(mat)
+        .with(pos)
+        .with(bounding)
+        .build();
     }
   }
 }

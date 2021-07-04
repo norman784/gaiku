@@ -28,7 +28,13 @@ features = ["metal"]
 name = "terrain"
 path =  "examples/terrain.rs"
 
+[[example]]
+name = "chunktree"
+path =  "examples/chunktree.rs"
+
 [dev-dependencies]
 amethyst = "0.15.3"
 gaiku_baker_voxel = { path = "../../crates/gaiku_baker_voxel", version = "0.1.0" }
+gaiku_baker_marching_cubes = { path = "../../crates/gaiku_baker_marching_cubes", version = "0.1.0" }
+gaiku_baker_modified_marching_cubes = { path = "../../crates/gaiku_baker_modified_marching_cubes", version = "0.1.0" }
 gaiku_format_gox = { path = "../../crates/gaiku_format_gox", version = "0.1.0" }

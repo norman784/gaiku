@@ -1,4 +1,4 @@
 (
-    title: "Gauku Amethyst Examplse",
-    dimensions: Some((600, 400)),
+    title: "Gaiku Amethyst Example",
+    dimensions: Some((1024, 768)),
 )
