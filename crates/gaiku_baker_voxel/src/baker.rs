@@ -1,26 +1,27 @@
 use super::common::*;
 use gaiku_common::{prelude::*, Result};
 
-use std::convert::TryInto;
+use std::{convert::TryInto, marker::PhantomData};
 
 pub struct VoxelBaker;
 
-// TODO: Optimize, don't create faces between chunks if there's a non empty voxel
-impl Baker for VoxelBaker {
-  type Value = f32;
-  type AtlasValue = u8;
-
-  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+impl VoxelBaker {
+  fn bake_with_builder<C, T, M, MB>(
+    chunk: &C,
+    options: &BakerOptions<T>,
+    _mark: PhantomData<MB>,
+  ) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable + Atlasify<Self::AtlasValue>,
+    C: Chunkify<<Self as Baker>::Value> + Atlasify<<Self as Baker>::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify,
+    MB: MeshBuilder,
   {
     type Coord = usize;
     let chunk_width = chunk.width();
     let chunk_height = chunk.height();
     let chunk_depth = chunk.depth();
-    let mut builder = MeshBuilder::create(
+    let mut builder = MB::create(
       [
         chunk_width as f32 / 2.0,
         chunk_height as f32 / 2.0,
@@ -140,20 +141,43 @@ impl Baker for VoxelBaker {
   }
 }
 
+// TODO: Optimize, don't create faces between chunks if there's a non empty voxel
+impl Baker for VoxelBaker {
+  type Value = f32;
+  type AtlasValue = u8;
+
+  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
+    T: Texturify2d,
+    M: Meshify,
+  {
+    if options.remove_duplicate_verts {
+      Self::bake_with_builder::<C, T, M, DefaultMeshBuilder>(chunk, options, Default::default())
+    } else {
+      Self::bake_with_builder::<C, T, M, NoTreeBuilder>(chunk, options, Default::default())
+    }
+  }
+}
+
 #[cfg(test)]
 mod test {
   use super::*;
   use gaiku_common::{chunk::Chunk, mesh::Mesh, texture::Texture2d};
+  type BakerType = VoxelBaker;
 
   #[test]
-  fn simple_test() {
-    let options = Default::default();
+  fn simple_test_voxel() {
+    let options = BakerOptions {
+      remove_duplicate_verts: true,
+      ..Default::default()
+    };
     let mut chunk = Chunk::new([0.0, 0.0, 0.0], 3, 3, 3);
 
     chunk.set(1, 1, 1, 1.);
     chunk.set_atlas(1, 1, 1, 0);
 
-    let mesh = VoxelBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options)
+    let mesh = BakerType::bake::<Chunk, Texture2d, Mesh>(&chunk, &options)
       .unwrap()
       .unwrap();
 
@@ -161,6 +185,6 @@ mod test {
     let indices_count = mesh.get_indices().len();
 
     assert_eq!(indices_count, 144);
-    assert_eq!(positions_count, 78);
+    assert_eq!(positions_count, 123);
   }
 }

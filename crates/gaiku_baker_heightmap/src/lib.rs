@@ -1,20 +1,23 @@
 use gaiku_common::{prelude::*, Result};
+use std::marker::PhantomData;
 
 /// Implementation of a naive heightmap terrain generation.
 pub struct HeightMapBaker;
 
-impl Baker for HeightMapBaker {
-  type Value = f32;
-  type AtlasValue = u8;
-
-  fn bake<C, T, M>(chunk: &C, _options: &BakerOptions<T>) -> Result<Option<M>>
+impl HeightMapBaker {
+  fn bake_with_builder<C, T, M, MB>(
+    chunk: &C,
+    _options: &BakerOptions<T>,
+    _mark: PhantomData<MB>,
+  ) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
+    C: Chunkify<<Self as Baker>::Value> + Atlasify<<Self as Baker>::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify,
+    MB: MeshBuilder,
   {
     let height = 30.;
-    let mut builder = MeshBuilder::create(
+    let mut builder: MB = MB::create(
       [
         chunk.width() as f32 / 2.0,
         height as f32 / 2.0,
@@ -48,5 +51,59 @@ impl Baker for HeightMapBaker {
     }
 
     Ok(builder.build::<M>())
+  }
+}
+
+impl Baker for HeightMapBaker {
+  type Value = f32;
+  type AtlasValue = u8;
+
+  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
+    T: Texturify2d,
+    M: Meshify,
+  {
+    if options.remove_duplicate_verts {
+      Self::bake_with_builder::<C, T, M, DefaultMeshBuilder>(chunk, options, Default::default())
+    } else {
+      Self::bake_with_builder::<C, T, M, NoTreeBuilder>(chunk, options, Default::default())
+    }
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+  use gaiku_common::{chunk::Chunk, mesh::Mesh, texture::Texture2d};
+  type BakerType = HeightMapBaker;
+
+  #[test]
+  fn simple_test_heightmap() {
+    let options = BakerOptions {
+      remove_duplicate_verts: true,
+      ..Default::default()
+    };
+    let mut chunk = Chunk::new([0.0, 0.0, 0.0], 3, 3, 3);
+
+    chunk.set(0, 0, 0, 0.);
+    chunk.set(0, 1, 0, 0.);
+    chunk.set(0, 2, 0, 0.);
+    chunk.set(1, 0, 0, 0.);
+    chunk.set(1, 1, 0, 1.);
+    chunk.set(1, 2, 0, 0.);
+    chunk.set(2, 0, 0, 0.);
+    chunk.set(2, 1, 0, 0.);
+    chunk.set(2, 2, 0, 0.);
+
+    let mesh = BakerType::bake::<Chunk, Texture2d, Mesh>(&chunk, &options)
+      .unwrap()
+      .unwrap();
+
+    let positions_count = mesh.get_positions().len();
+    let indices_count = mesh.get_indices().len();
+
+    assert_eq!(indices_count, 6);
+    assert_eq!(positions_count, 4);
   }
 }

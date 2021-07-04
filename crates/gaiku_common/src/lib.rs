@@ -27,7 +27,8 @@ pub mod chunk;
 pub mod mesh;
 /// Texture related traits/implementation.
 pub mod texture;
-//mod tree;
+// For the mesh builders that help convert faces into a mesh
+pub mod meshbuilder;
 
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
@@ -35,7 +36,8 @@ pub mod prelude {
     atlas::{Atlasify, AtlasifyMut},
     boxify::*,
     chunk::{Chunkify, ChunkifyMut},
-    mesh::{MeshBuilder, Meshify},
+    mesh::Meshify,
+    meshbuilder::*,
     texture::{TextureAtlas2d, Texturify2d},
     Baker, BakerOptions, FileFormat,
   };
@@ -46,9 +48,14 @@ pub struct BakerOptions<T>
 where
   T: Texturify2d,
 {
+  /// The isovalue of the surface to render.
   pub isovalue: f32,
+  /// Unused
   pub level_of_detail: usize,
+  /// Texture to use for uv mapping to the atlas
   pub texture: Option<TextureAtlas2d<T>>,
+  /// Removing duplicate verts can be expense. Enable this when required
+  pub remove_duplicate_verts: bool,
 }
 
 impl<T> Default for BakerOptions<T>
@@ -60,6 +67,7 @@ where
       isovalue: 0.,
       level_of_detail: 1,
       texture: None,
+      remove_duplicate_verts: false,
     }
   }
 }

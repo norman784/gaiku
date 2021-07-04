@@ -1,22 +1,24 @@
 use super::common::*;
 use gaiku_common::{prelude::*, Result};
-use std::convert::TryInto;
+use std::{convert::TryInto, marker::PhantomData};
 
 /// Implementation of the marching cubes terrain generation.
 pub struct MarchingCubesBaker;
 
-impl Baker for MarchingCubesBaker {
-  type Value = f32;
-  type AtlasValue = u8;
-
-  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+impl MarchingCubesBaker {
+  fn bake_with_builder<C, T, M, MB>(
+    chunk: &C,
+    options: &BakerOptions<T>,
+    _mark: PhantomData<MB>,
+  ) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
+    C: Chunkify<<Self as Baker>::Value> + Atlasify<<Self as Baker>::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify,
+    MB: MeshBuilder,
   {
     type Coord = usize;
-    let mut builder = MeshBuilder::create(
+    let mut builder = MB::create(
       [
         chunk.width() as f32 / 2.0,
         chunk.height() as f32 / 2.0,
@@ -133,5 +135,52 @@ impl Baker for MarchingCubesBaker {
     }
 
     Ok(builder.build::<M>())
+  }
+}
+
+impl Baker for MarchingCubesBaker {
+  type Value = f32;
+  type AtlasValue = u8;
+
+  fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
+  where
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
+    T: Texturify2d,
+    M: Meshify,
+  {
+    if options.remove_duplicate_verts {
+      Self::bake_with_builder::<C, T, M, DefaultMeshBuilder>(chunk, options, Default::default())
+    } else {
+      Self::bake_with_builder::<C, T, M, NoTreeBuilder>(chunk, options, Default::default())
+    }
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+  use gaiku_common::{chunk::Chunk, mesh::Mesh, texture::Texture2d, Baker};
+  type BakerType = MarchingCubesBaker;
+
+  #[test]
+  fn simple_test_marching_cubes() {
+    let options = BakerOptions {
+      remove_duplicate_verts: true,
+      ..Default::default()
+    };
+    let mut chunk = Chunk::new([0.0, 0.0, 0.0], 3, 3, 3);
+
+    chunk.set(1, 1, 1, 1.);
+    chunk.set_atlas(1, 1, 1, 0);
+
+    let mesh = BakerType::bake::<Chunk, Texture2d, Mesh>(&chunk, &options)
+      .unwrap()
+      .unwrap();
+
+    let positions_count = mesh.get_positions().len();
+    let indices_count = mesh.get_indices().len();
+
+    assert_eq!(indices_count, 24);
+    assert_eq!(positions_count, 24);
   }
 }
