@@ -16,6 +16,7 @@ repository = "https://github.com/norman784/gaiku"
 [dependencies]
 gaiku_common = { path = "../gaiku_common", version = "^0.1.0" }
 glam = { version = "^0.12.0 ", features = ["mint"] }
+lazy_static = "1.4.0"
 
 [[example]]
 name = "table_gen_mod_marching"
