@@ -68,6 +68,11 @@ name = "voxel"
 harness = false
 required-features = ["voxel", "gox"]
 
+[[bench]]
+name = "mesh_builders"
+harness = false
+required-features = ["voxel", "gox"]
+
 [[example]]
 name = "heightmap"
 required-features = ["heightmap", "gox"]

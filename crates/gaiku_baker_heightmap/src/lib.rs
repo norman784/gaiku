@@ -5,7 +5,8 @@ use std::marker::PhantomData;
 pub struct HeightMapBaker;
 
 impl HeightMapBaker {
-  fn bake_with_builder<C, T, M, MB>(
+  // Kept public so that we can use it in the benches
+  pub fn bake_with_builder<C, T, M, MB>(
     chunk: &C,
     _options: &BakerOptions<T>,
     _mark: PhantomData<MB>,

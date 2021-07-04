@@ -6,7 +6,8 @@ use std::{convert::TryInto, marker::PhantomData};
 pub struct MarchingCubesBaker;
 
 impl MarchingCubesBaker {
-  fn bake_with_builder<C, T, M, MB>(
+  // Kept public so that we can use it in the benches
+  pub fn bake_with_builder<C, T, M, MB>(
     chunk: &C,
     options: &BakerOptions<T>,
     _mark: PhantomData<MB>,
