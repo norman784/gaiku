@@ -302,8 +302,8 @@ fn main() {
       }
     }
   }
-  let longest = triangle_table.iter().map(|c| c.len()).max().unwrap();
-  assert!(longest == 12 * 3 * 2);
+  let longest = triangle_table.iter().map(|c| c.len()).max().unwrap() + 1;
+  assert!(longest == 12 * 3 * 2 + 1);
   triangle_table
     .iter_mut()
     .for_each(|c| c.append(&mut vec![-1; longest - c.len()]));
