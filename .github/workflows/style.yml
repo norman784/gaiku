@@ -18,12 +18,17 @@ jobs:
       with:
           toolchain: nightly
           components: clippy
-    - name: Run clippy
+    - name: Run clippy action to produce annotations
       uses: actions-rs/clippy-check@v1
+      if: steps.check_permissions.outputs.has-permission
       with:
         toolchain: nightly
         token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features
+        args: --workspace --all-targets --all-features
+    - name: Run clippy manually without annotations
+      if: ${{ !steps.check_permissions.outputs.has-permission }}
+      run: cargo +nightly clippy --workspace --all-targets --all-features
+
 
   check_fmt:
     name: Rust-fmt
