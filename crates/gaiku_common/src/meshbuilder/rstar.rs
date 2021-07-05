@@ -176,3 +176,31 @@ impl MeshBuilder for RstarMeshBuilder {
     }
   }
 }
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn test_rstar_deduplicate() {
+    let mut tree = RstarMeshBuilder::create([0.0, 0.0, 0.0], [4.0, 4.0, 4.0]);
+
+    for _ in 0..10 {
+      tree.add([0., 0., 0.], None, None, 0);
+    }
+
+    for _ in 0..10 {
+      tree.add([1., 0., 0.], None, None, 0);
+    }
+
+    for _ in 0..10 {
+      tree.add([1., 1., 0.], None, None, 0);
+    }
+
+    for _ in 0..10 {
+      tree.add([0., 1., 0.], None, None, 0);
+    }
+
+    assert_eq!(tree.tree.size(), 4);
+  }
+}

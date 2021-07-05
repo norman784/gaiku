@@ -529,4 +529,27 @@ mod test {
 
     assert_eq!(tree.iter().count(), 2);
   }
+
+  #[test]
+  fn test_octree_deduplicate() {
+    let mut tree = OctMeshBuilder::create([0.0, 0.0, 0.0], [4.0, 4.0, 4.0]);
+
+    for _ in 0..10 {
+      tree.add([0., 0., 0.], None, None, 0);
+    }
+
+    for _ in 0..10 {
+      tree.add([1., 0., 0.], None, None, 0);
+    }
+
+    for _ in 0..10 {
+      tree.add([1., 1., 0.], None, None, 0);
+    }
+
+    for _ in 0..10 {
+      tree.add([0., 1., 0.], None, None, 0);
+    }
+
+    assert_eq!(tree.cache.iter().count(), 4);
+  }
 }
