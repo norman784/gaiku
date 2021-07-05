@@ -45,14 +45,14 @@ impl ModMarchingCubesBaker {
           let z = z as Coord;
 
           let air_check = [
-            chunk.is_air(x, y, z),
-            chunk.is_air(x + 1, y, z),
-            chunk.is_air(x + 1, y + 1, z),
-            chunk.is_air(x, y + 1, z),
-            chunk.is_air(x, y, z + 1),
-            chunk.is_air(x + 1, y, z + 1),
-            chunk.is_air(x + 1, y + 1, z + 1),
-            chunk.is_air(x, y + 1, z + 1),
+            chunk.is_air(x, y, z, isovalue),
+            chunk.is_air(x + 1, y, z, isovalue),
+            chunk.is_air(x + 1, y + 1, z, isovalue),
+            chunk.is_air(x, y + 1, z, isovalue),
+            chunk.is_air(x, y, z + 1, isovalue),
+            chunk.is_air(x + 1, y, z + 1, isovalue),
+            chunk.is_air(x + 1, y + 1, z + 1, isovalue),
+            chunk.is_air(x, y + 1, z + 1, isovalue),
           ];
           if air_check.iter().all(|&v| !v) || air_check.iter().all(|&v| v) {
             continue;

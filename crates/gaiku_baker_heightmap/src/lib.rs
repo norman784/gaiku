@@ -8,7 +8,7 @@ impl HeightMapBaker {
   // Kept public so that we can use it in the benches
   pub fn bake_with_builder<C, T, M, MB>(
     chunk: &C,
-    _options: &BakerOptions<T>,
+    options: &BakerOptions<T>,
     _mark: PhantomData<MB>,
   ) -> Result<Option<M>>
   where
@@ -18,6 +18,7 @@ impl HeightMapBaker {
     MB: MeshBuilder,
   {
     let height = 30.;
+    let isovalue = options.isovalue;
     let mut builder: MB = MB::create(
       [
         chunk.width() as f32 / 2.0,
@@ -29,7 +30,7 @@ impl HeightMapBaker {
 
     for x in 0..chunk.width() as usize - 1 {
       for y in 0..chunk.height() as usize - 1 {
-        if chunk.is_air(x, y, 0) {
+        if chunk.is_air(x, y, 0, isovalue) {
           continue;
         }
 

@@ -46,12 +46,11 @@ impl Boxify for Chunk {
 }
 
 impl Chunkify<f32> for Chunk {
-  fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
-    let isovaue = 0.0;
+  fn is_air(&self, x: usize, y: usize, z: usize, isovalue: f32) -> bool {
     if x >= self.width as usize || y >= self.height as usize || z >= self.depth as usize {
       true
     } else {
-      self.get(x, y, z) - isovaue < 1e-4
+      self.get(x, y, z) - isovalue < 1e-4
     }
   }
 
