@@ -31,12 +31,7 @@ pub trait MeshBuilder {
     atlas_index: u16,
   ) {
     for (i, vertex) in triangle.iter().enumerate() {
-      self.add(
-        *vertex,
-        normal,
-        if let Some(uv) = uv { Some(uv[i]) } else { None },
-        atlas_index,
-      );
+      self.add(*vertex, normal, uv.map(|uv| uv[i]), atlas_index);
     }
   }
 
@@ -52,16 +47,7 @@ pub trait MeshBuilder {
   ) {
     [[0, 1, 3], [1, 2, 3]].iter().for_each(|triangle| {
       triangle.iter().for_each(|i| {
-        self.add(
-          face[*i],
-          normal,
-          if let Some(uv) = uv {
-            Some(uv[*i])
-          } else {
-            None
-          },
-          atlas_index,
-        );
+        self.add(face[*i], normal, uv.map(|uv| uv[*i]), atlas_index);
       });
     });
   }
