@@ -55,6 +55,7 @@ fn read(name: &str) -> Result<()> {
   Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn main() -> Result<()> {
   let _ = read("small_tree");
   let _ = read("terrain");

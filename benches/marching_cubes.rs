@@ -25,6 +25,7 @@ fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn marching_cubes_terrain(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("terrain").unwrap();
   let options = BakerOptions {
@@ -47,6 +48,7 @@ fn marching_cubes_terrain(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn marching_cubes_planet(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("planet").unwrap();
   let options = BakerOptions {
@@ -69,6 +71,7 @@ fn marching_cubes_planet(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn marching_cubes_small_tree(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("small_tree").unwrap();
   let options = BakerOptions {
@@ -91,6 +94,7 @@ fn marching_cubes_small_tree(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn marching_cubes_small_checkerboard(b: &mut Bencher) -> Result<()> {
   let width: usize = 3;
   let height: usize = width;
@@ -125,6 +129,7 @@ fn marching_cubes_small_checkerboard(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn marching_cubes_medium_checkerboard(b: &mut Bencher) -> Result<()> {
   let width: usize = 10;
   let height: usize = width;
@@ -159,6 +164,7 @@ fn marching_cubes_medium_checkerboard(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn marching_cubes_large_checkerboard(b: &mut Bencher) -> Result<()> {
   let width: usize = 30;
   let height: usize = width;

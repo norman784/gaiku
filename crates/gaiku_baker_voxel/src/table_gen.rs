@@ -5,7 +5,7 @@ use std::{collections::HashMap, convert::TryInto};
 
 fn calc_cube_index(all: &[bool; 8]) -> usize {
   let result = all.iter().enumerate().fold(0, |acc, (idx, val)| {
-    if *val == true {
+    if *val {
       acc | 2_usize.pow(idx as u32)
     } else {
       acc
@@ -17,6 +17,7 @@ fn calc_cube_index(all: &[bool; 8]) -> usize {
 // Order of verts is important
 // verts[0], verts[1], verts[2] must form a triangle where clockwise
 // is outwards facing if a is true and b is false
+#[allow(clippy::too_many_arguments)]
 fn add_to_tables(
   a: bool,
   b: bool,
@@ -149,7 +150,7 @@ fn get_verts(a_coord: [i8; 3], b_coord: [i8; 3]) -> Option<([i8; 4], [[f32; 2]; 
   let c = {
     // other face point
     let i = permutation[axis][0];
-    let mut new_c = mid_coord.clone();
+    let mut new_c = mid_coord;
     if new_c[i] + 1 > 2 {
       new_c[i] -= 1
     } else {
@@ -161,7 +162,7 @@ fn get_verts(a_coord: [i8; 3], b_coord: [i8; 3]) -> Option<([i8; 4], [[f32; 2]; 
   let d = {
     // last face point
     let i = permutation[axis][1];
-    let mut new_d = mid_coord.clone();
+    let mut new_d = mid_coord;
     if new_d[i] + 1 > 2 {
       new_d[i] -= 1
     } else {

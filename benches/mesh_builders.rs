@@ -11,10 +11,11 @@ use gaiku::{
     texture::{Texture2d, TextureAtlas2d},
     Result,
   },
-  GoxReader, VoxelBaker,
+  VoxelBaker,
 };
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn meshbuilder_notree(b: &mut Bencher) -> Result<()> {
   let width: usize = 10;
   let height: usize = width;
@@ -54,6 +55,7 @@ fn meshbuilder_notree(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn meshbuilder_octree(b: &mut Bencher) -> Result<()> {
   let width: usize = 10;
   let height: usize = width;
@@ -93,6 +95,7 @@ fn meshbuilder_octree(b: &mut Bencher) -> Result<()> {
 }
 
 #[bench]
+#[allow(clippy::unnecessary_wraps)]
 fn meshbuilder_rstar(b: &mut Bencher) -> Result<()> {
   let width: usize = 10;
   let height: usize = width;

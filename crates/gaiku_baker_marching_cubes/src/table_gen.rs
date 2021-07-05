@@ -304,14 +304,16 @@ pub const TRIANGLE_TABLE: [[i8; 16]; 256] = [
   ],
 ];
 
+#[allow(clippy::many_single_char_names)]
 fn xy_to_barycentric(p: &Vec2, a: &Vec2, b: &Vec2, c: &Vec2) -> Vec3 {
   let l0: f32 = ((b[1] - c[1]) * (p[0] - c[0]) + (c[0] - b[0]) * (p[1] - c[1]))
     / ((b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]));
   let l1: f32 = ((c[1] - a[1]) * (p[0] - c[0]) + (a[0] - c[0]) * (p[1] - c[1]))
     / ((b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1]));
-  return [l0, l1, 1.0 - l0 - l1].into();
+  [l0, l1, 1.0 - l0 - l1].into()
 }
 
+#[allow(clippy::many_single_char_names)]
 fn xyz_to_barycentric(p: &Vec3, a: &Vec3, b: &Vec3, c: &Vec3) -> Vec3 {
   // Project onto the triangles 2d plane
   let b_local = b - a;
@@ -332,7 +334,7 @@ fn xyz_to_barycentric(p: &Vec3, a: &Vec3, b: &Vec3, c: &Vec3) -> Vec3 {
   let c_2d: Vec2 = [c_local.dot(&x_axis), c_local.dot(&y_axis)].into();
 
   // Now just standard barycentric
-  return xy_to_barycentric(&p_2d, &a_2d, &b_2d, &c_2d);
+  xy_to_barycentric(&p_2d, &a_2d, &b_2d, &c_2d)
 }
 
 #[derive(Debug, Clone)]
@@ -350,7 +352,7 @@ struct Line {
 impl Line {
   fn from_points(a: &Vec3, b: &Vec3) -> Self {
     Self {
-      origin: a.clone(),
+      origin: *a,
       direction: (b - a).normalize(),
     }
   }
@@ -365,14 +367,14 @@ impl Line {
       return None;
     }
     if origin_diff.norm() < EPSILON {
-      return Some(self.origin.clone());
+      return Some(self.origin);
     }
     let diff_normal = origin_diff.dot(&plane.normal);
     let prod = diff_normal / cos_normal;
-    return Some(self.origin - self.direction * prod);
+    Some(self.origin - self.direction * prod)
   }
 
-  #[allow(dead_code)]
+  #[allow(dead_code, clippy::many_single_char_names)]
   fn line_intersection(&self, line: &Self) -> Option<Vec3> {
     let origin_diff = self.origin - line.direction;
     let cos_normal = self.direction.dot(&line.direction);
@@ -383,7 +385,7 @@ impl Line {
       return None;
     }
     if origin_diff.norm() < EPSILON {
-      return Some(self.origin.clone());
+      return Some(self.origin);
     }
 
     let c = self.origin;
@@ -395,10 +397,10 @@ impl Line {
 
     // Is c or d on the other line
     if g.normalize().dot(&f).abs() < EPSILON {
-      return Some(c.clone());
+      return Some(c);
     }
     if g.normalize().dot(&e).abs() < EPSILON {
-      return Some(d.clone());
+      return Some(d);
     }
 
     let h = f.cross(&g).norm();
@@ -414,11 +416,11 @@ impl Line {
     let fxe = f.cross(&e);
 
     if (fxg.normalize().dot(&fxe) - 1.0).abs() < EPSILON {
-      return Some(c + l);
+      Some(c + l)
     } else if (fxg.normalize().dot(&fxe) + 1.0).abs() < EPSILON {
-      return Some(c - l);
+      Some(c - l)
     } else {
-      unreachable!();
+      unreachable!()
     }
   }
 }
@@ -431,9 +433,7 @@ struct Edge {
 
 impl Edge {
   fn contains(&self, point: &Vec3) -> bool {
-    if (self.a - point).norm() < EPSILON {
-      true
-    } else if (self.b - point).norm() < EPSILON {
+    if (self.a - point).norm() < EPSILON || (self.b - point).norm() < EPSILON {
       true
     } else {
       let mins = [
@@ -446,7 +446,7 @@ impl Edge {
         self.a[1].max(self.b[1]),
         self.a[2].max(self.b[2]),
       ];
-      if ((point[0] - mins[0]).abs() < EPSILON
+      ((point[0] - mins[0]).abs() < EPSILON
         || (point[0] - maxs[0]).abs() < EPSILON
         || (point[0] >= mins[0] && point[0] <= maxs[0]))
         && ((point[1] - mins[1]).abs() < EPSILON
@@ -455,20 +455,15 @@ impl Edge {
         && ((point[2] - mins[2]).abs() < EPSILON
           || (point[2] - maxs[2]).abs() < EPSILON
           || (point[2] >= mins[2] && point[2] <= maxs[2]))
-      {
-        true
-      } else {
-        false
-      }
     }
   }
   fn plane_intersection(&self, plane: &Plane) -> Option<Vec3> {
     let line = Line::from_points(&self.a, &self.b);
     if let Some(point) = line.plane_intersection(plane) {
       if (self.a - point).norm() < EPSILON {
-        Some(self.a.clone())
+        Some(self.a)
       } else if (self.b - point).norm() < EPSILON {
-        Some(self.b.clone())
+        Some(self.b)
       } else if self.contains(&point) {
         Some(point)
       } else {
@@ -485,9 +480,9 @@ impl Edge {
     let edge_line = Line::from_points(&edge.a, &edge.b);
     if let Some(point) = me_line.line_intersection(&edge_line) {
       if (self.a - point).norm() < EPSILON {
-        Some(self.a.clone())
+        Some(self.a)
       } else if (self.b - point).norm() < EPSILON {
-        Some(self.b.clone())
+        Some(self.b)
       } else if self.contains(&point) {
         Some(point)
       } else {
@@ -531,9 +526,7 @@ impl Face {
       (None, None, None) => None,
       (Some(a), Some(b), Some(c)) => {
         // One of these is a duplicate
-        if (c - a).norm() < EPSILON {
-          Some([a, b])
-        } else if (c - b).norm() < EPSILON {
+        if (c - a).norm() < EPSILON || (c - b).norm() < EPSILON {
           Some([a, b])
         } else if (b - a).norm() < EPSILON {
           Some([a, c])
@@ -593,7 +586,7 @@ impl NGon {
         .iter()
         .filter(|i| i.is_some())
         .map(|i| i.unwrap())
-        .nth(0);
+        .next();
       if let Some(first_intersection) = first_intersection {
         // Find any other unique split point
         let next_intersection = intersections
@@ -606,7 +599,7 @@ impl NGon {
             }
           })
           .map(|i| i.unwrap())
-          .nth(0);
+          .next();
 
         if let Some(next_intersection) = next_intersection {
           // Work out the order of the intersection splits
@@ -651,19 +644,19 @@ impl NGon {
           let mut results = vec![];
           let mut starts = vec![0];
           let mut visited: HashSet<usize> = Default::default();
-          while starts.len() > 0 {
+          while !starts.is_empty() {
             let mut verts = vec![];
             let start_i = starts.pop().unwrap();
             let mut i = start_i;
             while i < edges.len() {
               visited.insert(i);
-              verts.push(edges[i].a.clone());
+              verts.push(edges[i].a);
               // Do we edge cut?
               if let Some(intersection) = intersections[i] {
                 if !visited.contains(&(i + 1)) {
                   starts.push(i + 1);
                 }
-                verts.push(intersection.clone());
+                verts.push(intersection);
                 let next_edge = next_cut[i].unwrap();
                 verts.push(intersections[next_edge].unwrap());
                 i = next_edge + 1;
@@ -690,7 +683,7 @@ impl NGon {
             let verts = filterd_verts;
             if verts.len() > 2 {
               results.push(NGon { verts });
-            } else if verts.len() > 0 {
+            } else if !verts.is_empty() {
               // Should have no cases where verts.len() == 1 || 2
               println!("no verts B? {:?}", verts);
               println!("verts {:?}", self.verts);
@@ -722,7 +715,7 @@ impl NGon {
       results.push(b);
       results.push(c);
     }
-    return results;
+    results
   }
 }
 
@@ -765,6 +758,7 @@ enum Index {
   Bary(usize),
 }
 
+#[allow(clippy::many_single_char_names)]
 fn main() {
   let corners: [Vec3; 8] = [
     [0., 0., 0.].into(),
@@ -824,8 +818,8 @@ fn main() {
     let mut new_verts = vec![];
     let mut corner_table = vec![];
     let mut uv_table = vec![];
-    for face in &faces.into_iter().chunks(3) {
-      let face = face.map(|i| *i).collect::<Vec<i8>>();
+    for face in &faces.iter().chunks(3) {
+      let face = face.copied().collect::<Vec<i8>>();
       if face.iter().any(|&i| i < 0) {
         break;
       }
@@ -960,9 +954,9 @@ fn main() {
         uvs[2][0] = uvs[2][0].clamp(0., 1.);
         uvs[2][1] = uvs[2][1].clamp(0., 1.);
 
-        uv_table.push(uvs[0].clone());
-        uv_table.push(uvs[1].clone());
-        uv_table.push(uvs[2].clone());
+        uv_table.push(uvs[0]);
+        uv_table.push(uvs[1]);
+        uv_table.push(uvs[2]);
         continue;
       }
 
@@ -981,7 +975,7 @@ fn main() {
             polys.push(idx);
           } else {
             polys.push(unique_verts.len());
-            unique_verts.push(vert.clone());
+            unique_verts.push(vert);
           }
         }
       }
@@ -990,7 +984,7 @@ fn main() {
       // We first work out the barycentric coordinates
       // for all unique verts
       let mut sorted_indices = indices.to_vec();
-      sorted_indices.sort();
+      sorted_indices.sort_unstable();
       let sorted_verts: Vec<Vec3> = sorted_indices
         .iter()
         .map(|&i| edges[i as usize])
@@ -1170,9 +1164,9 @@ fn main() {
         uvs[2][0] = uvs[2][0].clamp(0., 1.);
         uvs[2][1] = uvs[2][1].clamp(0., 1.);
 
-        uv_table.push(uvs[0].clone());
-        uv_table.push(uvs[1].clone());
-        uv_table.push(uvs[2].clone());
+        uv_table.push(uvs[0]);
+        uv_table.push(uvs[1]);
+        uv_table.push(uvs[2]);
       }
     }
     new_triangle_table_unmapped.push(new_verts);

@@ -481,8 +481,8 @@ mod test {
       0,
       0,
     )) {
-      InsertResult::Inserted => assert!(true),
-      _ => assert!(false),
+      InsertResult::Inserted => {}
+      _ => panic!(),
     }
 
     assert_eq!(tree.iter().count(), 1);
@@ -506,10 +506,10 @@ mod test {
       0,
       0,
     )) {
-      InsertResult::Inserted => assert!(true),
+      InsertResult::Inserted => {}
       n => {
         println!("{:?} with {:#?}", n, &tree);
-        assert!(false)
+        panic!()
       }
     }
 
@@ -520,10 +520,10 @@ mod test {
       0,
       0,
     )) {
-      InsertResult::Inserted => assert!(true),
+      InsertResult::Inserted => {}
       n => {
         println!("{:?} with {:#?}", n, &tree);
-        assert!(false)
+        panic!()
       }
     }
 
