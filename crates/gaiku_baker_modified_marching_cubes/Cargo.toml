@@ -1,7 +1,7 @@
 [package]
 name = "gaiku_baker_modified_marching_cubes"
 version = "0.1.0"
-authors = ["Norman Paniagua <normanpaniagua@gmail.com>"]
+authors = ["Norman Paniagua <normanpaniagua@gmail.com>", "Andrew King <sheepchaan@gmail.com>"]
 edition = "2018"
 description = """Adds Marching Cubes mesh generation support to Gaiku
 This uses an algorithm that has been modifed to supports atlas textures."""
