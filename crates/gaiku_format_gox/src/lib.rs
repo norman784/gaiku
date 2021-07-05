@@ -86,7 +86,7 @@ impl FileFormat for GoxReader {
     let mut chunk = C::new(
       [(min[0]) as f32, (min[2]) as f32, (min[1]) as f32],
       chunk_size[0].try_into().unwrap(),
-      chunk_size[2].try_into().unwrap(), // goxel is in y up gaiku in zup
+      chunk_size[2].try_into().unwrap(), // goxel is in y up gaiku in z up
       chunk_size[1].try_into().unwrap(),
     );
 
