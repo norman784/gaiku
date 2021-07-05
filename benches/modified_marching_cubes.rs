@@ -1,4 +1,7 @@
-use criterion::{criterion_group, criterion_main, Criterion, SamplingMode};
+#![feature(test)]
+
+extern crate test;
+
 use gaiku::{
   common::{
     chunk::Chunk,
@@ -9,6 +12,7 @@ use gaiku::{
   },
   GoxReader, ModMarchingCubesBaker,
 };
+use test::Bencher;
 
 fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>)> {
   let file = format!(
@@ -20,73 +24,170 @@ fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d
   GoxReader::read(&file)
 }
 
-fn marching_cubes_benchmark(c: &mut Criterion) {
-  let mut group = c.benchmark_group("Modified Marching cubes");
+#[bench]
+fn modmarching_cubes_terrain(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("terrain").unwrap();
   let options = BakerOptions {
     texture,
     ..Default::default()
   };
-  group.sampling_mode(SamplingMode::Flat);
-  group.sample_size(10);
 
-  group.bench_function("Terrain", |b| {
-    b.iter(|| {
-      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
+  b.iter(|| {
+    let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
-      for chunk in chunks.iter() {
-        let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
-        if let Some(mesh) = mesh {
-          meshes.push((mesh, chunk.position()));
-        }
+    for chunk in chunks.iter() {
+      let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
+      if let Some(mesh) = mesh {
+        meshes.push((mesh, chunk.position()));
       }
-    })
+    }
   });
 
+  Ok(())
+}
+
+#[bench]
+fn modmarching_cubes_planet(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("planet").unwrap();
   let options = BakerOptions {
     texture,
     ..Default::default()
   };
 
-  group.bench_function("Planet", |b| {
-    b.iter(|| {
-      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
+  b.iter(|| {
+    let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
-      for chunk in chunks.iter() {
-        let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
-        if let Some(mesh) = mesh {
-          meshes.push((mesh, chunk.position()));
-        }
+    for chunk in chunks.iter() {
+      let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
+      if let Some(mesh) = mesh {
+        meshes.push((mesh, chunk.position()));
       }
-    })
+    }
   });
 
+  Ok(())
+}
+
+#[bench]
+fn modmarching_cubes_small_tree(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("small_tree").unwrap();
   let options = BakerOptions {
     texture,
     ..Default::default()
   };
 
-  group.sample_size(100);
-  group.bench_function("Small tree", |b| {
-    b.iter(|| {
-      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
+  b.iter(|| {
+    let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
-      for chunk in chunks.iter() {
-        let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
-        if let Some(mesh) = mesh {
-          meshes.push((mesh, chunk.position()));
-        }
+    for chunk in chunks.iter() {
+      let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
+      if let Some(mesh) = mesh {
+        meshes.push((mesh, chunk.position()));
       }
-    })
+    }
   });
 
-  group.finish();
+  Ok(())
 }
 
-criterion_group!(benches, marching_cubes_benchmark);
+#[bench]
+fn modmarching_cubes_small_checkerboard(b: &mut Bencher) -> Result<()> {
+  let width: usize = 3;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
 
-criterion_main! {
-    benches,
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, 1.);
+        }
+      }
+    }
+  }
+
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+
+  b.iter(|| {
+    ModMarchingCubesBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+  });
+
+  Ok(())
+}
+
+#[bench]
+fn modmarching_cubes_medium_checkerboard(b: &mut Bencher) -> Result<()> {
+  let width: usize = 10;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
+
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, 1.);
+        }
+      }
+    }
+  }
+
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+
+  b.iter(|| {
+    ModMarchingCubesBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+  });
+
+  Ok(())
+}
+
+#[bench]
+fn modmarching_cubes_large_checkerboard(b: &mut Bencher) -> Result<()> {
+  let width: usize = 30;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
+
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, 1.);
+        }
+      }
+    }
+  }
+
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+
+  b.iter(|| {
+    ModMarchingCubesBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+  });
+
+  Ok(())
 }

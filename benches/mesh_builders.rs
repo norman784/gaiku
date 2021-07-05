@@ -1,4 +1,8 @@
-use criterion::{criterion_group, criterion_main, Criterion, SamplingMode};
+#![feature(test)]
+
+extern crate test;
+use test::Bencher;
+
 use gaiku::{
   common::{
     chunk::Chunk,
@@ -10,97 +14,119 @@ use gaiku::{
   GoxReader, VoxelBaker,
 };
 
-fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d>>)> {
-  let file = format!(
-    "{}/examples/assets/{}.gox",
-    env!("CARGO_MANIFEST_DIR"),
-    name
-  );
+#[bench]
+fn meshbuilder_notree(b: &mut Bencher) -> Result<()> {
+  let width: usize = 10;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
 
-  GoxReader::read(&file)
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, 1.);
+        }
+      }
+    }
+  }
+
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+
+  b.iter(|| {
+    VoxelBaker::bake_with_builder::<Chunk, Texture2d, Mesh, NoTreeBuilder>(
+      &chunk,
+      &options,
+      Default::default(),
+    )
+    .unwrap();
+  });
+
+  Ok(())
 }
 
-fn voxel_benchmark(c: &mut Criterion) {
-  let mut group = c.benchmark_group("Builder");
-  let (chunks, texture) = get_chunks("terrain").unwrap();
-  let options = BakerOptions {
-    texture,
-    ..Default::default()
-  };
-  group.sampling_mode(SamplingMode::Flat);
-  group.sample_size(10);
+#[bench]
+fn meshbuilder_octree(b: &mut Bencher) -> Result<()> {
+  let width: usize = 10;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
 
-  group.bench_function("NoTree", |b| {
-    b.iter(|| {
-      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
-
-      for chunk in chunks.iter() {
-        let mesh = VoxelBaker::bake_with_builder::<Chunk, Texture2d, Mesh, NoTreeBuilder>(
-          chunk,
-          &options,
-          Default::default(),
-        )
-        .unwrap();
-        if let Some(mesh) = mesh {
-          meshes.push((mesh, chunk.position()));
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, 1.);
         }
       }
-    })
-  });
+    }
+  }
 
-  let (chunks, texture) = get_chunks("terrain").unwrap();
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
   let options = BakerOptions {
-    texture,
+    texture: Some(atlas),
     ..Default::default()
   };
 
-  group.bench_function("OctTree", |b| {
-    b.iter(|| {
-      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
-
-      for chunk in chunks.iter() {
-        let mesh = VoxelBaker::bake_with_builder::<Chunk, Texture2d, Mesh, OctMeshBuilder>(
-          chunk,
-          &options,
-          Default::default(),
-        )
-        .unwrap();
-        if let Some(mesh) = mesh {
-          meshes.push((mesh, chunk.position()));
-        }
-      }
-    })
+  b.iter(|| {
+    VoxelBaker::bake_with_builder::<Chunk, Texture2d, Mesh, OctMeshBuilder>(
+      &chunk,
+      &options,
+      Default::default(),
+    )
+    .unwrap();
   });
 
-  let (chunks, texture) = get_chunks("terrain").unwrap();
-  let options = BakerOptions {
-    texture,
-    ..Default::default()
-  };
-
-  group.bench_function("Rstar", |b| {
-    b.iter(|| {
-      let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
-
-      for chunk in chunks.iter() {
-        let mesh = VoxelBaker::bake_with_builder::<Chunk, Texture2d, Mesh, RstarMeshBuilder>(
-          chunk,
-          &options,
-          Default::default(),
-        )
-        .unwrap();
-        if let Some(mesh) = mesh {
-          meshes.push((mesh, chunk.position()));
-        }
-      }
-    })
-  });
-
-  group.finish();
+  Ok(())
 }
 
-criterion_group!(benches, voxel_benchmark);
+#[bench]
+fn meshbuilder_rstar(b: &mut Bencher) -> Result<()> {
+  let width: usize = 10;
+  let height: usize = width;
+  let depth: usize = width;
+  let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
 
-criterion_main! {
-    benches,
+  for x in 0..width {
+    let x_fill = (x % 2) == 0;
+    for y in 0..height {
+      let y_fill = (y % 2) == 0;
+      for z in 0..depth {
+        let z_fill = (z % 2) == 0;
+        if (x_fill ^ y_fill) ^ z_fill {
+          // Chunk where every other voxel is set like a 3d checkerboard
+          chunk.set(x, y, z, 1.);
+        }
+      }
+    }
+  }
+
+  let atlas = TextureAtlas2d::<Texture2d>::new(1);
+  let options = BakerOptions {
+    texture: Some(atlas),
+    ..Default::default()
+  };
+
+  b.iter(|| {
+    VoxelBaker::bake_with_builder::<Chunk, Texture2d, Mesh, RstarMeshBuilder>(
+      &chunk,
+      &options,
+      Default::default(),
+    )
+    .unwrap();
+  });
+
+  Ok(())
 }
