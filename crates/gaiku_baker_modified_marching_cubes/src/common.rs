@@ -35,9 +35,7 @@ impl GridCell {
         point1.into()
       } else if (isolevel - value2).abs() <= EPSILON {
         point2.into()
-      } else if isolevel < value1 {
-        unreachable!();
-      } else if isolevel > value2 {
+      } else if isolevel < value1 || isolevel > value2 {
         unreachable!();
       } else {
         let weight = (isolevel - value1) / (value2 - value1);
@@ -48,6 +46,7 @@ impl GridCell {
     }
   }
 
+  #[allow(clippy::type_complexity, clippy::many_single_char_names)]
   pub(crate) fn polygonize(&self, isolevel: f32) -> Vec<([[f32; 3]; 3], [[f32; 2]; 3], i8)> {
     let mut cube_index = 0;
     let mut vertex_list = [[0.0, 0.0, 0.0]; 12];
@@ -147,93 +146,75 @@ impl GridCell {
         vertex_list[a]
       } else if a < ORDINARY_EDGE_LEN + SPECIAL_EDGE_LEN {
         let a_s = a - ORDINARY_EDGE_LEN;
-        special_list
-          .entry(a_s)
-          .or_insert_with(|| {
-            let (i, j, w1) = SPECIAL_EDGES[a_s];
-            let v1: Vec3 = vertex_list[i].into();
-            let v2: Vec3 = vertex_list[j].into();
-            let w2 = 1. - w1;
-            let res: [f32; 3] = (v1 * w1 + v2 * w2).into();
-            res
-          })
-          .clone()
+        *special_list.entry(a_s).or_insert_with(|| {
+          let (i, j, w1) = SPECIAL_EDGES[a_s];
+          let v1: Vec3 = vertex_list[i].into();
+          let v2: Vec3 = vertex_list[j].into();
+          let w2 = 1. - w1;
+          let res: [f32; 3] = (v1 * w1 + v2 * w2).into();
+          res
+        })
       } else {
         let a_s = a - ORDINARY_EDGE_LEN - SPECIAL_EDGE_LEN;
-        special_bary_list
-          .entry(a_s)
-          .or_insert_with(|| {
-            let (i, j, k, w1, w2) = SPECIAL_BARYS[a_s];
-            let v1: Vec3 = vertex_list[i].into();
-            let v2: Vec3 = vertex_list[j].into();
-            let v3: Vec3 = vertex_list[k].into();
-            let w3 = 1. - w1 - w2;
-            let res: [f32; 3] = (v1 * w1 + v2 * w2 + v3 * w3).into();
-            res
-          })
-          .clone()
+        *special_bary_list.entry(a_s).or_insert_with(|| {
+          let (i, j, k, w1, w2) = SPECIAL_BARYS[a_s];
+          let v1: Vec3 = vertex_list[i].into();
+          let v2: Vec3 = vertex_list[j].into();
+          let v3: Vec3 = vertex_list[k].into();
+          let w3 = 1. - w1 - w2;
+          let res: [f32; 3] = (v1 * w1 + v2 * w2 + v3 * w3).into();
+          res
+        })
       };
 
       let v2 = if b < ORDINARY_EDGE_LEN {
         vertex_list[b]
       } else if b < ORDINARY_EDGE_LEN + SPECIAL_EDGE_LEN {
         let b_s = b - ORDINARY_EDGE_LEN;
-        special_list
-          .entry(b_s)
-          .or_insert_with(|| {
-            let (i, j, w1) = SPECIAL_EDGES[b_s];
-            let v1: Vec3 = vertex_list[i].into();
-            let v2: Vec3 = vertex_list[j].into();
-            let w2 = 1. - w1;
-            let res: [f32; 3] = (v1 * w1 + v2 * w2).into();
-            res
-          })
-          .clone()
+        *special_list.entry(b_s).or_insert_with(|| {
+          let (i, j, w1) = SPECIAL_EDGES[b_s];
+          let v1: Vec3 = vertex_list[i].into();
+          let v2: Vec3 = vertex_list[j].into();
+          let w2 = 1. - w1;
+          let res: [f32; 3] = (v1 * w1 + v2 * w2).into();
+          res
+        })
       } else {
         let b_s = b - ORDINARY_EDGE_LEN - SPECIAL_EDGE_LEN;
-        special_bary_list
-          .entry(b_s)
-          .or_insert_with(|| {
-            let (i, j, k, w1, w2) = SPECIAL_BARYS[b_s];
-            let v1: Vec3 = vertex_list[i].into();
-            let v2: Vec3 = vertex_list[j].into();
-            let v3: Vec3 = vertex_list[k].into();
-            let w3 = 1. - w1 - w2;
-            let res: [f32; 3] = (v1 * w1 + v2 * w2 + v3 * w3).into();
-            res
-          })
-          .clone()
+        *special_bary_list.entry(b_s).or_insert_with(|| {
+          let (i, j, k, w1, w2) = SPECIAL_BARYS[b_s];
+          let v1: Vec3 = vertex_list[i].into();
+          let v2: Vec3 = vertex_list[j].into();
+          let v3: Vec3 = vertex_list[k].into();
+          let w3 = 1. - w1 - w2;
+          let res: [f32; 3] = (v1 * w1 + v2 * w2 + v3 * w3).into();
+          res
+        })
       };
 
       let v3 = if c < ORDINARY_EDGE_LEN {
         vertex_list[c]
       } else if c < ORDINARY_EDGE_LEN + SPECIAL_EDGE_LEN {
         let c_s = c - ORDINARY_EDGE_LEN;
-        special_list
-          .entry(c_s)
-          .or_insert_with(|| {
-            let (i, j, w1) = SPECIAL_EDGES[c_s];
-            let v1: Vec3 = vertex_list[i].into();
-            let v2: Vec3 = vertex_list[j].into();
-            let w2 = 1. - w1;
-            let res: [f32; 3] = (v1 * w1 + v2 * w2).into();
-            res
-          })
-          .clone()
+        *special_list.entry(c_s).or_insert_with(|| {
+          let (i, j, w1) = SPECIAL_EDGES[c_s];
+          let v1: Vec3 = vertex_list[i].into();
+          let v2: Vec3 = vertex_list[j].into();
+          let w2 = 1. - w1;
+          let res: [f32; 3] = (v1 * w1 + v2 * w2).into();
+          res
+        })
       } else {
         let c_s = c - ORDINARY_EDGE_LEN - SPECIAL_EDGE_LEN;
-        special_bary_list
-          .entry(c_s)
-          .or_insert_with(|| {
-            let (i, j, k, w1, w2) = SPECIAL_BARYS[c_s];
-            let v1: Vec3 = vertex_list[i].into();
-            let v2: Vec3 = vertex_list[j].into();
-            let v3: Vec3 = vertex_list[k].into();
-            let w3 = 1. - w1 - w2;
-            let res: [f32; 3] = (v1 * w1 + v2 * w2 + v3 * w3).into();
-            res
-          })
-          .clone()
+        *special_bary_list.entry(c_s).or_insert_with(|| {
+          let (i, j, k, w1, w2) = SPECIAL_BARYS[c_s];
+          let v1: Vec3 = vertex_list[i].into();
+          let v2: Vec3 = vertex_list[j].into();
+          let v3: Vec3 = vertex_list[k].into();
+          let w3 = 1. - w1 - w2;
+          let res: [f32; 3] = (v1 * w1 + v2 * w2 + v3 * w3).into();
+          res
+        })
       };
 
       let corner = CORNER_TABLE[cube_index][i];

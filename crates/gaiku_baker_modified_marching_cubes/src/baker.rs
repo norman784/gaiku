@@ -54,7 +54,7 @@ impl ModMarchingCubesBaker {
             chunk.is_air(x + 1, y + 1, z + 1),
             chunk.is_air(x, y + 1, z + 1),
           ];
-          if air_check.iter().all(|&v| v == false) || air_check.iter().all(|&v| v == true) {
+          if air_check.iter().all(|&v| !v) || air_check.iter().all(|&v| v) {
             continue;
           }
 

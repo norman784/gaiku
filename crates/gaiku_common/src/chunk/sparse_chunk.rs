@@ -26,21 +26,13 @@ impl Chunkify<f32> for SparseChunk {
   }
 
   fn get(&self, x: usize, y: usize, z: usize) -> f32 {
-    self
-      .data
-      .get(&(x, y, z))
-      .and_then(|d| Some(d.1))
-      .unwrap_or(-1.)
+    self.data.get(&(x, y, z)).map(|d| d.1).unwrap_or(-1.)
   }
 }
 
 impl Atlasify<u8> for SparseChunk {
   fn get_atlas(&self, x: usize, y: usize, z: usize) -> u8 {
-    self
-      .data
-      .get(&(x, y, z))
-      .and_then(|d| Some(d.0))
-      .unwrap_or(0)
+    self.data.get(&(x, y, z)).map(|d| d.0).unwrap_or(0)
   }
 }
 

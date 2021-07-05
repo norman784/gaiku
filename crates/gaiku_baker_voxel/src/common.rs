@@ -39,9 +39,7 @@ impl GridCell {
         point1.into()
       } else if (isovalue - value2).abs() <= EPSILON {
         point2.into()
-      } else if isovalue < value1 {
-        unreachable!();
-      } else if isovalue > value2 {
+      } else if isovalue < value1 || isovalue > value2 {
         unreachable!();
       } else {
         let weight = (isovalue - value1) / (value2 - value1);
@@ -74,6 +72,7 @@ impl GridCell {
     (sum / len as f32).into()
   }
 
+  #[allow(clippy::type_complexity)]
   pub(crate) fn polygonize(&self, isovalue: f32) -> Vec<([[f32; 3]; 3], [[f32; 2]; 3], i8)> {
     let mut cube_index = 0;
     let mut vertex_list = [[0.0, 0.0, 0.0]; 19];
@@ -108,7 +107,7 @@ impl GridCell {
     // println!("Values: {:?}", self.value);
     // let mut edges_to_do = vec![];
     // for i in 0..19 {
-    //   if (EDGE_TABLE[cube_index] & 2__u32.pow(i as u32)) != 0 {
+    //   if (EDGE_TABLE[cube_index] & 2_u32.pow(i as u32)) != 0 {
     //     edges_to_do.push(i);
     //   }
     // }
@@ -118,55 +117,55 @@ impl GridCell {
       return vec![];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(0)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(0)) != 0 {
       vertex_list[0] = self.lerp(0, 1, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(1)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(1)) != 0 {
       vertex_list[1] = self.lerp(1, 2, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(2)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(2)) != 0 {
       vertex_list[2] = self.lerp(2, 3, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(3)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(3)) != 0 {
       vertex_list[3] = self.lerp(3, 0, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(4)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(4)) != 0 {
       vertex_list[4] = self.lerp(4, 5, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(5)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(5)) != 0 {
       vertex_list[5] = self.lerp(5, 6, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(6)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(6)) != 0 {
       vertex_list[6] = self.lerp(6, 7, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(7)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(7)) != 0 {
       vertex_list[7] = self.lerp(7, 4, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(8)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(8)) != 0 {
       vertex_list[8] = self.lerp(4, 0, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(9)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(9)) != 0 {
       vertex_list[9] = self.lerp(5, 1, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(10)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(10)) != 0 {
       vertex_list[10] = self.lerp(6, 2, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(11)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(11)) != 0 {
       vertex_list[11] = self.lerp(7, 3, isovalue);
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(12)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(12)) != 0 {
       let face_corners = [0, 1, 4, 5];
       let center = self.mid_point(&face_corners);
       let x = maybe_average(&[0, 4], cube_index, &vertex_list).unwrap_or(center)[0];
@@ -178,7 +177,7 @@ impl GridCell {
       vertex_list[12] = [x, y, z];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(13)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(13)) != 0 {
       let face_corners = [1, 2, 5, 6];
       let center = self.mid_point(&face_corners);
 
@@ -191,7 +190,7 @@ impl GridCell {
       vertex_list[13] = [x, y, z];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(14)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(14)) != 0 {
       let face_corners = [2, 3, 6, 7];
       let center = self.mid_point(&face_corners);
 
@@ -204,7 +203,7 @@ impl GridCell {
       vertex_list[14] = [x, y, z];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(15)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(15)) != 0 {
       let face_corners = [0, 3, 4, 7];
       let center = self.mid_point(&face_corners);
 
@@ -217,7 +216,7 @@ impl GridCell {
       vertex_list[15] = [x, y, z];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(16)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(16)) != 0 {
       let face_corners = [0, 1, 2, 3];
       let center = self.mid_point(&face_corners);
 
@@ -230,7 +229,7 @@ impl GridCell {
       vertex_list[16] = [x, y, z];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(17)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(17)) != 0 {
       let face_corners = [4, 5, 6, 7];
       let center = self.mid_point(&face_corners);
 
@@ -243,7 +242,7 @@ impl GridCell {
       vertex_list[17] = [x, y, z];
     }
 
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(18)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(18)) != 0 {
       let center = self.mid_point(&[0, 1, 2, 3, 4, 5, 6, 7]);
       let x = maybe_average(&[12, 14, 16, 17], cube_index, &vertex_list).unwrap_or(center)[0];
 
@@ -261,9 +260,9 @@ impl GridCell {
         break;
       }
 
-      assert!(EDGE_TABLE[cube_index] & 2__u32.pow(TRIANGLE_TABLE[cube_index][i] as u32) != 0);
-      assert!(EDGE_TABLE[cube_index] & 2__u32.pow(TRIANGLE_TABLE[cube_index][i + 1] as u32) != 0);
-      assert!(EDGE_TABLE[cube_index] & 2__u32.pow(TRIANGLE_TABLE[cube_index][i + 2] as u32) != 0);
+      assert!(EDGE_TABLE[cube_index] & 2_u32.pow(TRIANGLE_TABLE[cube_index][i] as u32) != 0);
+      assert!(EDGE_TABLE[cube_index] & 2_u32.pow(TRIANGLE_TABLE[cube_index][i + 1] as u32) != 0);
+      assert!(EDGE_TABLE[cube_index] & 2_u32.pow(TRIANGLE_TABLE[cube_index][i + 2] as u32) != 0);
 
       let corner = CORNER_TABLE[cube_index][i];
       triangles.push((
@@ -292,7 +291,7 @@ fn maybe_average(
   vertex_list: &[[f32; 3]; 19],
 ) -> Option<[f32; 3]> {
   let weight = axis_verts.iter().fold(0., |acc, &i| {
-    if (EDGE_TABLE[cube_index] & 2__u32.pow(i as u32)) != 0 {
+    if (EDGE_TABLE[cube_index] & 2_u32.pow(i as u32)) != 0 {
       acc + 1.
     } else {
       acc
@@ -300,7 +299,7 @@ fn maybe_average(
   });
   if weight > 0. {
     let sum = axis_verts.iter().fold(Vec3::zero(), |acc, &i| {
-      if (EDGE_TABLE[cube_index] & 2__u32.pow(i as u32)) != 0 {
+      if (EDGE_TABLE[cube_index] & 2_u32.pow(i as u32)) != 0 {
         Vec3::from(vertex_list[i]) + acc
       } else {
         acc

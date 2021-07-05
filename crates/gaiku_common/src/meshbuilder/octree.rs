@@ -1,4 +1,4 @@
-use super::meshbuilder::MeshBuilder;
+use super::MeshBuilder;
 use crate::{boundary::Boundary, mesh::Meshify};
 use glam::{Vec2, Vec3};
 
@@ -50,8 +50,8 @@ impl MeshBuilder for OctMeshBuilder {
 
     let new = MeshBuilderData::new(
       position.into(),
-      normal.and_then(|d| Some(d.into())),
-      uv.and_then(|d| Some(d.into())),
+      normal.map(|d| d.into()),
+      uv.map(|d| d.into()),
       atlas_index,
       self.current_index,
     );
@@ -87,7 +87,7 @@ impl MeshBuilder for OctMeshBuilder {
   where
     M: Meshify,
   {
-    if self.indices.len() > 0 {
+    if !self.indices.is_empty() {
       // Load all data into the rstar tree
       // All at once (this is faster then inceremental instertion)
       let mut unsorted_verts: Vec<_> = self
@@ -102,11 +102,11 @@ impl MeshBuilder for OctMeshBuilder {
       let positions: Vec<_> = verts.iter().map(|d| d.position.into()).collect();
       let normals: Vec<_> = verts
         .iter()
-        .filter_map(|d| d.normal.and_then(|d| Some(d.into())))
+        .filter_map(|d| d.normal.map(|d| d.into()))
         .collect();
       let uvs: Vec<_> = verts
         .iter()
-        .filter_map(|d| d.uv.and_then(|d| Some(d.into())))
+        .filter_map(|d| d.uv.map(|d| d.into()))
         .collect();
 
       Some(M::with(indices, positions, normals, uvs))
@@ -134,7 +134,7 @@ struct MeshBuilderData {
 impl PartialEq for MeshBuilderData {
   fn eq(&self, other: &Self) -> bool {
     let pos = (self.position - other.position).length() <= EPSILON;
-    if pos == false {
+    if !pos {
       return false;
     }
 
@@ -144,7 +144,7 @@ impl PartialEq for MeshBuilderData {
       (Some(_), None) => false,
       (Some(a), Some(b)) => (a - b).length() <= EPSILON,
     };
-    if normal == false {
+    if !normal {
       return false;
     }
 
@@ -154,7 +154,7 @@ impl PartialEq for MeshBuilderData {
       (Some(_), None) => false,
       (Some(a), Some(b)) => (a - b).length() <= EPSILON,
     };
-    if uv == false {
+    if !uv {
       return false;
     }
 
@@ -282,9 +282,9 @@ impl<'a> Iterator for OctreeIter<'a> {
   type Item = &'a MeshBuilderData;
 
   fn next(&mut self) -> Option<Self::Item> {
-    while self.stack_data.len() == 0 && self.stack.len() > 0 {
+    while self.stack_data.is_empty() && !self.stack.is_empty() {
       let tree = self.stack.pop();
-      if let Some(node) = tree.and_then(|t| Some(&t.node)) {
+      if let Some(node) = tree.map(|t| &t.node) {
         match node {
           MeshBuilderOctreeNode::Subtree(trees) => {
             for tree in trees.iter() {
@@ -329,9 +329,9 @@ impl<'a> Iterator for OctreeRangeIter<'a> {
   type Item = &'a MeshBuilderData;
 
   fn next(&mut self) -> Option<Self::Item> {
-    while self.stack_data.len() == 0 && self.stack.len() > 0 {
+    while self.stack_data.is_empty() && !self.stack.is_empty() {
       let tree = self.stack.pop();
-      if let Some(node) = tree.and_then(|t| Some(&t.node)) {
+      if let Some(node) = tree.map(|t| &t.node) {
         match node {
           MeshBuilderOctreeNode::Subtree(trees) => {
             for tree in trees.iter() {

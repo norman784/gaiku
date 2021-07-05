@@ -1,4 +1,4 @@
-use super::meshbuilder::MeshBuilder;
+use super::MeshBuilder;
 use crate::mesh::Meshify;
 use glam::Vec3;
 use rstar::{RTree, RTreeObject, AABB};
@@ -25,7 +25,7 @@ impl PartialEq for MeshBuilderData {
     let pos = (self.position[0] - other.position[0]).abs() <= EPSILON
       && (self.position[1] - other.position[1]).abs() <= EPSILON
       && (self.position[2] - other.position[2]).abs() <= EPSILON;
-    if pos == false {
+    if !pos {
       return false;
     }
 
@@ -39,7 +39,7 @@ impl PartialEq for MeshBuilderData {
           && (a[2] - b[2]).abs() <= EPSILON
       }
     };
-    if normal == false {
+    if !normal {
       return false;
     }
 
@@ -49,7 +49,7 @@ impl PartialEq for MeshBuilderData {
       (Some(_), None) => false,
       (Some(a), Some(b)) => (a[0] - b[0]).abs() <= EPSILON && (a[1] - b[1]).abs() <= EPSILON,
     };
-    if uv == false {
+    if !uv {
       return false;
     }
 
@@ -154,7 +154,7 @@ impl MeshBuilder for RstarMeshBuilder {
   where
     M: Meshify,
   {
-    if self.indices.len() > 0 {
+    if !self.indices.is_empty() {
       // Load all data into the rstar tree
       // All at once (this is faster then inceremental instertion)
       let mut unsorted_verts: Vec<_> = self
@@ -166,9 +166,9 @@ impl MeshBuilder for RstarMeshBuilder {
       let verts: Vec<_> = unsorted_verts.into_iter().map(|data| data.1).collect();
 
       let indices = self.indices.clone();
-      let positions: Vec<_> = verts.iter().map(|d| d.position.clone()).collect();
-      let normals: Vec<_> = verts.iter().filter_map(|d| d.normal.clone()).collect();
-      let uvs: Vec<_> = verts.iter().filter_map(|d| d.uv.clone()).collect();
+      let positions: Vec<_> = verts.iter().map(|d| d.position).collect();
+      let normals: Vec<_> = verts.iter().filter_map(|d| d.normal).collect();
+      let uvs: Vec<_> = verts.iter().filter_map(|d| d.uv).collect();
 
       Some(M::with(indices, positions, normals, uvs))
     } else {

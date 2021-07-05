@@ -31,9 +31,7 @@ impl GridCell {
         point1.into()
       } else if (isolevel - value2).abs() <= EPSILON {
         point2.into()
-      } else if isolevel < value1 {
-        unreachable!();
-      } else if isolevel > value2 {
+      } else if isolevel < value1 || isolevel > value2 {
         unreachable!();
       } else {
         let weight = (isolevel - value1) / (value2 - value1);
@@ -44,6 +42,7 @@ impl GridCell {
     }
   }
 
+  #[allow(clippy::type_complexity)]
   pub(crate) fn polygonize(&self, isolevel: f32) -> Vec<([[f32; 3]; 3], [[f32; 2]; 3], i8)> {
     let mut cube_index = 0;
     let mut vertex_list = [[0.0, 0.0, 0.0]; 12];

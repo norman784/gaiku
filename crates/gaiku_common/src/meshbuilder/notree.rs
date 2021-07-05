@@ -1,4 +1,4 @@
-use super::meshbuilder::MeshBuilder;
+use super::MeshBuilder;
 use crate::mesh::Meshify;
 use std::convert::TryInto;
 
@@ -21,7 +21,7 @@ impl PartialEq for MeshBuilderData {
     let pos = (self.position[0] - other.position[0]).abs() <= EPSILON
       && (self.position[1] - other.position[1]).abs() <= EPSILON
       && (self.position[2] - other.position[2]).abs() <= EPSILON;
-    if pos == false {
+    if !pos {
       return false;
     }
 
@@ -35,7 +35,7 @@ impl PartialEq for MeshBuilderData {
           && (a[2] - b[2]).abs() <= EPSILON
       }
     };
-    if normal == false {
+    if !normal {
       return false;
     }
 
@@ -45,7 +45,7 @@ impl PartialEq for MeshBuilderData {
       (Some(_), None) => false,
       (Some(a), Some(b)) => (a[0] - b[0]).abs() <= EPSILON && (a[1] - b[1]).abs() <= EPSILON,
     };
-    if uv == false {
+    if !uv {
       return false;
     }
 
@@ -81,7 +81,7 @@ impl MeshBuilder for NoTreeBuilder {
   where
     M: Meshify,
   {
-    if self.data.len() > 0 {
+    if !self.data.is_empty() {
       // Load all data into the rstar tree
       // All at once (this is faster then inceremental instertion)
 
@@ -89,9 +89,9 @@ impl MeshBuilder for NoTreeBuilder {
         .into_iter()
         .map(|i| i.try_into().unwrap())
         .collect();
-      let positions: Vec<_> = self.data.iter().map(|d| d.position.clone()).collect();
-      let normals: Vec<_> = self.data.iter().filter_map(|d| d.normal.clone()).collect();
-      let uvs: Vec<_> = self.data.iter().filter_map(|d| d.uv.clone()).collect();
+      let positions: Vec<_> = self.data.iter().map(|d| d.position).collect();
+      let normals: Vec<_> = self.data.iter().filter_map(|d| d.normal).collect();
+      let uvs: Vec<_> = self.data.iter().filter_map(|d| d.uv).collect();
 
       Some(M::with(indices, positions, normals, uvs))
     } else {

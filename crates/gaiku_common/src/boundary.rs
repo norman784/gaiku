@@ -17,6 +17,7 @@ impl Boundary {
     point.cmpge(self.min).all() && point.cmplt(self.max).all()
   }
 
+  #[allow(clippy::suspicious_operation_groupings)]
   pub fn overlaps(&self, other: &Self) -> bool {
     // Their corner in us
     (other.min.cmpge(self.min).all() && other.min.cmplt(self.max).all()
