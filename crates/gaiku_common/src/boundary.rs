@@ -21,7 +21,7 @@ impl Boundary {
   pub fn overlaps(&self, other: &Self) -> bool {
     // Their corner in us
     (other.min.cmpge(self.min).all() && other.min.cmplt(self.max).all()
-        || other.max.cmpge(self.min).all() && other.max.cmplt(self.min).all()) ||
+        || other.max.cmpge(self.min).all() && other.max.cmplt(self.max).all()) ||
         // Our corner in them
         (self.min.cmpge(other.min).all() && self.min.cmplt(other.max).all()
           || self.max.cmpge(other.min).all() && self.max.cmplt(other.max).all())
