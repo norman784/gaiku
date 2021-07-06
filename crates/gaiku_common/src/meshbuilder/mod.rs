@@ -1,8 +1,11 @@
+mod map;
 mod notree;
 mod octree;
 mod rstar;
 
-pub use self::{notree::NoTreeBuilder, octree::OctMeshBuilder, rstar::RstarMeshBuilder};
+pub use self::{
+  map::HashMapBuilder, notree::NoTreeBuilder, octree::OctMeshBuilder, rstar::RstarMeshBuilder,
+};
 
 pub type DefaultMeshBuilder = OctMeshBuilder;
 
