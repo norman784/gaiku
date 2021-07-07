@@ -568,8 +568,7 @@ impl NGon {
           // Is it unqiue?
           let unique = intersections
             .iter()
-            .filter(|i| i.is_some())
-            .map(|i| i.unwrap())
+            .flatten()
             .all(|i| (i - next_split).norm() > EPSILON);
           if unique {
             intersections.push(Some(next_split));
@@ -582,11 +581,7 @@ impl NGon {
       }
 
       // Are we splitting?
-      let first_intersection = intersections
-        .iter()
-        .filter(|i| i.is_some())
-        .map(|i| i.unwrap())
-        .next();
+      let first_intersection = intersections.iter().flatten().next();
       if let Some(first_intersection) = first_intersection {
         // Find any other unique split point
         let next_intersection = intersections
