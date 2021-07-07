@@ -183,6 +183,6 @@ mod test {
     let indices_count = mesh.get_indices().len();
 
     assert_eq!(indices_count, 144);
-    assert_eq!(positions_count, 113);
+    assert_eq!(positions_count, 102);
   }
 }
