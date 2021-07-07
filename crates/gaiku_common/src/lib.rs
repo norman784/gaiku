@@ -29,6 +29,8 @@ pub mod mesh;
 pub mod texture;
 // For the mesh builders that help convert faces into a mesh
 pub mod meshbuilder;
+// chunker holds structures for breaking up data into chunks
+pub mod chunker;
 
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
@@ -36,6 +38,7 @@ pub mod prelude {
     atlas::{Atlasify, AtlasifyMut},
     boxify::*,
     chunk::{Chunkify, ChunkifyMut},
+    chunker::*,
     mesh::Meshify,
     meshbuilder::*,
     texture::{TextureAtlas2d, Texturify2d},
