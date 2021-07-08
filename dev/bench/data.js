@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614625045793,
+  "lastUpdate": 1625762096794,
   "repoUrl": "https://github.com/norman784/gaiku",
   "entries": {
     "Rust Benchmark": [
@@ -395,6 +395,198 @@ window.BENCHMARK_DATA = {
             "name": "voxel_terrain",
             "value": 136097014,
             "range": "± 10126534",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sheepchaan@gmail.com",
+            "name": "Andrew King",
+            "username": "QuantumEntangledAndy"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "37cb8b162bf7fa842f81ef81116ad8d02d64590d",
+          "message": "Baker updates (#48)\n\n* Seperated atlas and values. Switched to f32 values in preperation for density and isovalues\r\n\r\n* Updated marching cubes to include colour\r\n\r\n* Modify voxel baker to use a grid and isovalues\r\n\r\n* Add a modified marching cube that supports atlases\r\n\r\n* Modified benches to use long bench sampling method of criterion\r\n\r\n* Allocate mod marching cubes tables on the heap\r\n\r\n* Add alternative mesh builders\r\n\r\n* Updated the terrain example\r\n\r\n* Add a bench for the mesh builders\r\n\r\n* Bug fix to voxel tables\r\n\r\n* Added some more tests for meshbuilders\r\n\r\n* Clippy styling\r\n\r\n* Add isovalue to is_air calc\r\n\r\n* Clippy styling\r\n\r\n* Use condition on clippy-check action\r\n\r\n* Apply clippy to test, benches and examples\r\n\r\n* Update crates/gaiku_format_gox/src/lib.rs\r\n\r\nComment typos\r\n\r\nCo-authored-by: Norman Paniagua <normanpaniagua@gmail.com>\r\n\r\n* Author update\r\n\r\n* Bug fix in boundary overlap code\r\n\r\n* Added a meshbuilder based on a hashmap scaled grid\r\n\r\n* Fixed a few tests needed due to prior bug fix\r\n\r\n* More clippy issues\r\n\r\nCo-authored-by: Norman Paniagua <normanpaniagua@gmail.com>",
+          "timestamp": "2021-07-08T18:25:46+02:00",
+          "tree_id": "2a1f6a7bd6d55bdc565cc057e7399f6075b12fad",
+          "url": "https://github.com/norman784/gaiku/commit/37cb8b162bf7fa842f81ef81116ad8d02d64590d"
+        },
+        "date": 1625762096449,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "heightmap_large_checkerboard",
+            "value": 62849,
+            "range": "± 587",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_medium_checkerboard",
+            "value": 3765,
+            "range": "± 59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_planet",
+            "value": 14530,
+            "range": "± 81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_small_checkerboard",
+            "value": 354,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_small_tree",
+            "value": 3815,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "heightmap_terrain",
+            "value": 44984,
+            "range": "± 367",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_large_checkerboard",
+            "value": 21140424,
+            "range": "± 741947",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_medium_checkerboard",
+            "value": 518670,
+            "range": "± 5251",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_planet",
+            "value": 15281403,
+            "range": "± 504527",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_small_checkerboard",
+            "value": 6780,
+            "range": "± 42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_small_tree",
+            "value": 1091640,
+            "range": "± 11832",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "marching_cubes_terrain",
+            "value": 96896802,
+            "range": "± 1187242",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "meshbuilder_hashmapbuilder",
+            "value": 37223013,
+            "range": "± 414985",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "meshbuilder_notree",
+            "value": 3237162,
+            "range": "± 120018",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "meshbuilder_octree",
+            "value": 47426130,
+            "range": "± 259533",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "meshbuilder_rstar",
+            "value": 80834447,
+            "range": "± 829287",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "modmarching_cubes_large_checkerboard",
+            "value": 191685859,
+            "range": "± 1485155",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "modmarching_cubes_medium_checkerboard",
+            "value": 3852799,
+            "range": "± 100732",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "modmarching_cubes_planet",
+            "value": 51900688,
+            "range": "± 513138",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "modmarching_cubes_small_checkerboard",
+            "value": 42296,
+            "range": "± 264",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "modmarching_cubes_small_tree",
+            "value": 1636711,
+            "range": "± 17114",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "modmarching_cubes_terrain",
+            "value": 247739869,
+            "range": "± 3999477",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_large_checkerboard",
+            "value": 162961889,
+            "range": "± 2379607",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_medium_checkerboard",
+            "value": 3005412,
+            "range": "± 42019",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_planet",
+            "value": 35110315,
+            "range": "± 748783",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_small_checkerboard",
+            "value": 33422,
+            "range": "± 180",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_small_tree",
+            "value": 1278060,
+            "range": "± 9678",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "voxel_terrain",
+            "value": 203723351,
+            "range": "± 5013408",
             "unit": "ns/iter"
           }
         ]
