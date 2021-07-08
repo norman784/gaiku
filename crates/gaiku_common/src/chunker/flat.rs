@@ -2,7 +2,8 @@
 // series of chunks at specified size
 use super::common::*;
 use crate::{
-  boxify::Sizable,
+  atlas::AtlasifyMut,
+  boxify::Boxify,
   chunk::{Chunkify, ChunkifyMut},
 };
 use std::convert::TryInto;
@@ -10,19 +11,27 @@ use std::convert::TryInto;
 #[derive(Clone)]
 pub struct FlatChunker {
   data: Vec<f32>,
+  atlas_data: Vec<u8>,
   data_width: usize,
   data_height: usize,
   data_depth: usize,
   chunk_sizes: [u16; 3],
 }
 
-impl<C> Chunker<C, f32> for FlatChunker
+impl<C> Chunker<C, f32, u8> for FlatChunker
 where
-  C: Chunkify<f32> + ChunkifyMut<f32> + Sizable,
+  C: Chunkify<f32> + ChunkifyMut<f32> + AtlasifyMut<u8> + Boxify,
 {
-  fn from_array(data: &[f32], width: usize, height: usize, depth: usize) -> Self {
+  fn from_array_with_atlas(
+    data: &[f32],
+    atlas_data: &[u8],
+    width: usize,
+    height: usize,
+    depth: usize,
+  ) -> Self {
     Self {
       data: data.to_vec(),
+      atlas_data: atlas_data.to_vec(),
       data_width: width,
       data_height: height,
       data_depth: depth,
@@ -40,44 +49,51 @@ where
     for x in 0..(self.data_width / chunk_sizes[0] + 1) {
       for y in 0..(self.data_height / chunk_sizes[1] + 1) {
         for z in 0..(self.data_depth / chunk_sizes[2] + 1) {
-          let x_min = x * self.data_width;
+          let x_min = x * chunk_sizes[0];
           let x_max = std::cmp::min(x_min + chunk_sizes[0] + 1, self.data_width);
           let x_size = x_max - x_min;
           if x_size == 0 {
             continue;
           }
 
-          let y_min = y * self.data_height;
+          let y_min = y * chunk_sizes[1];
           let y_max = std::cmp::min(y_min + chunk_sizes[1] + 1, self.data_height);
           let y_size = y_max - y_min;
           if y_size == 0 {
             continue;
           }
 
-          let z_min = z * self.data_height;
-          let z_max = std::cmp::min(z_min + chunk_sizes[2] + 1, self.data_height);
+          let z_min = z * chunk_sizes[2];
+          let z_max = std::cmp::min(z_min + chunk_sizes[2] + 1, self.data_depth);
           let z_size = z_max - z_min;
           if z_size == 0 {
             continue;
           }
-
-          let mut chunk = C::with_size(
+          let location = [x_min as f32, y_min as f32, z_min as f32];
+          let mut chunk = C::new(
+            location,
             x_size.try_into().unwrap(),
             y_size.try_into().unwrap(),
             z_size.try_into().unwrap(),
           );
 
           for i in x_min..x_max {
+            let c_i = i - x_min;
             for j in y_min..y_max {
+              let c_j = j - y_min;
               for k in z_min..z_max {
-                let idx = i * self.data_width * self.data_height + j * self.data_height + k;
-                chunk.set(i, j, k, self.data[idx]);
+                let c_k = k - z_min;
+                let idx = i + j * self.data_width + k * self.data_width * self.data_height;
+                chunk.set(c_i, c_j, c_k, self.data[idx]);
+                if let Some(&atlas) = self.atlas_data.get(idx) {
+                  chunk.set_atlas(c_i, c_j, c_k, atlas);
+                }
               }
             }
           }
 
           results.push(Chunked {
-            location: [x_min as f32, y_min as f32, z_min as f32],
+            location,
             scale: [1., 1., 1.],
             chunk,
           })
@@ -115,10 +131,10 @@ mod test {
 
   #[test]
   fn test_flat_chunker() {
-    let dimensions = [320, 320, 320];
+    let dimensions = [48, 48, 48];
     let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
 
-    let chunker = <FlatChunker as Chunker<Chunk, f32>>::from_array(
+    let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
       &data,
       dimensions[0],
       dimensions[1],
@@ -128,6 +144,6 @@ mod test {
 
     let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
 
-    assert_eq!(results.len(), 20);
+    assert_eq!(results.len(), 27);
   }
 }
