@@ -7,7 +7,7 @@ pub use sparse_chunk::SparseChunk;
 
 /// Base common denominator across all the chunk implementations used.
 pub trait Chunkify<T> {
-  fn is_air(&self, x: usize, y: usize, z: usize) -> bool;
+  fn is_air(&self, x: usize, y: usize, z: usize, isovalue: f32) -> bool;
   fn get(&self, x: usize, y: usize, z: usize) -> T;
 }
 

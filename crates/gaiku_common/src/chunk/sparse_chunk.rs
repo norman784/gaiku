@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
+  atlas::{Atlasify, AtlasifyMut},
   boxify::*,
   chunk::{Chunkify, ChunkifyMut},
 };
@@ -15,16 +16,22 @@ pub struct SparseChunk {
   width: u16,
   height: u16,
   depth: u16,
-  data: HashMap<(usize, usize, usize), u8>,
+  data: HashMap<(usize, usize, usize), (u8, f32)>,
 }
 
-impl Chunkify<u8> for SparseChunk {
-  fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
-    self.get(x, y, z) == 0
+impl Chunkify<f32> for SparseChunk {
+  fn is_air(&self, x: usize, y: usize, z: usize, isovalue: f32) -> bool {
+    self.get(x, y, z) - isovalue < 1e-4
   }
 
-  fn get(&self, x: usize, y: usize, z: usize) -> u8 {
-    *self.data.get(&(x, y, z)).unwrap_or(&0)
+  fn get(&self, x: usize, y: usize, z: usize) -> f32 {
+    self.data.get(&(x, y, z)).map(|d| d.1).unwrap_or(-1.)
+  }
+}
+
+impl Atlasify<u8> for SparseChunk {
+  fn get_atlas(&self, x: usize, y: usize, z: usize) -> u8 {
+    self.data.get(&(x, y, z)).map(|d| d.0).unwrap_or(0)
   }
 }
 
@@ -51,8 +58,16 @@ impl Sizable for SparseChunk {
   }
 }
 
-impl ChunkifyMut<u8> for SparseChunk {
-  fn set(&mut self, x: usize, y: usize, z: usize, value: u8) {
-    self.data.insert((x, y, z), value);
+impl ChunkifyMut<f32> for SparseChunk {
+  fn set(&mut self, x: usize, y: usize, z: usize, value: f32) {
+    let atlas = self.get_atlas(x, y, z);
+    self.data.insert((x, y, z), (atlas, value));
+  }
+}
+
+impl AtlasifyMut<u8> for SparseChunk {
+  fn set_atlas(&mut self, x: usize, y: usize, z: usize, atlas: u8) {
+    let value = self.get(x, y, z);
+    self.data.insert((x, y, z), (atlas, value));
   }
 }

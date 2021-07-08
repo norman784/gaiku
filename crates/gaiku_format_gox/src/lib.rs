@@ -8,13 +8,15 @@ pub struct GoxReader;
 
 // TODO: The generated data appears rotated, need to rotate from back to bottom
 impl FileFormat for GoxReader {
-  type Value = (u8, u8);
+  type Value = f32;
+  type AtlasValue = u8;
 
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + AtlasifyMut<Self::AtlasValue> + Boxify,
     T: Texturify2d,
   {
+    type Coord = usize;
     let gox = Gox::from_bytes(bytes, vec![Only::Layers, Only::Blocks]);
     let mut colors: Vec<[u8; 4]> = Vec::with_capacity(255);
     let mut result = vec![];
@@ -26,17 +28,86 @@ impl FileFormat for GoxReader {
       }
     }
 
+    let mut starts = vec![];
+    for data in gox.data.iter() {
+      if let Data::Layers(layers, _bounds) = &data {
+        for layer in layers.iter() {
+          if !layer.blocks.is_empty() {
+            for data in layer.blocks.iter() {
+              starts.push([data.x, data.y, data.z]);
+            }
+          }
+        }
+      }
+    }
+    let init_coord = starts[0];
+
+    let min = [
+      starts
+        .iter()
+        .fold(init_coord[0], |acc, c| if c[0] < acc { c[0] } else { acc }),
+      starts
+        .iter()
+        .fold(init_coord[1], |acc, c| if c[1] < acc { c[1] } else { acc }),
+      starts
+        .iter()
+        .fold(init_coord[2], |acc, c| if c[2] < acc { c[2] } else { acc }),
+    ];
+    let max = [
+      starts.iter().fold(init_coord[0] + 16, |acc, c| {
+        if c[0] + 16 > acc {
+          c[0] + 16
+        } else {
+          acc
+        }
+      }),
+      starts.iter().fold(init_coord[1] + 16, |acc, c| {
+        if c[1] + 16 > acc {
+          c[1] + 16
+        } else {
+          acc
+        }
+      }),
+      starts.iter().fold(init_coord[2] + 16, |acc, c| {
+        if c[2] + 16 > acc {
+          c[2] + 16
+        } else {
+          acc
+        }
+      }),
+    ];
+
+    let chunk_size: [Coord; 3] = [
+      (max[0] - min[0] + 1).try_into().unwrap(),
+      (max[1] - min[1] + 1).try_into().unwrap(),
+      (max[2] - min[2] + 1).try_into().unwrap(),
+    ];
+
+    let mut chunk = C::new(
+      [(min[0]) as f32, (min[2]) as f32, (min[1]) as f32],
+      chunk_size[0].try_into().unwrap(),
+      chunk_size[2].try_into().unwrap(), // goxel is in y up gaiku in z up
+      chunk_size[1].try_into().unwrap(),
+    );
+
     for data in gox.data.iter() {
       if let Data::Layers(layers, _bounds) = &data {
         for layer in layers.iter() {
           if !layer.blocks.is_empty() {
             for data in layer.blocks.iter() {
               let block_colors = block_data[data.block_index];
-              let mut chunk = C::new([data.x as f32, data.z as f32, data.y as f32], 16, 16, 16);
+              let origin: [Coord; 3] = [
+                (data.x - min[0]).try_into().unwrap(),
+                (data.y - min[1]).try_into().unwrap(),
+                (data.z - min[2]).try_into().unwrap(),
+              ];
 
-              for x in 0..chunk.width() as usize {
-                for y in 0..chunk.height() as usize {
-                  for z in 0..chunk.depth() as usize {
+              for x in 0..16 {
+                let x_c = x as Coord + origin[0];
+                for y in 0..16 {
+                  let y_c = y as Coord + origin[1];
+                  for z in 0..16 {
+                    let z_c = z as Coord + origin[2];
                     if !block_colors.is_empty(x, y, z) {
                       let color = block_colors.get_pixel(x, y, z);
                       let index = if let Some((index, _)) =
@@ -54,19 +125,20 @@ impl FileFormat for GoxReader {
                       };
 
                       if index <= std::u8::MAX as usize {
-                        chunk.set(x, z, y, (index as u8, 255));
+                        chunk.set(x_c, z_c, y_c, 1.); // goxel is in y up gaiku in zup
+                        chunk.set_atlas(x_c, z_c, y_c, index as Self::AtlasValue);
                       }
                     }
                   }
                 }
               }
-
-              result.push(chunk);
             }
           }
         }
       }
     }
+
+    result.push(chunk);
 
     if !colors.is_empty() {
       let mut atlas = TextureAtlas2d::new(1);

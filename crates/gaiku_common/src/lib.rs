@@ -8,12 +8,16 @@ pub use anyhow::Result;
 pub use mint;
 
 use crate::{
+  atlas::{Atlasify, AtlasifyMut},
   boxify::*,
   chunk::{Chunkify, ChunkifyMut},
   mesh::Meshify,
   texture::{TextureAtlas2d, Texturify2d},
 };
 
+// Traits involving the atlas
+mod atlas;
+// Boundary structure for octree
 mod boundary;
 /// Trait to define position and size.
 pub mod boxify;
@@ -23,14 +27,17 @@ pub mod chunk;
 pub mod mesh;
 /// Texture related traits/implementation.
 pub mod texture;
-//mod tree;
+// For the mesh builders that help convert faces into a mesh
+pub mod meshbuilder;
 
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
   pub use crate::{
+    atlas::{Atlasify, AtlasifyMut},
     boxify::*,
     chunk::{Chunkify, ChunkifyMut},
-    mesh::{MeshBuilder, Meshify},
+    mesh::Meshify,
+    meshbuilder::*,
     texture::{TextureAtlas2d, Texturify2d},
     Baker, BakerOptions, FileFormat,
   };
@@ -41,8 +48,14 @@ pub struct BakerOptions<T>
 where
   T: Texturify2d,
 {
+  /// The isovalue of the surface to render.
+  pub isovalue: f32,
+  /// Unused
   pub level_of_detail: usize,
+  /// Texture to use for uv mapping to the atlas
   pub texture: Option<TextureAtlas2d<T>>,
+  /// Removing duplicate verts can be expense. Enable this when required
+  pub remove_duplicate_verts: bool,
 }
 
 impl<T> Default for BakerOptions<T>
@@ -51,8 +64,10 @@ where
 {
   fn default() -> Self {
     Self {
+      isovalue: 0.,
       level_of_detail: 1,
       texture: None,
+      remove_duplicate_verts: false,
     }
   }
 }
@@ -60,10 +75,11 @@ where
 /// Baker is a trait used to define a chunk to mesh converter
 pub trait Baker {
   type Value;
+  type AtlasValue;
 
   fn bake<C, T, M>(chunk: &C, options: &BakerOptions<T>) -> Result<Option<M>>
   where
-    C: Chunkify<Self::Value> + Sizable,
+    C: Chunkify<Self::Value> + Atlasify<Self::AtlasValue> + Sizable,
     T: Texturify2d,
     M: Meshify;
 }
@@ -71,15 +87,16 @@ pub trait Baker {
 /// FileFormat is a trait used to define a {file extension} to chunk converter
 pub trait FileFormat {
   type Value;
+  type AtlasValue;
 
   fn load<C, T>(bytes: Vec<u8>) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + AtlasifyMut<Self::AtlasValue> + Boxify,
     T: Texturify2d;
 
   fn read<C, T>(file: &str) -> Result<(Vec<C>, Option<TextureAtlas2d<T>>)>
   where
-    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + Boxify,
+    C: Chunkify<Self::Value> + ChunkifyMut<Self::Value> + AtlasifyMut<Self::AtlasValue> + Boxify,
     T: Texturify2d,
   {
     let bytes = read(file)?;

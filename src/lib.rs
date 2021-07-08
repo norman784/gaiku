@@ -2,6 +2,8 @@
 pub use gaiku_baker_heightmap::*;
 #[cfg(feature = "gaiku_baker_marching_cubes")]
 pub use gaiku_baker_marching_cubes::*;
+#[cfg(feature = "gaiku_baker_marching_cubes")]
+pub use gaiku_baker_modified_marching_cubes::*;
 #[cfg(feature = "gaiku_baker_voxel")]
 pub use gaiku_baker_voxel::*;
 

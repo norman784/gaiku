@@ -2,6 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
+  atlas::{Atlasify, AtlasifyMut},
   boxify::*,
   chunk::{Chunkify, ChunkifyMut},
 };
@@ -14,7 +15,7 @@ pub struct Chunk {
   width: u16,
   height: u16,
   depth: u16,
-  values: Vec<(u8, u8)>,
+  values: Vec<(u8, f32)>,
 }
 
 impl Chunk {
@@ -22,8 +23,8 @@ impl Chunk {
     x + y * self.width as usize + z * self.width as usize * self.height as usize
   }
 
-  pub fn values(&self) -> Vec<(u8, u8)> {
-    self.values.clone()
+  pub fn values(&self) -> &Vec<(u8, f32)> {
+    &self.values
   }
 
   // TODO: This will add  the neighbor data at the border of the chunk, so we can calculate correctly  the normals, heights, etc without need to worry to query each time to get that data
@@ -39,29 +40,42 @@ impl Boxify for Chunk {
       width,
       height,
       depth,
-      values: vec![(0, 0); depth as usize * height as usize * width as usize],
+      values: vec![(0, -1.); depth as usize * height as usize * width as usize],
     }
   }
 }
 
-impl Chunkify<(u8, u8)> for Chunk {
-  fn is_air(&self, x: usize, y: usize, z: usize) -> bool {
+impl Chunkify<f32> for Chunk {
+  fn is_air(&self, x: usize, y: usize, z: usize, isovalue: f32) -> bool {
     if x >= self.width as usize || y >= self.height as usize || z >= self.depth as usize {
       true
     } else {
-      self.get(x, y, z).1 == 0
+      self.get(x, y, z) - isovalue < 1e-4
     }
   }
 
-  fn get(&self, x: usize, y: usize, z: usize) -> (u8, u8) {
-    self.values[self.index(x, y, z)]
+  fn get(&self, x: usize, y: usize, z: usize) -> f32 {
+    self.values[self.index(x, y, z)].1
   }
 }
 
-impl ChunkifyMut<(u8, u8)> for Chunk {
-  fn set(&mut self, x: usize, y: usize, z: usize, value: (u8, u8)) {
+impl ChunkifyMut<f32> for Chunk {
+  fn set(&mut self, x: usize, y: usize, z: usize, value: f32) {
     let index = self.index(x, y, z);
-    self.values[index] = value;
+    self.values[index] = (self.values[index].0, value);
+  }
+}
+
+impl Atlasify<u8> for Chunk {
+  fn get_atlas(&self, x: usize, y: usize, z: usize) -> u8 {
+    self.values[self.index(x, y, z)].0
+  }
+}
+
+impl AtlasifyMut<u8> for Chunk {
+  fn set_atlas(&mut self, x: usize, y: usize, z: usize, value: u8) {
+    let index = self.index(x, y, z);
+    self.values[index] = (value, self.values[index].1);
   }
 }
 

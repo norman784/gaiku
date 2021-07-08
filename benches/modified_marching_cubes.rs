@@ -10,7 +10,7 @@ use gaiku::{
     texture::{Texture2d, TextureAtlas2d},
     Result,
   },
-  GoxReader, VoxelBaker,
+  GoxReader, ModMarchingCubesBaker,
 };
 use test::Bencher;
 
@@ -26,7 +26,7 @@ fn get_chunks(name: &str) -> Result<(Vec<Chunk>, Option<TextureAtlas2d<Texture2d
 
 #[bench]
 #[allow(clippy::unnecessary_wraps)]
-fn voxel_terrain(b: &mut Bencher) -> Result<()> {
+fn modmarching_cubes_terrain(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("terrain").unwrap();
   let options = BakerOptions {
     texture,
@@ -37,7 +37,7 @@ fn voxel_terrain(b: &mut Bencher) -> Result<()> {
     let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
     for chunk in chunks.iter() {
-      let mesh = VoxelBaker::bake(chunk, &options).unwrap();
+      let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
       if let Some(mesh) = mesh {
         meshes.push((mesh, chunk.position()));
       }
@@ -49,7 +49,7 @@ fn voxel_terrain(b: &mut Bencher) -> Result<()> {
 
 #[bench]
 #[allow(clippy::unnecessary_wraps)]
-fn voxel_planet(b: &mut Bencher) -> Result<()> {
+fn modmarching_cubes_planet(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("planet").unwrap();
   let options = BakerOptions {
     texture,
@@ -60,7 +60,7 @@ fn voxel_planet(b: &mut Bencher) -> Result<()> {
     let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
     for chunk in chunks.iter() {
-      let mesh = VoxelBaker::bake(chunk, &options).unwrap();
+      let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
       if let Some(mesh) = mesh {
         meshes.push((mesh, chunk.position()));
       }
@@ -72,7 +72,7 @@ fn voxel_planet(b: &mut Bencher) -> Result<()> {
 
 #[bench]
 #[allow(clippy::unnecessary_wraps)]
-fn voxel_small_tree(b: &mut Bencher) -> Result<()> {
+fn modmarching_cubes_small_tree(b: &mut Bencher) -> Result<()> {
   let (chunks, texture) = get_chunks("small_tree").unwrap();
   let options = BakerOptions {
     texture,
@@ -83,7 +83,7 @@ fn voxel_small_tree(b: &mut Bencher) -> Result<()> {
     let mut meshes: Vec<(Mesh, [f32; 3])> = vec![];
 
     for chunk in chunks.iter() {
-      let mesh = VoxelBaker::bake(chunk, &options).unwrap();
+      let mesh = ModMarchingCubesBaker::bake(chunk, &options).unwrap();
       if let Some(mesh) = mesh {
         meshes.push((mesh, chunk.position()));
       }
@@ -95,11 +95,12 @@ fn voxel_small_tree(b: &mut Bencher) -> Result<()> {
 
 #[bench]
 #[allow(clippy::unnecessary_wraps)]
-fn voxel_small_checkerboard(b: &mut Bencher) -> Result<()> {
+fn modmarching_cubes_small_checkerboard(b: &mut Bencher) -> Result<()> {
   let width: usize = 3;
   let height: usize = width;
   let depth: usize = width;
   let mut chunk = Chunk::new([0., 0., 0.], width as u16, height as u16, depth as u16);
+
   for x in 0..width {
     let x_fill = (x % 2) == 0;
     for y in 0..height {
@@ -113,6 +114,7 @@ fn voxel_small_checkerboard(b: &mut Bencher) -> Result<()> {
       }
     }
   }
+
   let atlas = TextureAtlas2d::<Texture2d>::new(1);
   let options = BakerOptions {
     texture: Some(atlas),
@@ -120,7 +122,7 @@ fn voxel_small_checkerboard(b: &mut Bencher) -> Result<()> {
   };
 
   b.iter(|| {
-    VoxelBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+    ModMarchingCubesBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
   });
 
   Ok(())
@@ -128,7 +130,7 @@ fn voxel_small_checkerboard(b: &mut Bencher) -> Result<()> {
 
 #[bench]
 #[allow(clippy::unnecessary_wraps)]
-fn voxel_medium_checkerboard(b: &mut Bencher) -> Result<()> {
+fn modmarching_cubes_medium_checkerboard(b: &mut Bencher) -> Result<()> {
   let width: usize = 10;
   let height: usize = width;
   let depth: usize = width;
@@ -155,7 +157,7 @@ fn voxel_medium_checkerboard(b: &mut Bencher) -> Result<()> {
   };
 
   b.iter(|| {
-    VoxelBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+    ModMarchingCubesBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
   });
 
   Ok(())
@@ -163,7 +165,7 @@ fn voxel_medium_checkerboard(b: &mut Bencher) -> Result<()> {
 
 #[bench]
 #[allow(clippy::unnecessary_wraps)]
-fn voxel_large_checkerboard(b: &mut Bencher) -> Result<()> {
+fn modmarching_cubes_large_checkerboard(b: &mut Bencher) -> Result<()> {
   let width: usize = 30;
   let height: usize = width;
   let depth: usize = width;
@@ -190,7 +192,7 @@ fn voxel_large_checkerboard(b: &mut Bencher) -> Result<()> {
   };
 
   b.iter(|| {
-    VoxelBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
+    ModMarchingCubesBaker::bake::<Chunk, Texture2d, Mesh>(&chunk, &options).unwrap();
   });
 
   Ok(())

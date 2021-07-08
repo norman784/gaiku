@@ -277,9 +277,9 @@ mod test {
 
   #[test]
   fn test_index_to_xy() {
-    assert_eq!((0, 1), index_to_xy(0 + 1 * COLS as u8));
-    assert_eq!((1, 0), index_to_xy(1 + 0 * COLS as u8));
-    assert_eq!((15, 1), index_to_xy(15 + 1 * COLS as u8));
+    assert_eq!((0, 1), index_to_xy(COLS as u8));
+    assert_eq!((1, 0), index_to_xy(1));
+    assert_eq!((15, 1), index_to_xy(15 + COLS as u8));
     assert_eq!((12, 15), index_to_xy(12 + 15 * COLS as u8));
     assert_eq!((15, 15), index_to_xy(15 + 15 * COLS as u8));
   }
@@ -294,6 +294,7 @@ mod test {
   }
 
   #[test]
+  #[allow(clippy::float_cmp)]
   fn test_texture_atlas_index_to_uv() {
     let tile_size = 1;
     let atlas = TextureAtlas2d::<Texture2d>::new_with_padding(tile_size, 0);

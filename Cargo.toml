@@ -13,7 +13,7 @@ resolver = "2"
 default = ["voxel"]
 
 heightmap = ["gaiku_baker_heightmap"]
-marching_cubes = ["gaiku_baker_marching_cubes"]
+marching_cubes = ["gaiku_baker_marching_cubes", "gaiku_baker_modified_marching_cubes"]
 voxel = ["gaiku_baker_voxel"]
 
 gox = ["gaiku_format_gox"]
@@ -27,6 +27,7 @@ gaiku_common = { path = "crates/gaiku_common", version = "0.1.0" }
 # Bakers
 gaiku_baker_heightmap = { path = "crates/gaiku_baker_heightmap", version = "0.1.0", optional = true }
 gaiku_baker_marching_cubes = { path = "crates/gaiku_baker_marching_cubes", version = "0.1.0", optional = true }
+gaiku_baker_modified_marching_cubes = { path = "crates/gaiku_baker_modified_marching_cubes", version = "0.1.0", optional = true }
 gaiku_baker_voxel = { path = "crates/gaiku_baker_voxel", version = "0.1.0", optional = true }
 
 # File formats
