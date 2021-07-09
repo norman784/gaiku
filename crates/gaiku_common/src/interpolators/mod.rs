@@ -8,5 +8,6 @@
 //!
 mod common;
 mod nearestneighbour;
+mod trilinear;
 
-pub use self::{common::*, nearestneighbour::NearestNeighbour};
+pub use self::{common::*, nearestneighbour::NearestNeighbour, trilinear::TriLinear};

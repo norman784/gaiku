@@ -1,4 +1,5 @@
 use super::{Interpolater, InterpolaterError};
+use crate::boundary::Boundary;
 use glam::Vec3;
 
 const EPSILON: f32 = 1e-4;
@@ -110,8 +111,8 @@ impl Interpolater<f32, u8> for TriLinear {
   ///
   fn get_boundary(&self) -> Boundary {
     Boundary::new(
-      [-EPSILON, -EPSILON, -EPSILON].into(),
-      [
+      &[-EPSILON, -EPSILON, -EPSILON].into(),
+      &[
         self.dimensions[0] as f32 + EPSILON,
         self.dimensions[1] as f32 + EPSILON,
         self.dimensions[2] as f32 + EPSILON,
@@ -182,7 +183,7 @@ impl Interpolater<f32, u8> for TriLinear {
     if !boundary.contains(&point) {
       return Err(InterpolaterError::OutOfBounds {
         bounds: boundary,
-        point,
+        point: point.into(),
       });
     }
 
@@ -190,9 +191,9 @@ impl Interpolater<f32, u8> for TriLinear {
     // this should change any rounding error -0.0002 into 0.
     // that the above bounary check dosen't reject
     let point: Vec3 = [
-      point[0].clamp(0., (self.boundary[0] - 1) as f32),
-      point[1].clamp(0., (self.boundary[1] - 1) as f32),
-      point[2].clamp(0., (self.boundary[2] - 1) as f32),
+      point[0].clamp(0., (self.dimensions[0] - 1) as f32),
+      point[1].clamp(0., (self.dimensions[1] - 1) as f32),
+      point[2].clamp(0., (self.dimensions[2] - 1) as f32),
     ]
     .into();
 
@@ -215,6 +216,8 @@ impl Interpolater<f32, u8> for TriLinear {
     let i = grid_origin[0] as usize;
     let j = grid_origin[1] as usize;
     let k = grid_origin[2] as usize;
+
+    let cell_coord = point - grid_origin;
 
     // There a few edge cases here
     //
@@ -239,77 +242,77 @@ impl Interpolater<f32, u8> for TriLinear {
     let j_limit = self.dimensions[1] - 1;
     let k_limit = self.dimensions[2] - 1;
 
-    let results = if i == i_limit && j == j_limit && k == k_limit {
+    let result = if i == i_limit && j == j_limit && k == k_limit {
       // xyz maxima case (this should be caught by the above check anyways)
-      let f000 = self.get_sample(i, j, k);
+      let f000 = self.get_sample([i, j, k])?;
       f000
     } else if i == i_limit && j == j_limit {
       // xy maxima case
-      let f000 = self.get_sample(i, j, k);
-      let f001 = self.get_sample(i, j, k + 1);
-      let z_sample = z_grid - k as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f001 = self.get_sample([i, j, k + 1])?;
+      let z_sample = cell_coord[2];
       f000 * (1. - z_sample) + f001 * z_sample
     } else if i == i_limit && k == k_limit {
       // xz maxima case
-      let f000 = self.get_sample(i, j, k);
-      let f010 = self.get_sample(i, j + 1, k);
-      let y_sample = y_grid - j as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f010 = self.get_sample([i, j + 1, k])?;
+      let y_sample = cell_coord[1];
       f000 * (1. - y_sample) + f010 * (y_sample)
     } else if j == j_limit && k == k_limit {
       // yz maxima case
-      let f000 = self.get_sample(i, j, k);
-      let f100 = self.get_sample(i + 1, j, k);
-      let x_sample = x_grid - i as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f100 = self.get_sample([i + 1, j, k])?;
+      let x_sample = cell_coord[0];
       f000 * (1. - x_sample) + f100 * (x_sample)
     } else if i == i_limit {
       // x maxima case
-      let f000 = self.get_sample(i, j, k);
-      let f001 = self.get_sample(i, j, k + 1);
-      let f010 = self.get_sample(i, j + 1, k);
-      let f011 = self.get_sample(i, j + 1, k + 1);
-      let y_sample = y_grid - j as f32;
-      let z_sample = z_grid - k as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f001 = self.get_sample([i, j, k + 1])?;
+      let f010 = self.get_sample([i, j + 1, k])?;
+      let f011 = self.get_sample([i, j + 1, k + 1])?;
+      let y_sample = cell_coord[1];
+      let z_sample = cell_coord[2];
       f000 * (1. - y_sample) * (1. - z_sample)
         + f001 * (1. - y_sample) * z_sample
         + f010 * (y_sample) * (1. - z_sample)
         + f011 * (y_sample) * (z_sample)
     } else if j == j_limit {
       // y maxima case
-      let f000 = self.get_sample(i, j, k);
-      let f001 = self.get_sample(i, j, k + 1);
-      let f100 = self.get_sample(i + 1, j, k);
-      let f101 = self.get_sample(i + 1, j, k + 1);
-      let x_sample = x_grid - i as f32;
-      let z_sample = z_grid - k as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f001 = self.get_sample([i, j, k + 1])?;
+      let f100 = self.get_sample([i + 1, j, k])?;
+      let f101 = self.get_sample([i + 1, j, k + 1])?;
+      let x_sample = cell_coord[0];
+      let z_sample = cell_coord[2];
       f000 * (1. - x_sample) * (1. - z_sample)
         + f001 * (1. - x_sample) * z_sample
         + f100 * (x_sample) * (1. - z_sample)
         + f101 * (x_sample) * (z_sample)
     } else if k == k_limit {
       // z maxima case
-      let f000 = self.get_sample(i, j, k);
-      let f010 = self.get_sample(i, j + 1, k);
-      let f100 = self.get_sample(i + 1, j, k);
-      let f110 = self.get_sample(i + 1, j + 1, k);
-      let x_sample = x_grid - i as f32;
-      let y_sample = y_grid - j as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f010 = self.get_sample([i, j + 1, k])?;
+      let f100 = self.get_sample([i + 1, j, k])?;
+      let f110 = self.get_sample([i + 1, j + 1, k])?;
+      let x_sample = cell_coord[0];
+      let y_sample = cell_coord[1];
       f000 * (1. - x_sample) * (1. - y_sample)
         + f010 * (1. - x_sample) * (y_sample)
         + f100 * (x_sample) * (1. - y_sample)
         + f110 * (x_sample) * (y_sample)
     } else if i < i_limit && j < j_limit && k < k_limit {
       // normal case 3d case
-      let f000 = self.get_sample(i, j, k);
-      let f001 = self.get_sample(i, j, k + 1);
-      let f010 = self.get_sample(i, j + 1, k);
-      let f100 = self.get_sample(i + 1, j, k);
-      let f011 = self.get_sample(i, j + 1, k + 1);
-      let f101 = self.get_sample(i + 1, j, k + 1);
-      let f110 = self.get_sample(i + 1, j + 1, k);
-      let f111 = self.get_sample(i + 1, j + 1, k + 1);
-      let x_sample = x_grid - i as f32;
-      let y_sample = y_grid - j as f32;
-      let z_sample = z_grid - k as f32;
+      let f000 = self.get_sample([i, j, k])?;
+      let f001 = self.get_sample([i, j, k + 1])?;
+      let f010 = self.get_sample([i, j + 1, k])?;
+      let f100 = self.get_sample([i + 1, j, k])?;
+      let f011 = self.get_sample([i, j + 1, k + 1])?;
+      let f101 = self.get_sample([i + 1, j, k + 1])?;
+      let f110 = self.get_sample([i + 1, j + 1, k])?;
+      let f111 = self.get_sample([i + 1, j + 1, k + 1])?;
+      let x_sample = cell_coord[0];
+      let y_sample = cell_coord[1];
+      let z_sample = cell_coord[2];
       f000 * (1. - x_sample) * (1. - y_sample) * (1. - z_sample)
         + f001 * (1. - x_sample) * (1. - y_sample) * z_sample
         + f010 * (1. - x_sample) * (y_sample) * (1. - z_sample)
@@ -346,7 +349,7 @@ impl Interpolater<f32, u8> for TriLinear {
   fn get_atlas_sample(&self, point: [usize; 3]) -> Result<Option<u8>, InterpolaterError> {
     let idx =
       point[0] + point[1] * self.dimensions[0] + point[2] * self.dimensions[0] * self.dimensions[1];
-    Ok(self.atlas_data.get(idx))
+    Ok(self.atlas_data.get(idx).copied())
   }
 
   ///
@@ -383,7 +386,7 @@ impl Interpolater<f32, u8> for TriLinear {
   /// let atlas_value = interpolator.get_atlas_value([0.25, 0.5, 1.]);
   /// assert_eq!(atlas_value, 1);
   /// ```
-  fn get_atlas_value(&self, point: [usize; 3]) -> Result<Option<u8>, InterpolaterError> {
+  fn get_atlas_value(&self, point: [f32; 3]) -> Result<Option<u8>, InterpolaterError> {
     let boundary = self.get_boundary();
     if !boundary.contains(&point.into()) {
       return Err(InterpolaterError::OutOfBounds {
