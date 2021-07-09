@@ -1,11 +1,12 @@
-use crate::boundary::Boundary;
+use crate::{atlas::Atlasify, boundary::Boundary, boxify::Sizable, chunk::Chunkify};
+use std::convert::TryInto;
 use thiserror::Error;
 
 /// Errors that the interpolator can raise
 #[derive(Error, Debug)]
 pub enum InterpolaterError {
   /// Interpolators can only approximate values inside its bounds
-  #[error("the requested point {point:?} is out of bounds {boundary:?}")]
+  #[error("the requested point {point:?} is out of bounds {bounds:?}")]
   OutOfBounds { point: [f32; 3], bounds: Boundary },
   /// Used for any other error a trait might need to raise
   #[error("the following error occured: {0}")]
@@ -190,5 +191,5 @@ pub trait Interpolater<T, U> {
   ///   - OK interpolated atlas value at point
   ///   - Err An `InterpolaterError`
   ///
-  fn get_atlas_value(&self, point: [usize; 3]) -> Result<Option<U>, InterpolaterError>;
+  fn get_atlas_value(&self, point: [f32; 3]) -> Result<Option<U>, InterpolaterError>;
 }

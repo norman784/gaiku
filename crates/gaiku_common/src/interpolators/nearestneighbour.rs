@@ -1,5 +1,5 @@
 use super::{Interpolater, InterpolaterError};
-use glam::Vec3;
+use crate::boundary::Boundary;
 
 const EPSILON: f32 = 1e-4;
 
@@ -16,6 +16,9 @@ pub struct NearestNeighbour {
 impl Interpolater<f32, u8> for NearestNeighbour {
   ///
   /// Creates a NearestNeighbour with both interpolated values and atlases
+  ///
+  /// This interpolator simple returns the sample data nearest the specified
+  /// point.
   ///
   /// The length of values should equate to width*height*depth
   /// The length of atlas_data should also be the same as the values
@@ -101,8 +104,8 @@ impl Interpolater<f32, u8> for NearestNeighbour {
   ///
   fn get_boundary(&self) -> Boundary {
     Boundary::new(
-      [-EPSILON, -EPSILON, -EPSILON].into(),
-      [
+      &[-EPSILON, -EPSILON, -EPSILON].into(),
+      &[
         self.dimensions[0] as f32 + EPSILON,
         self.dimensions[1] as f32 + EPSILON,
         self.dimensions[2] as f32 + EPSILON,
@@ -200,7 +203,7 @@ impl Interpolater<f32, u8> for NearestNeighbour {
   fn get_atlas_sample(&self, point: [usize; 3]) -> Result<Option<u8>, InterpolaterError> {
     let idx =
       point[0] + point[1] * self.dimensions[0] + point[2] * self.dimensions[0] * self.dimensions[1];
-    Ok(self.atlas_data.get(idx))
+    Ok(self.atlas_data.get(idx).copied())
   }
 
   ///
@@ -237,7 +240,7 @@ impl Interpolater<f32, u8> for NearestNeighbour {
   /// let atlas_value = interpolator.get_atlas_value([0.25, 0.5, 1.]);
   /// assert_eq!(atlas_value, 1);
   /// ```
-  fn get_atlas_value(&self, point: [usize; 3]) -> Result<Option<u8>, InterpolaterError> {
+  fn get_atlas_value(&self, point: [f32; 3]) -> Result<Option<u8>, InterpolaterError> {
     let boundary = self.get_boundary();
     if !boundary.contains(&point.into()) {
       return Err(InterpolaterError::OutOfBounds {
