@@ -23,14 +23,16 @@ mod boundary;
 pub mod boxify;
 /// Chunk implementation, also offers all traits used internally to build the chunk object.
 pub mod chunk;
+/// Chunker holds structures for breaking up data into chunks
+pub mod chunker;
+/// Interpolates data for off grid values and gradients
+pub mod interpolators;
 /// Mesh related traits/implementation, also offers some utils like MeshBuilder.
 pub mod mesh;
+/// For the mesh builders that help convert faces into a mesh
+pub mod meshbuilder;
 /// Texture related traits/implementation.
 pub mod texture;
-// For the mesh builders that help convert faces into a mesh
-pub mod meshbuilder;
-// chunker holds structures for breaking up data into chunks
-pub mod chunker;
 
 /// `use gaiku_common::prelude::*;` to import common traits and utils.
 pub mod prelude {
