@@ -5,16 +5,43 @@ use crate::{
 };
 use std::convert::TryInto;
 
+///
+/// Chunk holds the result from a chunking operation
+///
+/// This includes aspects like location and scale
+/// because some chunking operations such as the LOD
+/// chunkers will scale the chunks to adjust the resolution
+///
 pub struct Chunked<C> {
+  /// The location of the chunk relative to the first sample datas location
   pub location: [f32; 3],
+  /// The scale of the chunk relative to the original datas scale
   pub scale: [f32; 3],
+  /// The resulting chunk
   pub chunk: C,
 }
 
+///
+/// Generic interface for Chunkers
+///
 pub trait Chunker<C, T, U>
 where
   C: Chunkify<T> + ChunkifyMut<T> + AtlasifyMut<U> + Boxify,
 {
+  ///
+  /// Create chunks using this chunk for input
+  ///
+  /// The values and atlas values from the source
+  /// chunk are copied
+  ///
+  /// # Parameters
+  ///
+  /// * `chunk` - chunk
+  ///
+  /// # Returns
+  ///
+  /// returns description
+  ///
   fn from_chunk<D>(chunk: &D) -> Self
   where
     D: Chunkify<T> + Atlasify<U> + Sizable,
@@ -43,6 +70,26 @@ where
     )
   }
 
+  ///
+  /// Chunks the input array
+  ///
+  /// The length of data samples should match those provided by
+  /// width * height * depth
+  ///
+  /// # Parameters
+  ///
+  /// * `data` - The input data samples
+  ///
+  /// * `width` - width of samples
+  ///
+  /// * `height` - height of samples
+  ///
+  /// * `depth` - depth of samples
+  ///
+  /// # Returns
+  ///
+  /// returns description
+  ///
   fn from_array(data: &[T], width: usize, height: usize, depth: usize) -> Self
   where
     Self: Sized,
@@ -50,6 +97,30 @@ where
     Self::from_array_with_atlas(data, &[], width, height, depth)
   }
 
+  ///
+  /// Chunks the data with atlas values
+  ///
+  /// The data needs to have the length equal to the
+  /// width * height * depth. But the atlas data does
+  /// not any missing values will likely be replaced with
+  /// defaults (usually zero)
+  ///
+  /// # Parameters
+  ///
+  /// * `data` - The source data for the values
+  ///
+  /// * `atlas_data` - The source data for the atlas values
+  ///
+  /// * `width` - width of the data
+  ///
+  /// * `height` - height of the data
+  ///
+  /// * `depth` - depth of the data
+  ///
+  /// # Returns
+  ///
+  /// returns description
+  ///
   fn from_array_with_atlas(
     data: &[T],
     atlas_data: &[U],
@@ -60,5 +131,15 @@ where
   where
     Self: Sized;
 
+  ///
+  /// Generates the chunks from the source data
+  ///
+  /// The source data needs to be already setup
+  /// and ready before making this call
+  ///
+  /// # Returns
+  ///
+  /// returns a `Vec<Chunked<C>>`
+  ///
   fn generate_chunks(&self) -> Vec<Chunked<C>>;
 }

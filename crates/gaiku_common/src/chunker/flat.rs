@@ -8,6 +8,14 @@ use crate::{
 };
 use std::convert::TryInto;
 
+///
+/// FlatChunker will simply seperate the data into chunks of a
+/// specified size.
+///
+/// If the size of the data does not equally
+/// divide into the specified size then the last chunks
+/// in each dimension will be smaller.
+///
 #[derive(Clone)]
 pub struct FlatChunker {
   data: Vec<f32>,
@@ -39,6 +47,36 @@ where
     }
   }
 
+  ///
+  /// Generates the chunks from the source data
+  ///
+  /// The source data needs to be already setup
+  /// and ready before making this call
+  ///
+  /// # Returns
+  ///
+  /// returns a `Vec<Chunked<C>>`
+  ///
+  /// # Examples
+  ///
+  /// ```
+  /// use crate::prelude::*;
+  ///
+  /// let dimensions = [48, 48, 48];
+  /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
+  ///
+  /// let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
+  ///   &data,
+  ///   dimensions[0],
+  ///   dimensions[1],
+  ///   dimensions[2],
+  /// );
+  ///
+  /// let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+  ///
+  /// assert_eq!(results.len(), 27);
+  /// ```
+  ///
   fn generate_chunks(&self) -> Vec<Chunked<C>> {
     let mut results = vec![];
     let chunk_sizes = [
@@ -105,7 +143,40 @@ where
 }
 
 impl FlatChunker {
-  /// Chunk the data into this size
+  ///
+  /// Sets the size to use for this chunker
+  /// chuked size
+  ///
+  /// long description
+  ///
+  /// # Parameters
+  ///
+  /// * `size` - maximum size of generated chunks in `[u16; 3]`
+  ///
+  /// # Returns
+  ///
+  /// returns Self
+  ///
+  /// # Examples
+  ///
+  /// ```
+  /// use crate::prelude::*;
+  ///
+  /// let dimensions = [48, 48, 48];
+  /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
+  ///
+  /// let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
+  ///   &data,
+  ///   dimensions[0],
+  ///   dimensions[1],
+  ///   dimensions[2],
+  /// )
+  /// .with_chunk_size([16, 16, 16]);
+  ///
+  /// let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+  /// assert_eq!(results.len(), 27);
+  /// ```
+  ///
   pub fn with_chunk_size(&self, size: [u16; 3]) -> Self {
     let mut new = self.clone();
     new.chunk_sizes = size;
@@ -113,7 +184,35 @@ impl FlatChunker {
   }
 
   /// Chunk data into a fraction of its current size
-  // fraction should between 0. and 1.0
+  ///
+  /// # Parameters
+  ///
+  /// * `fraction` - Should be a float between 0. and 1.
+  ///
+  /// # Returns
+  ///
+  /// returns Self
+  ///
+  /// # Examples
+  ///
+  /// ```
+  /// use crate::prelude::*;
+  ///
+  /// let dimensions = [48, 48, 48];
+  /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
+  ///
+  /// let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
+  ///   &data,
+  ///   dimensions[0],
+  ///   dimensions[1],
+  ///   dimensions[2],
+  /// )
+  /// .with_chunk_fraction(0.5);
+  ///
+  /// let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+  /// assert_eq!(results.len(), 8);
+  /// ```
+  ///
   pub fn with_chunk_fraction(&self, fraction: [f32; 3]) -> Self {
     let size: [u16; 3] = [
       (self.data_width as f32 * fraction[0]) as u16,
