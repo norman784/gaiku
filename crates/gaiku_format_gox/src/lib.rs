@@ -116,19 +116,24 @@ impl FileFormat for GoxReader {
       }
     }
 
-    let chunker = <FlatChunker as Chunker<C, f32, u8>>::from_array_with_atlas(
+    let mut chunker: FlatChunker<C> = FlatChunker::from_array_with_atlas(
       values.as_slice(),
       atlas_values.as_slice(),
       data_dim[0],
       data_dim[2], // Swap y and z axis
       data_dim[1], // Gox is in z up
                    // Gaiku in y up
-    )
-    .with_chunk_size([16, 16, 16]);
+    );
+    chunker.set_chunk_size([16, 16, 16]);
+    chunker.generate_chunks();
+    let mut chunked = chunker.get_chunks_mut();
 
-    let mut chunked: Vec<Chunked<C>> = chunker.generate_chunks();
-
-    let result: Vec<C> = chunked.drain(..).map(|c| c.chunk).collect();
+    // Because we don't assume clone we take ownership by swapping with some default
+    // we can do this because we don't want to use chunker of chunked again
+    let result: Vec<C> = chunked
+      .iter_mut()
+      .map(|c| std::mem::replace(&mut c.chunk, C::new([0., 0., 0.], 0, 0, 0)))
+      .collect();
 
     if !colors.is_empty() {
       let mut atlas = TextureAtlas2d::new(1);

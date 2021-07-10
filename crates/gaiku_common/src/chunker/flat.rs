@@ -16,17 +16,17 @@ use std::convert::TryInto;
 /// divide into the specified size then the last chunks
 /// in each dimension will be smaller.
 ///
-#[derive(Clone)]
-pub struct FlatChunker {
+pub struct FlatChunker<C> {
   data: Vec<f32>,
   atlas_data: Vec<u8>,
   data_width: usize,
   data_height: usize,
   data_depth: usize,
   chunk_sizes: [u16; 3],
+  results: Vec<Chunked<C>>,
 }
 
-impl<C> Chunker<C, f32, u8> for FlatChunker
+impl<C> Chunker<C, f32, u8> for FlatChunker<C>
 where
   C: Chunkify<f32> + ChunkifyMut<f32> + AtlasifyMut<u8> + Boxify,
 {
@@ -44,6 +44,7 @@ where
       data_height: height,
       data_depth: depth,
       chunk_sizes: [16, 16, 16],
+      results: vec![],
     }
   }
 
@@ -53,10 +54,6 @@ where
   /// The source data needs to be already setup
   /// and ready before making this call
   ///
-  /// # Returns
-  ///
-  /// returns a `Vec<Chunked<C>>`
-  ///
   /// # Examples
   ///
   /// ```
@@ -65,19 +62,20 @@ where
   /// let dimensions = [48, 48, 48];
   /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
   ///
-  /// let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
+  /// let mut chunker: FlatChunker<Chunk> = FlatChunker::from_array(
   ///   &data,
   ///   dimensions[0],
   ///   dimensions[1],
   ///   dimensions[2],
   /// );
   ///
-  /// let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+  /// chunker.generate_chunks();
+  /// let results = chunker.get_chunks();
   ///
   /// assert_eq!(results.len(), 27);
   /// ```
   ///
-  fn generate_chunks(&self) -> Vec<Chunked<C>> {
+  fn generate_chunks(&mut self) {
     let mut results = vec![];
     let chunk_sizes = [
       self.chunk_sizes[0] as usize,
@@ -138,11 +136,40 @@ where
         }
       }
     }
-    results
+    self.results = results;
+  }
+
+  ///
+  /// Gets the resulting chunks
+  ///
+  /// This should be called after `generate_chunks`
+  ///
+  /// # Returns
+  ///
+  /// returns a `Vec<& Chunked<C>>`
+  ///
+  fn get_chunks(&self) -> Vec<&Chunked<C>> {
+    self.results.iter().collect()
+  }
+
+  ///
+  /// Gets the resulting chunks mutably
+  ///
+  /// This should be called after `generate_chunks`
+  ///
+  /// # Returns
+  ///
+  /// returns a `Vec<&mut Chunked<C>>`
+  ///
+  fn get_chunks_mut(&mut self) -> Vec<&mut Chunked<C>> {
+    self.results.iter_mut().collect()
   }
 }
 
-impl FlatChunker {
+impl<C> FlatChunker<C>
+where
+  C: Chunkify<f32> + ChunkifyMut<f32> + AtlasifyMut<u8> + Boxify,
+{
   ///
   /// Sets the size to use for this chunker
   /// chuked size
@@ -165,22 +192,21 @@ impl FlatChunker {
   /// let dimensions = [48, 48, 48];
   /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
   ///
-  /// let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
+  /// let mut chunker: FlatChunker<Chunk> = FlatChunker::from_array(
   ///   &data,
   ///   dimensions[0],
   ///   dimensions[1],
   ///   dimensions[2],
-  /// )
-  /// .with_chunk_size([16, 16, 16]);
+  /// );
+  /// chunker.set_chunk_size([16, 16, 16]);
   ///
-  /// let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+  /// chunker.generate_chunks();
+  /// let results = chunker.get_chunks();
   /// assert_eq!(results.len(), 27);
   /// ```
   ///
-  pub fn with_chunk_size(&self, size: [u16; 3]) -> Self {
-    let mut new = self.clone();
-    new.chunk_sizes = size;
-    new
+  pub fn set_chunk_size(&mut self, size: [u16; 3]) {
+    self.chunk_sizes = size;
   }
 
   /// Chunk data into a fraction of its current size
@@ -201,25 +227,26 @@ impl FlatChunker {
   /// let dimensions = [48, 48, 48];
   /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
   ///
-  /// let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
+  /// let mut chunker: FlatChunker<Chunk> = FlatChunker::from_array(
   ///   &data,
   ///   dimensions[0],
   ///   dimensions[1],
   ///   dimensions[2],
-  /// )
-  /// .with_chunk_fraction(0.5);
+  /// );
+  /// chunker.set_chunk_fraction(0.5);
   ///
-  /// let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+  /// chunker.generate_chunks();
+  /// let results = chunker.get_chunks();
   /// assert_eq!(results.len(), 8);
   /// ```
   ///
-  pub fn with_chunk_fraction(&self, fraction: [f32; 3]) -> Self {
+  pub fn set_chunk_fraction(&mut self, fraction: [f32; 3]) {
     let size: [u16; 3] = [
       (self.data_width as f32 * fraction[0]) as u16,
       (self.data_height as f32 * fraction[1]) as u16,
       (self.data_depth as f32 * fraction[2]) as u16,
     ];
-    self.with_chunk_size(size)
+    self.set_chunk_size(size);
   }
 }
 
@@ -233,15 +260,12 @@ mod test {
     let dimensions = [48, 48, 48];
     let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
 
-    let chunker = <FlatChunker as Chunker<Chunk, f32, u8>>::from_array(
-      &data,
-      dimensions[0],
-      dimensions[1],
-      dimensions[2],
-    )
-    .with_chunk_size([16, 16, 16]);
+    let mut chunker: FlatChunker<Chunk> =
+      FlatChunker::from_array(&data, dimensions[0], dimensions[1], dimensions[2]);
+    chunker.set_chunk_size([16, 16, 16]);
 
-    let results: Vec<Chunked<Chunk>> = chunker.generate_chunks();
+    chunker.generate_chunks();
+    let results = chunker.get_chunks();
 
     assert_eq!(results.len(), 27);
   }

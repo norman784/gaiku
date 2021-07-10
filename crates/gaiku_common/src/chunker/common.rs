@@ -103,7 +103,7 @@ where
   /// The data needs to have the length equal to the
   /// width * height * depth. But the atlas data does
   /// not any missing values will likely be replaced with
-  /// defaults (usually zero)
+  /// defaults
   ///
   /// # Parameters
   ///
@@ -132,14 +132,32 @@ where
     Self: Sized;
 
   ///
-  /// Generates the chunks from the source data
+  /// Generates the chunks
   ///
   /// The source data needs to be already setup
   /// and ready before making this call
   ///
+  fn generate_chunks(&mut self);
+
+  ///
+  /// Gets the resulting chunks
+  ///
+  /// This should be called after `generate_chunks`
+  ///
   /// # Returns
   ///
-  /// returns a `Vec<Chunked<C>>`
+  /// returns a `Vec<& Chunked<C>>`
   ///
-  fn generate_chunks(&self) -> Vec<Chunked<C>>;
+  fn get_chunks(&self) -> Vec<&Chunked<C>>;
+
+  ///
+  /// Gets the resulting chunks mutably
+  ///
+  /// This should be called after `generate_chunks`
+  ///
+  /// # Returns
+  ///
+  /// returns a `Vec<&mut Chunked<C>>`
+  ///
+  fn get_chunks_mut(&mut self) -> Vec<&mut Chunked<C>>;
 }
