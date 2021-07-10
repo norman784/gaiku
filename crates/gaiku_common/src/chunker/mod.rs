@@ -4,5 +4,6 @@
 //!
 mod common;
 mod flat;
+mod lod;
 
-pub use self::{common::*, flat::FlatChunker};
+pub use self::{common::*, flat::FlatChunker, lod::LodChunker};
