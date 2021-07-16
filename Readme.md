@@ -30,8 +30,6 @@ General features:
 
 ## Examples
 
-### 3d
-
 To run the examples go to the folder `gaiku-3d` and run with:
 
 ```bash
@@ -62,6 +60,12 @@ Tree
 
 
 * *There are some kown and unresolved issues with the marching cubes baker.*
+
+## Benchmarks
+
+Benchmark results run on GitHub Action is gathered to this page continuously:
+
+https://norman784.github.io/gaiku/dev/bench
 
 ## License
 
