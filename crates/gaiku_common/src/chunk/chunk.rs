@@ -8,7 +8,7 @@ use crate::{
 };
 
 /// Provides a `Chunkify` implementation with index and value support `(u8, u8)`.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Chunk {
   position: [f32; 3],

@@ -1,0 +1,30 @@
+[package]
+name = "gaiku_bevy"
+version = "0.1.0"
+authors = ["norman784 <normanpaniagua@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bevy_app = "0.5.0"
+bevy_asset = "0.5.0"
+bevy_ecs = "0.5.0"
+bevy_math = "0.5.0"
+bevy_pbr = "0.5.0"
+bevy_render = "0.5.0"
+bevy_scene = "0.5.0"
+bevy_transform = "0.5.0"
+bevy_utils = "0.5.0"
+gaiku_common = { path = "../../crates/gaiku_common", version = "0.1.0" }
+png = "0.16.8"
+anyhow = "1.0.42"
+
+[[example]]
+name = "terrain"
+path =  "examples/terrain.rs"
+
+[dev-dependencies]
+bevy = "0.5.0"
+gaiku_baker_voxel = { path = "../../crates/gaiku_baker_voxel", version = "0.1.0" }
+gaiku_baker_marching_cubes = { path = "../../crates/gaiku_baker_marching_cubes", version = "0.1.0" }
+gaiku_baker_modified_marching_cubes = { path = "../../crates/gaiku_baker_modified_marching_cubes", version = "0.1.0" }
+gaiku_format_gox = { path = "../../crates/gaiku_format_gox", version = "0.1.0" }

@@ -4,7 +4,7 @@
 //! work with different file formats and mesh generators, based on voxels.
 use std::fs::read;
 
-pub use anyhow::Result;
+pub use anyhow::{self, Result};
 pub use mint;
 
 use crate::{

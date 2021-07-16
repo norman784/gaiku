@@ -24,6 +24,7 @@ serialization = ["gaiku_common/serialization"]
 
 [dependencies]
 gaiku_common = { path = "crates/gaiku_common", version = "0.1.0" }
+
 # Bakers
 gaiku_baker_heightmap = { path = "crates/gaiku_baker_heightmap", version = "0.1.0", optional = true }
 gaiku_baker_marching_cubes = { path = "crates/gaiku_baker_marching_cubes", version = "0.1.0", optional = true }
