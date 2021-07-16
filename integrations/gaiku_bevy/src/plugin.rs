@@ -10,14 +10,14 @@ use bevy_transform::prelude::Transform;
 use bevy_utils::BoxedFuture;
 use gaiku_common::prelude::*;
 
-use crate::{GaikuMesh, GaikuTexture};
+use crate::{GaikuMesh, GaikuTexture}; 
 
 #[derive(Default)]
 pub struct GaikuPlugin<F, B, C, V>
 where
-  F: FileFormat<V> + Send + Sync + 'static + Default,
-  B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
+  F: FileFormat + Send + Sync + 'static + Default,
+  B: Baker + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   file_format: PhantomData<F>,
@@ -28,9 +28,9 @@ where
 
 impl<F, B, C, V> Plugin for GaikuPlugin<F, B, C, V>
 where
-  F: FileFormat<V> + Send + Sync + 'static + Default,
-  B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
+  F: FileFormat + Send + Sync + 'static + Default,
+  B: Baker + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   fn build(&self, app: &mut AppBuilder) {
@@ -41,9 +41,9 @@ where
 #[derive(Default)]
 pub struct GaikuAssetLoader<F, B, C, V>
 where
-  F: FileFormat<V> + Send + Sync + 'static + Default,
-  B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
+  F: FileFormat + Send + Sync + 'static + Default,
+  B: Baker + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   file_format: PhantomData<F>,
@@ -54,9 +54,9 @@ where
 
 impl<F, B, C, V> AssetLoader for GaikuAssetLoader<F, B, C, V>
 where
-  F: FileFormat<V> + Send + Sync + 'static + Default,
-  B: Baker<V> + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Boxify + Send + Sync + 'static + Default,
+  F: FileFormat + Send + Sync + 'static + Default,
+  B: Baker + Send + Sync + 'static + Default,
+  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
   V: Send + Sync + 'static + Default,
 {
   fn load<'a>(
@@ -87,8 +87,8 @@ where
       load_context.set_labeled_asset(
         material_label,
         LoadedAsset::new(StandardMaterial {
-          albedo: Color::WHITE,
-          albedo_texture: Some(
+          base_color: Color::WHITE,
+          base_color_texture: Some(
             load_context.get_handle(AssetPath::new_ref(load_context.path(), Some(texture_label))),
           ),
           ..Default::default()

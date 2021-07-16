@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use gaiku_3d::{bakers::VoxelBaker, common::chunk::Chunk, formats::GoxReader};
+use gaiku_common::chunk::Chunk;
+use gaiku_baker_voxel::VoxelBaker;
 use gaiku_bevy::*;
 
 struct CameraRotation {
