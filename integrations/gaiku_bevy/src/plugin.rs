@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use anyhow;
 use bevy_app::{AppBuilder, Plugin};
 use bevy_asset::{AddAsset, AssetLoader, AssetPath, LoadContext, LoadedAsset};
 use bevy_ecs::prelude::World;
@@ -13,51 +14,45 @@ use gaiku_common::prelude::*;
 use crate::{GaikuMesh, GaikuTexture}; 
 
 #[derive(Default)]
-pub struct GaikuPlugin<F, B, C, V>
+pub struct GaikuPlugin<F, B, C>
 where
   F: FileFormat + Send + Sync + 'static + Default,
   B: Baker + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
-  V: Send + Sync + 'static + Default,
+  C: Chunkify<F::Value> + ChunkifyMut<F::Value> + Atlasify<B::AtlasValue> + AtlasifyMut<B::AtlasValue> + Boxify + Sizable + Send + Sync + 'static + Default,
 {
   file_format: PhantomData<F>,
   baker: PhantomData<B>,
   chunk: PhantomData<C>,
-  value: PhantomData<V>,
 }
 
-impl<F, B, C, V> Plugin for GaikuPlugin<F, B, C, V>
+impl<F, B, C> Plugin for GaikuPlugin<F, B, C>
 where
   F: FileFormat + Send + Sync + 'static + Default,
   B: Baker + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
-  V: Send + Sync + 'static + Default,
+  C: Chunkify<F::Value> + ChunkifyMut<F::Value> + Atlasify<B::AtlasValue> + AtlasifyMut<B::AtlasValue> + Boxify + Sizable + Send + Sync + 'static + Default,
 {
   fn build(&self, app: &mut AppBuilder) {
-    app.init_asset_loader::<GaikuAssetLoader<F, B, C, V>>();
+    app.init_asset_loader::<GaikuAssetLoader<F, B, C>>();
   }
 }
 
 #[derive(Default)]
-pub struct GaikuAssetLoader<F, B, C, V>
+pub struct GaikuAssetLoader<F, B, C>
 where
   F: FileFormat + Send + Sync + 'static + Default,
   B: Baker + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
-  V: Send + Sync + 'static + Default,
+  C: Chunkify<F::Value> + ChunkifyMut<F::Value> + Atlasify<B::AtlasValue> + AtlasifyMut<B::AtlasValue> + Boxify + Sizable + Send + Sync + 'static + Default,
 {
   file_format: PhantomData<F>,
   baker: PhantomData<B>,
   chunk: PhantomData<C>,
-  value: PhantomData<V>,
 }
 
-impl<F, B, C, V> AssetLoader for GaikuAssetLoader<F, B, C, V>
+impl<F, B, C> AssetLoader for GaikuAssetLoader<F, B, C>
 where
   F: FileFormat + Send + Sync + 'static + Default,
   B: Baker + Send + Sync + 'static + Default,
-  C: Chunkify<V> + ChunkifyMut<V> + Atlasify<V> + AtlasifyMut<V> + Boxify + Sizable + Send + Sync + 'static + Default,
-  V: Send + Sync + 'static + Default,
+  C: Chunkify<F::Value> + ChunkifyMut<F::Value> + Atlasify<B::AtlasValue> + AtlasifyMut<B::AtlasValue> + Boxify + Sizable + Send + Sync + 'static + Default,
 {
   fn load<'a>(
     &'a self,

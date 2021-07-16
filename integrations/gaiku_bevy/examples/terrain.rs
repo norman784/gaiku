@@ -39,7 +39,7 @@ fn main() {
   App::build()
     .add_resource(Msaa { samples: 4 })
     .add_plugins(DefaultPlugins)
-    .add_plugin(GaikuPlugin::<GoxReader, VoxelBaker, Chunk, (u8, u8)>::default())
+    .add_plugin(GaikuPlugin::<GoxReader, VoxelBaker, Chunk>::default())
     .add_startup_system(setup.system())
     .add_system(rotate_terrain.system())
     .run();
