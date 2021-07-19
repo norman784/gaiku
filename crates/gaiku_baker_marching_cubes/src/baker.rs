@@ -106,14 +106,18 @@ impl MarchingCubesBaker {
               let uvs = texture.get_uv(atlas);
 
               let atlas_origin = uvs.0;
-              let atlas_dimensions = [uvs.2[0] - uvs.0[0], uvs.2[1] - uvs.0[1]];
+              let atlas_min = uvs.0;
+              let atlas_max = uvs.2;
+              let atlas_dimensions = [atlas_max[0] - atlas_min[0], atlas_max[1] - atlas_min[1]];
               // Put face uvs into atlas uv space
               let final_uvs: [[f32; 2]; 3] = face_uvs
                 .iter()
                 .map(|uv| {
                   [
-                    atlas_origin[0] + uv[0] * atlas_dimensions[0],
-                    atlas_origin[1] + uv[1] * atlas_dimensions[1],
+                    (atlas_origin[0] + uv[0] * atlas_dimensions[0])
+                      .clamp(atlas_min[0], atlas_max[0]),
+                    (atlas_origin[1] + uv[1] * atlas_dimensions[1])
+                      .clamp(atlas_min[1], atlas_max[1]),
                   ]
                 })
                 .collect::<Vec<[f32; 2]>>()
