@@ -28,9 +28,16 @@ features = ["metal"]
 name = "terrain"
 path =  "examples/terrain.rs"
 
+[[example]]
+name = "lod"
+path =  "examples/lod.rs"
+
 [dev-dependencies]
 amethyst = "0.15.3"
 gaiku_baker_voxel = { path = "../../crates/gaiku_baker_voxel", version = "0.1.0" }
 gaiku_baker_marching_cubes = { path = "../../crates/gaiku_baker_marching_cubes", version = "0.1.0" }
 gaiku_baker_modified_marching_cubes = { path = "../../crates/gaiku_baker_modified_marching_cubes", version = "0.1.0" }
 gaiku_format_gox = { path = "../../crates/gaiku_format_gox", version = "0.1.0" }
+glam = { version = "^0.12.0 ", features = ["mint"] }
+noise = "0.7.0"
+rand = "0.8.4"

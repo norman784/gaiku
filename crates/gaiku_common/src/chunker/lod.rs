@@ -96,6 +96,10 @@ where
   /// This method is lazy and will only generate chunks
   /// visible from the `observation_point`
   ///
+  /// It will also not update chunks that have already been
+  /// generated. To force a reupdate of all chunks
+  /// call `reset_chunks`
+  ///
   fn generate_chunks(&mut self) {
     let root_size = self.tree.get_size();
     for leaf in
@@ -104,7 +108,6 @@ where
       if leaf.get_data().is_none() {
         // Need to update this leaf
         let location = leaf.get_origin();
-        let scale = leaf.get_size() / root_size;
         let mut chunk = C::new(
           location.into(),
           self.chunk_sizes[0],
@@ -117,6 +120,8 @@ where
           self.chunk_sizes[2] as f32,
         ]
         .into();
+        let scale = leaf.get_size() / root_size;
+
         let delta = leaf.get_size() / (chunk_sizes_f32 - Vec3::one());
         for i in 0..self.chunk_sizes[0] as usize {
           for j in 0..self.chunk_sizes[1] as usize {
@@ -179,7 +184,7 @@ where
       .visible_iter_mut()
       .map(|leaf| leaf.get_data_mut())
       .flatten()
-      .collect()
+      .collect::<Vec<&mut Chunked<C>>>()
   }
 }
 
@@ -347,10 +352,10 @@ impl<Data> OctTree<Data> {
   }
 
   /// Used to make the new children recursively
-  fn make_children(bounds: Boundary, levels: usize) -> Vec<OctTree<Data>> {
-    if levels > 0 {
-      let new_levels = levels - 1;
-      let (min, max) = (bounds.min, bounds.max);
+  fn make_children(parent_bounds: Boundary, parent_level: usize) -> Vec<OctTree<Data>> {
+    if parent_level > 0 {
+      let new_levels = parent_level - 1;
+      let (min, max) = (parent_bounds.min, parent_bounds.max);
       let minx = min[0];
       let maxx = max[0];
       let half_x = (min[0] + max[0]) / 2.;
