@@ -332,7 +332,7 @@ impl GameLoad {
             if let Some(ent) = chunk.get_entity() {
               // Chunk already has an entity just use that
               hidden_storage.remove(ent);
-              self.visible_entities.push(ent.clone());
+              self.visible_entities.push(ent);
             } else {
               // This chunk is made up of this many voxel
               let chunk_size: Vec3 = [
@@ -358,7 +358,7 @@ impl GameLoad {
                 255,
               ];
 
-              let bake_result = self.make_mesh_from_chunk(&chunk, color);
+              let bake_result = self.make_mesh_from_chunk(chunk, color);
 
               // Make an entity we can assign to the metachunk
               let entity = if let Some((mesh_data, tex_data)) = bake_result {
@@ -410,7 +410,7 @@ impl GameLoad {
                 entities.build_entity().build()
               };
               chunk.set_entity(entity);
-              self.visible_entities.push(entity.clone());
+              self.visible_entities.push(entity);
             }
           }
         }
@@ -460,7 +460,7 @@ pub struct MetaChunk {
 
 impl MetaChunk {
   pub fn get_entity(&self) -> Option<Entity> {
-    self.entity.clone()
+    self.entity
   }
 
   pub fn set_entity(&mut self, ent: Entity) {

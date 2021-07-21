@@ -250,8 +250,7 @@ impl Interpolater<f32, u8> for TriLinear {
 
     let result = if i == i_limit && j == j_limit && k == k_limit {
       // xyz maxima case (this should be caught by the above check anyways)
-      let f000 = self.get_sample([i, j, k])?;
-      f000
+      self.get_sample([i, j, k])?
     } else if i == i_limit && j == j_limit {
       // xy maxima case
       let f000 = self.get_sample([i, j, k])?;

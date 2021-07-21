@@ -420,7 +420,7 @@ impl<Data> OctTree<Data> {
   fn resize_tree(&mut self, levels: usize) {
     if self.get_level() == levels {
       return; // No change
-    } else if self.children.len() == 0 && levels > 0 {
+    } else if self.children.is_empty() && levels > 0 {
       // growing the tree from here
       let bounds = Boundary::new(&self.get_bounds().min, &self.get_bounds().max);
       let new_children = OctTree::make_children(bounds, levels);
@@ -509,12 +509,11 @@ impl<Data> OctTreeLeaf<Data> {
   fn new(bounds: Boundary, levels: usize) -> OctTreeLeaf<Data> {
     let data: Option<Data> = None;
 
-    let leaf = OctTreeLeaf {
-      bounds: bounds,
+    OctTreeLeaf {
+      bounds,
       data,
       level: levels,
-    };
-    leaf
+    }
   }
 }
 
@@ -538,7 +537,7 @@ impl<'a, Data> Iterator for OctTreeIter<'a, Data> {
     for child in node.children.iter() {
       self.stack.push(child);
     }
-    return Some(&node.value);
+    Some(&node.value)
   }
 }
 
@@ -562,7 +561,7 @@ impl<'a, Data> Iterator for OctTreeIterMut<'a, Data> {
     for child in node.children.iter_mut() {
       self.stack.push(child);
     }
-    return Some(&mut node.value);
+    Some(&mut node.value)
   }
 }
 
@@ -594,7 +593,7 @@ impl<'a, Data> Iterator for OctTreeVisibleIter<'a, Data> {
   fn next(&mut self) -> Option<Self::Item> {
     loop {
       let node = self.stack.pop()?;
-      if node.children.len() > 0 {
+      if !node.children.is_empty() {
         let center = node.get_center();
         let d = center.distance(self.camera_position);
         let lod: usize = ((d / self.lod_distance).ln() / 2_f32.ln()).floor() as usize;
@@ -640,7 +639,7 @@ impl<'a, Data> Iterator for OctTreeVisibleIterMut<'a, Data> {
   fn next(&mut self) -> Option<Self::Item> {
     loop {
       let node = self.stack.pop()?;
-      if node.children.len() > 0 {
+      if !node.children.is_empty() {
         let center = node.get_center();
         let d = center.distance(self.camera_position);
         let lod: usize = ((d / self.lod_distance).ln() / 2_f32.ln()).floor() as usize;
