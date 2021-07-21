@@ -123,7 +123,7 @@ fn vec_dot(a: &[f32; 3], b: &[f32; 3]) -> f32 {
   a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-fn get_verts(a_coord: [i8; 3], b_coord: [i8; 3]) -> Option<([i8; 4], [[f32; 2]; 4], u8)> {
+fn get_verts(a_coord: [i8; 3], b_coord: [i8; 3]) -> Option<([i8; 4], [[f32; 2]; 4])> {
   // All a_coord or b_coors are corner points so their values all always [0/2, 0/2, 0/2] never 1
   let mid_coord = [
     (b_coord[0] + a_coord[0]) / 2,
@@ -179,14 +179,11 @@ fn get_verts(a_coord: [i8; 3], b_coord: [i8; 3]) -> Option<([i8; 4], [[f32; 2]; 
   let cross = vec_cross(c_delta, d_delta);
   let mid_cross = vec_add(mid_coord, cross);
   let result;
-  let corner;
   if vec_eq(mid_cross, a_coord) {
     // Cross of c,d + mid == a
     result = [mid_coord, d, c, [1, 1, 1]];
-    corner = 0;
   } else {
     result = [mid_coord, c, d, [1, 1, 1]];
-    corner = 1;
   }
 
   let normal = [-cross[0] as f32, -cross[1] as f32, -cross[2] as f32];
@@ -247,7 +244,6 @@ fn get_verts(a_coord: [i8; 3], b_coord: [i8; 3]) -> Option<([i8; 4], [[f32; 2]; 
       *VERT_MAP.get(&result[3]).unwrap(),
     ],
     uvs.try_into().unwrap(),
-    corner,
   ))
 }
 
@@ -272,21 +268,22 @@ fn main() {
                     for j in (i + 1)..8 {
                       let m = values[i];
                       let n = values[j];
-                      if let Some((verts, uvs, corner_idx)) =
+                      if let Some((verts, uvs)) =
                         get_verts(CORNER_MAP[&(i as i8)], CORNER_MAP[&(j as i8)])
                       {
-                        let corner = match corner_idx {
-                          0 => i,
-                          1 => j,
-                          _ => unreachable!(),
+                        let corner: i8 = if m {
+                          i.try_into().unwrap()
+                        } else {
+                          j.try_into().unwrap()
                         };
+
                         add_to_tables(
                           m,
                           n,
                           cube_index,
                           verts,
                           uvs,
-                          corner.try_into().unwrap(),
+                          corner,
                           &mut edge_table,
                           &mut triangle_table,
                           &mut uv_table,
