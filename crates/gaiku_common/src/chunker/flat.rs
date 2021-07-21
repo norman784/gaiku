@@ -57,7 +57,9 @@ where
   /// # Examples
   ///
   /// ```
-  /// use crate::prelude::*;
+  /// # extern crate gaiku;
+  /// use gaiku::common::prelude::*;
+  /// use gaiku::common::chunk::Chunk;
   ///
   /// let dimensions = [48, 48, 48];
   /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
@@ -187,7 +189,9 @@ where
   /// # Examples
   ///
   /// ```
-  /// use crate::prelude::*;
+  /// # extern crate gaiku;
+  /// use gaiku::common::prelude::*;
+  /// use gaiku::common::chunk::Chunk;
   ///
   /// let dimensions = [48, 48, 48];
   /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
@@ -222,7 +226,9 @@ where
   /// # Examples
   ///
   /// ```
-  /// use crate::prelude::*;
+  /// # extern crate gaiku;
+  /// use gaiku::common::prelude::*;
+  /// use gaiku::common::chunk::Chunk;
   ///
   /// let dimensions = [48, 48, 48];
   /// let data = vec![1.; dimensions[0] * dimensions[1] * dimensions[2]];
@@ -233,7 +239,7 @@ where
   ///   dimensions[1],
   ///   dimensions[2],
   /// );
-  /// chunker.set_chunk_fraction(0.5);
+  /// chunker.set_chunk_fraction([0.5, 0.5, 0.5]);
   ///
   /// chunker.generate_chunks();
   /// let results = chunker.get_chunks();

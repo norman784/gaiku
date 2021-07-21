@@ -41,6 +41,7 @@ pub mod prelude {
     boxify::*,
     chunk::{Chunkify, ChunkifyMut},
     chunker::*,
+    interpolators::*,
     mesh::Meshify,
     meshbuilder::*,
     texture::{TextureAtlas2d, Texturify2d},

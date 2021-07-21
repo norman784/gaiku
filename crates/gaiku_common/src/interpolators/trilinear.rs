@@ -50,12 +50,14 @@ impl Interpolater<f32, u8> for TriLinear {
   /// # Examples
   ///
   /// ```
-  /// use crate::prelude::*
+  /// # extern crate gaiku;
+  /// # extern crate rand;
+  /// use gaiku::common::prelude::*;
   /// use rand::Rng;
   /// let mut rng = rand::thread_rng();
   ///
-  /// let samples: Vec<f32> = (0..27).map(|_| rng.gen_range(-10., 10.)).collect();
-  /// let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0, 10)).collect();
+  /// let samples: Vec<f32> = (0..27).map(|_| rng.gen_range((-10.)..(10.))).collect();
+  /// let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0..10)).collect();
   /// let interpolator = TriLinear::from_array_with_atlas(
   ///     &samples,
   ///     &atlas_samples,
@@ -93,20 +95,22 @@ impl Interpolater<f32, u8> for TriLinear {
   /// # Examples
   ///
   /// ```
-  /// #use crate::prelude::*
-  /// #use rand::Rng;
-  /// #let mut rng = rand::thread_rng();
-  /// #let samples: Vec<f32> = (0..27).map(|_| rng.gen_range(-10., 10.)).collect();
-  /// #let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0, 10)).collect();
-  /// #let interpolator = TriLinear::from_array_with_atlas(
+  /// # extern crate gaiku;
+  /// # extern crate rand;
+  /// # use gaiku::common::prelude::*;
+  /// # use rand::Rng;
+  /// # let mut rng = rand::thread_rng();
+  /// # let samples: Vec<f32> = (0..27).map(|_| rng.gen_range((-10.)..(10.))).collect();
+  /// # let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0..10)).collect();
+  /// # let interpolator = TriLinear::from_array_with_atlas(
   /// #    &samples,
   /// #    &atlas_samples,
   /// #    3,
   /// #    3,
   /// #    3,
-  /// #);
+  /// # );
   /// let boundary = interpolator.get_boundary();
-  /// assert!(boundary.contains([1., 1., 2.].into());
+  /// assert!(boundary.contains(&[1., 1., 2.].into()));
   /// ```
   ///
   fn get_boundary(&self) -> Boundary {
@@ -160,18 +164,20 @@ impl Interpolater<f32, u8> for TriLinear {
   /// # Examples
   ///
   /// ```
-  /// #use crate::prelude::*
-  /// #use rand::Rng;
-  /// #let mut rng = rand::thread_rng();
-  /// #let samples: Vec<f32> = (0..27).map(|_| rng.gen_range(-10., 10.)).collect();
-  /// #let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0, 10)).collect();
-  /// #let interpolator = TriLinear::from_array_with_atlas(
-  /// #    &samples,
-  /// #    &atlas_samples,
-  /// #    3,
-  /// #    3,
-  /// #    3,
-  /// #);
+  /// # extern crate gaiku;
+  /// # extern crate rand;
+  /// # use gaiku::common::prelude::*;
+  /// # use rand::Rng;
+  /// # let mut rng = rand::thread_rng();
+  /// # let samples: Vec<f32> = (0..27).map(|_| rng.gen_range((-10.)..(10.))).collect();
+  /// # let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0..10)).collect();
+  /// # let interpolator = TriLinear::from_array_with_atlas(
+  /// #     &samples,
+  /// #     &atlas_samples,
+  /// #     3,
+  /// #     3,
+  /// #     3,
+  /// # );
   /// let value = interpolator.get_value([0.25, 0.5, 1.]);
   /// ```
   ///
@@ -370,21 +376,26 @@ impl Interpolater<f32, u8> for TriLinear {
   ///   - OK interpolated atlas value at point
   ///   - Err An `InterpolaterError`
   ///
+  /// # Examples
+  ///
   /// ```
-  /// #use crate::prelude::*
-  /// #use rand::Rng;
-  /// #let mut rng = rand::thread_rng();
-  /// #let samples: Vec<f32> = (0..27).map(|_| rng.gen_range(-10., 10.)).collect();
-  /// #let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0, 10)).collect();
-  /// #let interpolator = TriLinear::from_array_with_atlas(
-  /// #    &samples,
-  /// #    &atlas_samples,
-  /// #    3,
-  /// #    3,
-  /// #    3,
-  /// #);
+  /// # #[macro_use] extern crate assert_matches;
+  /// # extern crate gaiku;
+  /// # extern crate rand;
+  /// # use gaiku::common::prelude::*;
+  /// # use rand::Rng;
+  /// # let mut rng = rand::thread_rng();
+  /// # let samples: Vec<f32> = (0..27).map(|_| rng.gen_range((-10.)..(10.))).collect();
+  /// # let atlas_samples: Vec<u8> = (0..27).map(|_| rng.gen_range(0..10)).collect();
+  /// # let interpolator = TriLinear::from_array_with_atlas(
+  /// #     &samples,
+  /// #     &atlas_samples,
+  /// #     3,
+  /// #     3,
+  /// #     3,
+  /// # );
   /// let atlas_value = interpolator.get_atlas_value([0.25, 0.5, 1.]);
-  /// assert_eq!(atlas_value, 1);
+  /// assert_matches!(atlas_value, Ok(Some(_)));
   /// ```
   fn get_atlas_value(&self, point: [f32; 3]) -> Result<Option<u8>, InterpolaterError> {
     let boundary = self.get_boundary();
